@@ -1,0 +1,90 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+@keyframes pulseIndigo {
+  0%, 100% {
+    width: 5%;
+    left: 0%;
+  }
+  50% {
+    width: 90%;
+    left: 5%;
+  }
+}
+.animate-pulse-indigo {
+  animation: pulseIndigo 2s ease-in-out infinite;
+}
+@keyframes lineFlow {
+  0% { width: 0; }
+  100% { width: 100%; }
+}
+.animate-line-flow {
+  animation: lineFlow 1s ease-in-out;
+}
+@keyframes textFlow {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  100% { opacity: 1; }
+}
+.animate-text-flow {
+  animation: textFlow 0.3s ease-in-out;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out forwards;
+}
+@keyframes loading-bar {
+  0% {
+    width: 0;
+    opacity: 1;
+  }
+  50% {
+    width: 100%;
+    opacity: 1;
+  }
+  100% {
+    width: 100%;
+    opacity: 0;
+  }
+}
+.animate-loading-bar {
+  animation: loading-bar 2s ease-in-out;
+}
+/* Dark mode transition */
+.dark {
+  color-scheme: dark;
+}
+/* Improved transitions */
+* {
+  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+/* Improved focus styles */
+*:focus-visible {
+  outline: 2px solid #1a7f64;
+  outline-offset: 2px;
+}
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+/* Typography improvements */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
