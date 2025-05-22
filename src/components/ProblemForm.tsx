@@ -9,7 +9,7 @@ export interface FormData {
 }
 
 interface ProblemFormProps {
-  initialData: FormData;
+  initialData: Omit<FormData, 'dataset'> & { dataset?: string };
   onSubmit: (data: FormData) => void;
 }
 
@@ -17,7 +17,7 @@ export function ProblemForm({
   initialData,
   onSubmit
 }: ProblemFormProps) {
-  const [formData, setFormData] = useState<FormData>(initialData);
+  const [formData, setFormData] = useState<FormData>({...initialData, dataset: 'blind75'});
   
   const companies = [{
     id: 'openai',
@@ -32,8 +32,8 @@ export function ProblemForm({
     id: 'microsoft',
     name: 'Microsoft'
   }, {
-    id: 'facebook',
-    name: 'Facebook'
+    id: 'meta',
+    name: 'Meta'
   }, {
     id: 'custom',
     name: 'Custom Company'
@@ -66,30 +66,16 @@ export function ProblemForm({
             <label className="block text-sm font-medium text-neutral-750 dark:text-neutral-200 mb-1">
               Dataset
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2">
               <button 
                 type="button" 
-                onClick={() => {
-                  console.log("Dataset selected: blind75");
-                  setFormData({...formData, dataset: 'blind75'});
-                }}
-                className={`py-2 px-3 border rounded-md text-sm ${formData.dataset === 'blind75' ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
+                className={'py-2 px-3 border rounded-md text-sm bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300 cursor-default'}
               >
                 Blind 75
               </button>
-              <button 
-                type="button"
-                onClick={() => {
-                  console.log("Dataset selected: standard");
-                  setFormData({...formData, dataset: 'standard'});
-                }}
-                className={`py-2 px-3 border rounded-md text-sm ${formData.dataset === 'standard' ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
-              >
-                Standard
-              </button>
             </div>
             <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-500 italic pl-1">
-              {formData.dataset === 'blind75' ? 'Using curated Blind 75 problems' : 'Using standard algorithm problems'}
+              More datasets coming soon...
             </p>
           </div>
           <div>
@@ -135,7 +121,8 @@ export function ProblemForm({
             <button 
               type="submit" 
               onClick={() => console.log("Submit button clicked")}
-              className="w-full flex justify-center items-center px-4 py-2.5 text-base font-medium text-white bg-brand-primary hover:bg-brand-secondary rounded-lg transition-all duration-200 shadow-subtle hover:shadow-medium"
+              className="w-full flex justify-center items-center px-4 py-2.5 text-base font-medium text-white bg-brand-primary hover:bg-brand-secondary rounded-lg transition-all duration-200 shadow-subtle hover:shadow-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={formData.company === 'custom' && !formData.customCompany?.trim()}
             >
               <SparklesIcon className="h-4 w-4 mr-2" />
               Generate Challenge

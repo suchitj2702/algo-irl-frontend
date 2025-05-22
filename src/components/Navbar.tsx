@@ -7,13 +7,13 @@ export function Navbar() {
     isDarkMode,
     toggleDarkMode
   } = useDarkMode();
-  return <header className="bg-white/80 dark:bg-neutral-850/80 backdrop-blur-sm shadow-subtle sticky top-0 z-10 transition-colors duration-200">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center h-14 px-4 sm:px-6 lg:px-8">
+  return <header className="bg-white/80 dark:bg-neutral-850/80 backdrop-blur-lg shadow-subtle sticky top-0 z-10 transition-colors duration-200">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-14">
           <div className="flex-shrink-0">
-            <span className="text-xl font-medium text-neutral-750 dark:text-white">
+            <a href="/" className="text-xl font-medium text-neutral-750 dark:text-white">
               AlgoIRL
-            </span>
+            </a>
           </div>
           <div className="hidden md:flex items-center space-x-4">
             <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-750 dark:hover:text-white transition-colors text-sm">
@@ -38,10 +38,7 @@ export function Navbar() {
         </div>
       </div>
       {isMenuOpen && <div className="md:hidden">
-          <div className="pt-2 pb-3 space-y-1">
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400" onClick={() => setIsMenuOpen(false)}>
-              GitHub
-            </a>
+          <div className="pt-2 pb-3 space-y-1 px-4 sm:px-6 lg:px-8">
           </div>
         </div>}
     </header>;

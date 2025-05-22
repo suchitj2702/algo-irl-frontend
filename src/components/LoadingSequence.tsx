@@ -1,25 +1,82 @@
 import React, { useEffect, useState } from 'react';
+import { loadingPrompts } from '../utils/loadingPrompts';
+
+interface LoadingSequenceProps {
+  company: string;
+  minTotalDuration?: number; // in seconds
+}
+
+// Function to generate random durations for each step
+const generateStepDurations = (numSteps: number, minTotalDurationSeconds: number): number[] => {
+  const minTotalDurationMs = minTotalDurationSeconds * 1000;
+  let durations = new Array(numSteps).fill(0).map(() => Math.random() * (minTotalDurationMs / numSteps) + (minTotalDurationMs / numSteps / 2)); // Add a base to ensure not too short
+  let currentTotalDuration = durations.reduce((sum, d) => sum + d, 0);
+
+  // Adjust durations to meet the minimum total duration
+  if (currentTotalDuration < minTotalDurationMs) {
+    const diff = minTotalDurationMs - currentTotalDuration;
+    const adjustment = diff / numSteps;
+    durations = durations.map(d => d + adjustment);
+  } else {
+    // Optional: if total is already more, you could scale down, or leave as is.
+    // For now, we ensure it's *at least* minTotalDuration.
+    // To scale down:
+    // const scaleFactor = minTotalDurationMs / currentTotalDuration;
+    // durations = durations.map(d => d * scaleFactor);
+  }
+  return durations.map(d => Math.max(500, d)); // Ensure each step is at least 500ms
+};
+
 export function LoadingSequence({
-  company
-}) {
-  const [steps] = useState([`Connecting to ${company}'s AI interview system...`, 'Negotiating with the algorithm...', 'Promising not to solve in O(1) time...', 'AI sympathizes with human limitations...', 'Problem granted out of pity...']);
+  company,
+  minTotalDuration = 20 // Default to 20 seconds
+}: LoadingSequenceProps) {
+  const [selectedTheme, setSelectedTheme] = useState<{ theme: string; sequence: string[] } | null>(null);
+  const [steps, setSteps] = useState<string[]>([]);
+  const [stepDurations, setStepDurations] = useState<number[]>([]);
+
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [completedSteps, setCompletedSteps] = useState([]);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [progress, setProgress] = useState(0);
+
   useEffect(() => {
-    const interval = setInterval(() => {
+    // Select a random theme and prepare its steps
+    const randomIndex = Math.floor(Math.random() * loadingPrompts.length);
+    const theme = loadingPrompts[randomIndex];
+    const processedSequence = theme.sequence.map(step => step.replace('[company]', company));
+    
+    setSelectedTheme(theme);
+    setSteps(processedSequence);
+    setStepDurations(generateStepDurations(processedSequence.length, minTotalDuration));
+  }, [company, minTotalDuration]);
+
+  useEffect(() => {
+    if (steps.length === 0 || stepDurations.length === 0 || currentStepIndex >= steps.length) {
+      return;
+    }
+
+    const currentStepDuration = stepDurations[currentStepIndex];
+
+    const timer = setTimeout(() => {
       if (currentStepIndex < steps.length - 1) {
         setCompletedSteps(prev => [...prev, currentStepIndex]);
-        setCurrentStepIndex(currentStepIndex + 1);
-        setProgress((currentStepIndex + 1) * (100 / steps.length));
+        setCurrentStepIndex(prevIndex => prevIndex + 1);
+        // Calculate progress based on the number of steps completed
+        setProgress(((currentStepIndex + 1) / steps.length) * 100);
       } else {
         setCompletedSteps(prev => [...prev, currentStepIndex]);
         setProgress(100);
-        clearInterval(interval);
+        // Optionally, call an onComplete callback here
       }
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [currentStepIndex, steps.length]);
+    }, currentStepDuration);
+
+    return () => clearTimeout(timer);
+  }, [currentStepIndex, steps, stepDurations]);
+
+  if (!selectedTheme) {
+    return <div>Loading theme...</div>; // Or some other placeholder
+  }
+
   return <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-2xl">
         <div className="mb-8 relative">
@@ -35,9 +92,15 @@ export function LoadingSequence({
         <div className="space-y-6">
           {steps.map((step, index) => {
           // Only show steps up to and including the current step
-          if (index > currentStepIndex) return null;
+          // And also show the next step if the current one is almost done (optional, for smoother transition)
+          if (index > currentStepIndex && !(index === currentStepIndex + 1 && progress > (currentStepIndex + 0.8) * (100 / steps.length) )) {
+             return null;
+          }
+
           const isCompleted = completedSteps.includes(index);
-          const isCurrentStep = index === currentStepIndex && !isCompleted;
+          // Current step is the one at currentStepIndex that is not yet marked completed
+          const isCurrentStep = index === currentStepIndex && !isCompleted && progress < 100;
+          
           return <div key={index} className={`transition-all duration-500 flex items-start ${isCompleted ? 'text-neutral-750 dark:text-white' : isCurrentStep ? 'animate-pulse text-neutral-600 dark:text-neutral-400' : 'text-neutral-400 dark:text-neutral-600'}`}>
                 <div className={`mr-3 p-1 rounded-full ${isCompleted ? 'bg-green-500/20 text-green-500 dark:text-green-400' : isCurrentStep ? 'bg-indigo-500/20 text-indigo-500 dark:text-indigo-400 animate-pulse' : 'bg-gray-200 dark:bg-gray-700'}`}>
                   {isCompleted ? <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
