@@ -530,7 +530,7 @@ export const loadingPrompts = [
     {
       "theme": "Vintage Video Game",
       "sequence": [
-        "INSERT COIN TO PLAY [COMPANY] ALGORITHM QUEST",
+        "INSERT COIN TO PLAY [company] ALGORITHM QUEST",
         "LOADING PROBLEM DATABASE...",
         "CALIBRATING DIFFICULTY SETTINGS...",
         "BOSS PROBLEM APPROACHING!",

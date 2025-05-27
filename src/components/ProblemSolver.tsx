@@ -36,6 +36,18 @@ interface ProblemSolverProps {
   } | null;
 }
 
+// Helper function to render text with backtick support
+const renderTextWithBackticks = (text: string, keyPrefix: string) => {
+  if (!text) return null;
+  const parts = text.split('`');
+  return parts.map((part, index) => {
+    if (index % 2 === 1) { // Content inside backticks
+      return <code key={`${keyPrefix}-bt-${index}`} className="font-mono bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm">{part}</code>;
+    }
+    return <span key={`${keyPrefix}-txt-${index}`}>{part}</span>; // Normal text
+  });
+};
+
 export function ProblemSolver({
   problem,
   solution,
@@ -113,6 +125,7 @@ export function ProblemSolver({
     if (problem.constraints && problem.constraints.length > 0) { fullTextContent += "Constraints: \n"; problem.constraints.forEach(c => fullTextContent += `• ${c}\n`); fullTextContent += "\n"; }
     if (problem.requirements && problem.requirements.length > 0) { fullTextContent += "Requirements: \n"; problem.requirements.forEach(r => fullTextContent += `• ${r}\n`); fullTextContent += "\n"; }
     if (problem.leetcodeUrl) fullTextContent += "Original LeetCode problem for this problem statement";
+    // Removed debug console logs
     if (process.env.NODE_ENV === 'development') { setTypedText(fullTextContent); setTypingComplete(true); setShowEditor(true); }
     else { let i = 0; const interval = setInterval(() => { i++; setTypedText(fullTextContent.substring(0, i)); if (i >= fullTextContent.length) { clearInterval(interval); setTimeout(() => { setTypingComplete(true); setTimeout(() => setShowEditor(true), 300); }, 500); } }, 25); return () => clearInterval(interval); }
   }, [problem]);
@@ -183,28 +196,75 @@ export function ProblemSolver({
   
   const formatTypedText = () => {
     if (!typedText) return null;
-    let sections: { type: string; content: string[]; }[] = []; let currentSection: { type: string; content: string[]; } = { type: 'title', content: [] };
+    let sections: { type: string; content: string[]; }[] = [];
+    let currentSection: { type: string; content: string[]; } = { type: 'title', content: [] };
+
     typedText.split('\n').forEach((line, i) => {
-      if (i === 0) currentSection.content.push(line);
-      else if (line.startsWith('Examples:')) { sections.push({ ...currentSection }); currentSection = { type: 'examples-header', content: [line] }; }
-      else if (line.startsWith('Example ')) { if (currentSection.type !== 'example') sections.push({ ...currentSection }); currentSection = { type: 'example', content: (currentSection.type === 'example' ? currentSection.content : []) }; currentSection.content.push(line); }
-      else if (line.startsWith('Input:') || line.startsWith('Expected Output:') || line.startsWith('Explanation:')) { if (currentSection.type !== 'example') { sections.push({ ...currentSection }); currentSection = { type: 'example', content: [] }; } currentSection.content.push(line); }
-      else if (line.startsWith('Constraints:')) { sections.push({ ...currentSection }); currentSection = { type: 'constraints-header', content: [line] }; }
-      else if (line.startsWith('• ') && (currentSection.type === 'constraints-header' || currentSection.type === 'constraints-item')) { if (currentSection.type === 'constraints-header') { sections.push({ ...currentSection }); currentSection = { type: 'constraints-item', content: [] }; } currentSection.content.push(line); }
-      else if (line.startsWith('Requirements:')) { sections.push({ ...currentSection }); currentSection = { type: 'requirements-header', content: [line] }; }
-      else if (line.startsWith('• ') && (currentSection.type === 'requirements-header' || currentSection.type === 'requirements-item')) { if (currentSection.type === 'requirements-header') { sections.push({ ...currentSection }); currentSection = { type: 'requirements-item', content: [] }; } currentSection.content.push(line); }
-      else if (line === 'Original LeetCode problem for this problem statement') { sections.push({ ...currentSection }); currentSection = { type: 'leetcode', content: [line] }; }
-      else if (line.trim() !== '') { if (['title', 'examples-header', 'example', 'constraints-header', 'constraints-item', 'requirements-header', 'requirements-item', 'leetcode'].includes(currentSection.type)) { sections.push({ ...currentSection }); currentSection = { type: 'paragraph', content: [] }; } currentSection.content.push(line); }
+      if (i === 0) currentSection.content.push(line); // Title
+      else if (line.startsWith('Examples:')) {
+        sections.push({ ...currentSection });
+        currentSection = { type: 'examples-header', content: [line] };
+      } else if (line.startsWith('Example ')) {
+        if (currentSection.type !== 'example') sections.push({ ...currentSection }); // Push previous if not already an example part
+        currentSection = { type: 'example', content: (currentSection.type === 'example' ? currentSection.content : []) }; // Start new or continue example
+        currentSection.content.push(line);
+      } else if (line.startsWith('Input:') || line.startsWith('Expected Output:') || line.startsWith('Explanation:')) {
+        if (currentSection.type !== 'example') { // Should be part of an example
+          sections.push({ ...currentSection });
+          currentSection = { type: 'example', content: [] };
+        }
+        currentSection.content.push(line);
+      } else if (line.startsWith('Constraints:')) {
+        sections.push({ ...currentSection });
+        currentSection = { type: 'constraints-header', content: [line] };
+      } else if (line.startsWith('• ') && (currentSection.type === 'constraints-header' || currentSection.type === 'constraints-item')) {
+        if (currentSection.type === 'constraints-header') {
+          sections.push({ ...currentSection });
+          currentSection = { type: 'constraints-item', content: [] };
+        }
+        currentSection.content.push(line);
+      } else if (line.startsWith('Requirements:')) {
+        sections.push({ ...currentSection });
+        currentSection = { type: 'requirements-header', content: [line] };
+      } else if (line.startsWith('• ') && (currentSection.type === 'requirements-header' || currentSection.type === 'requirements-item')) {
+        if (currentSection.type === 'requirements-header') {
+          sections.push({ ...currentSection });
+          currentSection = { type: 'requirements-item', content: [] };
+        }
+        currentSection.content.push(line);
+      } else if (line === 'Original LeetCode problem for this problem statement') {
+        sections.push({ ...currentSection });
+        currentSection = { type: 'leetcode', content: [line] };
+      } else if (line.trim() !== '') { // General paragraph content
+        if (['title', 'examples-header', 'example', 'constraints-header', 'constraints-item', 'requirements-header', 'requirements-item', 'leetcode'].includes(currentSection.type)) {
+          sections.push({ ...currentSection });
+          currentSection = { type: 'paragraph', content: [] };
+        }
+        currentSection.content.push(line);
+      }
     });
     if (currentSection.content.length > 0 && currentSection.content.some(c => c.trim() !== '')) sections.push(currentSection);
+
     return sections.map((s, idx) => {
       switch (s.type) {
-        case 'title': return s.content.length > 0 ? <h2 key={`s-${idx}`} className="text-2xl font-bold mt-4 mb-2">{s.content.join('\n')}</h2> : null;
-        case 'examples-header': case 'constraints-header': case 'requirements-header': return s.content.length > 0 ? <h3 key={`s-${idx}`} className="text-xl font-medium mt-4 mb-2">{s.content[0]}</h3> : null;
-        case 'example': return <div key={`s-${idx}`} className="mt-2">{s.content.map((l,i) => l.startsWith('Example ') ? <h4 key={`l-${i}`} className="text-lg font-medium mt-3 mb-1">{l}</h4> : (l.startsWith('Input:') || l.startsWith('Expected Output:') || l.startsWith('Explanation:') ? <p key={`l-${i}`} className="font-mono text-sm ml-4">{l}</p> : null))}</div>;
-        case 'constraints-item': case 'requirements-item': return <ul key={`s-${idx}`} className="list-disc pl-5 mt-2">{s.content.map((item, i) => <li key={`li-${i}`} className="ml-2 font-mono text-sm">{item.startsWith('• ') ? item.substring(2) : item}</li>)}</ul>;
-        case 'leetcode': return s.content.length > 0 && problem.leetcodeUrl ? <div key={`s-${idx}`} className="mt-8 text-sm text-neutral-500"><a href={problem.leetcodeUrl} target="_blank" rel="noopener noreferrer" className="hover:text-brand-primary transition-colors">{s.content[0]}</a></div> : null;
-        default: return s.content.length > 0 && s.content.some(c=>c.trim()!=='') ? <div key={`s-${idx}`} className="mt-2">{s.content.map((l, i) => <p key={`p-${i}`} className="mb-2">{l}</p>)}</div> : null;
+        case 'title': return s.content.length > 0 ? <h2 key={`s-${idx}`} className="text-2xl font-bold mt-4 mb-2">{renderTextWithBackticks(s.content.join('\n'), `s-${idx}-title`)}</h2> : null;
+        case 'examples-header': case 'constraints-header': case 'requirements-header': return s.content.length > 0 ? <h3 key={`s-${idx}`} className="text-xl font-medium mt-4 mb-2">{renderTextWithBackticks(s.content[0], `s-${idx}-header`)}</h3> : null;
+        case 'example': 
+          return <div key={`s-${idx}`} className="mt-2">{s.content.map((l,i) => 
+            l.startsWith('Example ') ? <h4 key={`l-${i}`} className="text-lg font-medium mt-3 mb-1">{renderTextWithBackticks(l, `s-${idx}-l-${i}`)}</h4> : 
+            (l.startsWith('Input:') || l.startsWith('Expected Output:') || l.startsWith('Explanation:') ? 
+              <p key={`l-${i}`} className="font-mono text-sm ml-4">{renderTextWithBackticks(l, `s-${idx}-l-${i}`)}</p> : null)
+          )}</div>;
+        case 'constraints-item': case 'requirements-item': 
+          return <ul key={`s-${idx}`} className="list-disc pl-5 mt-2">{s.content.map((item, i) => 
+            <li key={`li-${i}`} className="ml-2 font-mono text-sm">{renderTextWithBackticks(item.startsWith('• ') ? item.substring(2) : item, `s-${idx}-li-${i}`)}</li>
+          )}</ul>;
+        case 'leetcode': return s.content.length > 0 && problem.leetcodeUrl ? <div key={`s-${idx}`} className="mt-8 text-sm text-neutral-500"><a href={problem.leetcodeUrl} target="_blank" rel="noopener noreferrer" className="hover:text-brand-primary transition-colors">{renderTextWithBackticks(s.content[0], `s-${idx}-leetcode`)}</a></div> : null;
+        default: // paragraph
+          return s.content.length > 0 && s.content.some(c=>c.trim()!=='') ? 
+            <div key={`s-${idx}`} className="mt-2">{s.content.map((l, i) => 
+              <p key={`p-${i}`} className="mb-2">{renderTextWithBackticks(l, `s-${idx}-p-${i}`)}</p>
+            )}</div> : null;
       }
     });
   };

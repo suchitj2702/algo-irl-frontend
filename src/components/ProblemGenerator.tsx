@@ -209,8 +209,6 @@ export function ProblemGenerator() {
             problem={problem} 
             onTryAgain={handleTryAgain} 
             onGoBackToProblem={handleGoBackToProblem} // Pass the new handler
-            showSaveProgress={showSaveProgress} 
-            onCloseSaveProgress={() => setShowSaveProgress(false)} 
           />
         )}
       </div>

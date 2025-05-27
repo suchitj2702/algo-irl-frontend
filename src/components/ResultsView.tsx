@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircleIcon, XCircleIcon, SaveIcon, Edit3Icon } from 'lucide-react';
+import { CheckCircleIcon, XCircleIcon, Edit3Icon } from 'lucide-react';
 
 // Define a more specific props interface for ResultsView
 interface ResultsViewProps {
@@ -16,17 +16,13 @@ interface ResultsViewProps {
   problem: any; // Consider defining a specific type for problem as well if not already done elsewhere
   onTryAgain: () => void;
   onGoBackToProblem?: () => void; // New optional prop
-  showSaveProgress: boolean;
-  onCloseSaveProgress: () => void;
 }
 
 export function ResultsView({
   results,
   problem, // problem prop is available but not directly used in this snippet for brevity
   onTryAgain,
-  onGoBackToProblem, // Destructure the new prop
-  showSaveProgress,
-  onCloseSaveProgress
+  onGoBackToProblem // Destructure the new prop
 }: ResultsViewProps) {
   // Calculate the number of passed test cases if results are not overall passed
   const passedCount = results.passed ? results.testCases.length : results.testCases.filter(tc => tc.passed).length;
@@ -106,24 +102,6 @@ export function ResultsView({
           </button>
         </div>
       </div>
-
-      {showSaveProgress && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center sm:items-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md transform transition-all animate-slide-up">
-            <h3 className="text-lg font-medium text-neutral-750 dark:text-white mb-4">Save Your Progress</h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Great job solving this problem! Would you like to save your progress?
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button onClick={onCloseSaveProgress} className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">Skip</button>
-              <button onClick={onCloseSaveProgress} className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
-                <SaveIcon className="w-4 h-4 mr-2" />
-                Save Progress
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
