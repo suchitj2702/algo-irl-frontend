@@ -1,3 +1,5 @@
+import { API_CONFIG, buildApiUrl } from '../config/api';
+
 export interface TestCase {
   stdin: any;
   expectedStdout: any;
@@ -50,7 +52,7 @@ const pollForResults = async ({
   testCasesTotal,
 }: PollArgs) => {
   try {
-    const response = await fetch(`/api/execute-code/status/${submissionId}`);
+    const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.EXECUTE_CODE_STATUS, submissionId));
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Failed to fetch submission status and parse error JSON.' }));
@@ -122,7 +124,7 @@ export const executeCodeAndPoll = async ({
 }: ExecuteCodeParams): Promise<void> => {
   onLoadingChange(true);
   try {
-    const response = await fetch('/api/execute-code', {
+    const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.EXECUTE_CODE), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

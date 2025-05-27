@@ -7,6 +7,7 @@ import { ResultsView } from './ResultsView';
 import { DarkModeProvider } from './DarkModeContext';
 import { Navbar } from './Navbar';
 import { TestCase } from '../utils/codeExecution';
+import { API_CONFIG, buildApiUrl } from '../config/api';
 
 interface Problem {
   title: string;
@@ -72,7 +73,7 @@ export function ProblemGenerator() {
       let companyId = company;
       
       if (company === 'custom' && customCompany) {
-        const companyResponse = await fetch('/api/companies/initialize', {
+        const companyResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_INITIALIZE), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ companyName: customCompany }),
@@ -83,7 +84,7 @@ export function ProblemGenerator() {
         companyId = companyData.company.id;
       }
       
-      const prepareResponse = await fetch('/api/problem/prepare', {
+      const prepareResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEM_PREPARE), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ difficulty, companyId, isBlind75 }),

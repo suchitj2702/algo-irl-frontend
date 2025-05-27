@@ -81,8 +81,16 @@ export function ProblemSolver({
 }`;
   };
   
+  const getBoilerplateCode = () => {
+    return codeDetails.defaultUserCode || `function solution(input) {
+  // Your solution here
+  return null;
+}`;
+  };
+  
   const [code, setCode] = useState(getInitialCode());
   const initialCode = useRef(getInitialCode());
+  const boilerplateCode = useRef(getBoilerplateCode());
   const [typingComplete, setTypingComplete] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
   const [typedText, setTypedText] = useState("");
@@ -94,8 +102,10 @@ export function ProblemSolver({
   useEffect(() => {
     processedProblem.current = problem;
     const newInitialCode = getInitialCode();
+    const newBoilerplateCode = getBoilerplateCode();
     setCode(newInitialCode);
     initialCode.current = newInitialCode;
+    boilerplateCode.current = newBoilerplateCode;
     setTypedText("");
     setTypingComplete(false);
     setShowEditor(false);
@@ -130,7 +140,13 @@ export function ProblemSolver({
     else { let i = 0; const interval = setInterval(() => { i++; setTypedText(fullTextContent.substring(0, i)); if (i >= fullTextContent.length) { clearInterval(interval); setTimeout(() => { setTypingComplete(true); setTimeout(() => setShowEditor(true), 300); }, 500); } }, 25); return () => clearInterval(interval); }
   }, [problem]);
   
-  const handleReset = () => { setCode(initialCode.current); setExecutionResults(null); setLastActionType(null); setIsLoadingRun(false); setIsLoadingSubmit(false); };
+  const handleReset = () => { 
+    setCode(boilerplateCode.current); 
+    setExecutionResults(null); 
+    setLastActionType(null); 
+    setIsLoadingRun(false); 
+    setIsLoadingSubmit(false); 
+  };
   const commonExecutionHandler = (results: ExecutionResults) => setExecutionResults(results);
   
   const commonErrorHandler = (errorMsg: string, submissionId?: string, intendedTestCasesCount?: number) => {
