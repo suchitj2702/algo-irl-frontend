@@ -38,7 +38,7 @@ interface CodeDetails {
   language: string;
 }
 
-const MIN_LOADING_DURATION_SECONDS = 20; // Configurable minimum loading duration
+export const MIN_LOADING_DURATION_SECONDS = 60;
 
 export function ProblemGenerator() {
   const [currentStep, setCurrentStep] = useState('intro');

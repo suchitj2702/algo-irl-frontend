@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { loadingPrompts } from '../utils/loadingPrompts';
+import { MIN_LOADING_DURATION_SECONDS } from './ProblemGenerator';
 
 interface LoadingSequenceProps {
   company: string;
@@ -12,40 +13,37 @@ interface LoadingSequenceProps {
 const generateStepDurations = (numSteps: number, minTotalDurationSeconds: number): number[] => {
   const minTotalDurationMs = minTotalDurationSeconds * 1000;
   
-  // For 5 steps: first 3 steps should be quicker (5-10 seconds total), last 2 steps get remaining time
+  // First 3 steps should take 1/3 of total time, remaining steps get 2/3
   const quickStepsCount = Math.min(3, numSteps);
   const slowStepsCount = numSteps - quickStepsCount;
   
-  // Generate quick step durations (1.5-3.5 seconds each for first 3 steps)
-  const quickStepDurations = Array.from({ length: quickStepsCount }, () => 
-    Math.random() * 2000 + 1500 // 1.5-3.5 seconds
-  );
+  const quickStepsTimeRatio = 1/3; // First 3 steps get 1/3 of total time
+  const quickStepsTimeMs = minTotalDurationMs * quickStepsTimeRatio;
+  const slowStepsTimeMs = minTotalDurationMs * (1 - quickStepsTimeRatio);
   
-  const quickStepsTotal = quickStepDurations.reduce((sum, d) => sum + d, 0);
-  const remainingTime = minTotalDurationMs - quickStepsTotal;
+  // Generate quick step durations (evenly distributed within the allocated time)
+  const quickStepDurations = Array.from({ length: quickStepsCount }, () => 
+    quickStepsTimeMs / quickStepsCount + (Math.random() - 0.5) * (quickStepsTimeMs / quickStepsCount * 0.3) // ±15% variation
+  );
   
   // Generate slower step durations for remaining steps
   const slowStepDurations = slowStepsCount > 0 
     ? Array.from({ length: slowStepsCount }, () => 
-        Math.random() * (remainingTime / slowStepsCount) + (remainingTime / slowStepsCount / 2)
+        slowStepsTimeMs / slowStepsCount + (Math.random() - 0.5) * (slowStepsTimeMs / slowStepsCount * 0.3) // ±15% variation
       )
     : [];
   
-  // Adjust slow steps to use exactly the remaining time
-  if (slowStepsCount > 0) {
-    const currentSlowTotal = slowStepDurations.reduce((sum, d) => sum + d, 0);
-    const adjustment = remainingTime / currentSlowTotal;
-    slowStepDurations.forEach((_, i) => {
-      slowStepDurations[i] *= adjustment;
-    });
-  }
+  // Ensure all durations are at least 500ms and adjust to use exactly the total time
+  const allDurations = [...quickStepDurations, ...slowStepDurations];
+  const currentTotal = allDurations.reduce((sum, d) => sum + d, 0);
+  const adjustment = minTotalDurationMs / currentTotal;
   
-  return [...quickStepDurations, ...slowStepDurations].map(d => Math.max(500, d));
+  return allDurations.map(d => Math.max(500, d * adjustment));
 };
 
 export function LoadingSequence({
   company,
-  minTotalDuration = 40,
+  minTotalDuration = MIN_LOADING_DURATION_SECONDS,
   onComplete,
   forceComplete = false
 }: LoadingSequenceProps) {
