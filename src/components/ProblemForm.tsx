@@ -95,22 +95,22 @@ export function ProblemForm({
                 type="button" 
                 onClick={() => {
                   console.log(`Company selected: custom`);
-                  setFormData({
-                    ...formData,
+                setFormData({
+                  ...formData,
                     company: 'custom'
-                  });
+                });
                 }} 
                 className={`w-full py-2 px-3 border rounded-md text-sm flex items-center justify-center gap-2 ${formData.company === 'custom' ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
               >
                 <CompanyIcon />
                 Company Name
               </button>
-              {formData.company === 'custom' && <input type="text" value={formData.customCompany} onChange={e => {
-                console.log(`Custom company entered: ${e.target.value}`);
-                setFormData({
-                  ...formData,
-                  customCompany: e.target.value
-                });
+            {formData.company === 'custom' && <input type="text" value={formData.customCompany} onChange={e => {
+              console.log(`Custom company entered: ${e.target.value}`);
+              setFormData({
+                ...formData,
+                customCompany: e.target.value
+              });
               }} placeholder="Enter any company name" className="block w-full rounded-md border-gray-300 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />}
               <div className="grid grid-cols-3 gap-2">
                 {companies.slice(1).map(company => {
@@ -157,4 +157,4 @@ export function ProblemForm({
         </form>
       </div>
     </div>;
-} 
+}

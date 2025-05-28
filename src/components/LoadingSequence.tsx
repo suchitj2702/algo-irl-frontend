@@ -1,25 +1,25 @@
 import { useEffect, useState } from 'react';
 import { loadingPrompts } from '../utils/loadingPrompts';
-import { MIN_LOADING_DURATION_SECONDS } from './ProblemGenerator';
+import { MAX_LOADING_DURATION_SECONDS } from './ProblemGenerator';
 
 interface LoadingSequenceProps {
   company: string;
-  minTotalDuration?: number; // in seconds
+  maxTotalDuration?: number; // in seconds - maximum time for loading sequence
   onComplete?: () => void; // Callback when loading is complete
   forceComplete?: boolean; // Force completion when response is received
 }
 
 // Function to generate step durations with quicker initial steps
-const generateStepDurations = (numSteps: number, minTotalDurationSeconds: number): number[] => {
-  const minTotalDurationMs = minTotalDurationSeconds * 1000;
+const generateStepDurations = (numSteps: number, maxTotalDurationSeconds: number): number[] => {
+  const maxTotalDurationMs = maxTotalDurationSeconds * 1000;
   
   // First 3 steps should take 1/3 of total time, remaining steps get 2/3
   const quickStepsCount = Math.min(3, numSteps);
   const slowStepsCount = numSteps - quickStepsCount;
   
   const quickStepsTimeRatio = 1/3; // First 3 steps get 1/3 of total time
-  const quickStepsTimeMs = minTotalDurationMs * quickStepsTimeRatio;
-  const slowStepsTimeMs = minTotalDurationMs * (1 - quickStepsTimeRatio);
+  const quickStepsTimeMs = maxTotalDurationMs * quickStepsTimeRatio;
+  const slowStepsTimeMs = maxTotalDurationMs * (1 - quickStepsTimeRatio);
   
   // Generate quick step durations (evenly distributed within the allocated time)
   const quickStepDurations = Array.from({ length: quickStepsCount }, () => 
@@ -36,14 +36,14 @@ const generateStepDurations = (numSteps: number, minTotalDurationSeconds: number
   // Ensure all durations are at least 500ms and adjust to use exactly the total time
   const allDurations = [...quickStepDurations, ...slowStepDurations];
   const currentTotal = allDurations.reduce((sum, d) => sum + d, 0);
-  const adjustment = minTotalDurationMs / currentTotal;
+  const adjustment = maxTotalDurationMs / currentTotal;
   
   return allDurations.map(d => Math.max(500, d * adjustment));
 };
 
 export function LoadingSequence({
   company,
-  minTotalDuration = MIN_LOADING_DURATION_SECONDS,
+  maxTotalDuration = MAX_LOADING_DURATION_SECONDS,
   onComplete,
   forceComplete = false
 }: LoadingSequenceProps) {
@@ -64,8 +64,8 @@ export function LoadingSequence({
     
     setSelectedTheme(theme);
     setSteps(processedSequence);
-    setStepDurations(generateStepDurations(processedSequence.length, minTotalDuration));
-  }, [company, minTotalDuration]);
+    setStepDurations(generateStepDurations(processedSequence.length, maxTotalDuration));
+  }, [company, maxTotalDuration]);
 
   // Handle force completion when response is received
   useEffect(() => {

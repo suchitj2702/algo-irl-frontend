@@ -38,7 +38,7 @@ interface CodeDetails {
   language: string;
 }
 
-export const MIN_LOADING_DURATION_SECONDS = 60;
+export const MAX_LOADING_DURATION_SECONDS = 40;
 
 export function ProblemGenerator() {
   const [currentStep, setCurrentStep] = useState('intro');
@@ -54,6 +54,7 @@ export function ProblemGenerator() {
   const [evaluationResults, setEvaluationResults] = useState<TestResultsFromParent | null>(null);
   const [showSaveProgress, setShowSaveProgress] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [apiResponseReceived, setApiResponseReceived] = useState(false);
 
   const handleStartClick = () => setCurrentStep('form');
 
@@ -61,12 +62,12 @@ export function ProblemGenerator() {
     try {
       setFormData(data);
       setCurrentStep('loading');
-      const loadingStartTime = Date.now(); // Record start time of loading
       setError(null);
       setProblem(null);
       setCodeDetails(null);
       setEvaluationResults(null); // Clear previous evaluation results
       setSolutionFromSolver(null); // Clear previous solution
+      setApiResponseReceived(false); // Reset API response flag
       
       const { company, customCompany, difficulty } = data;
       const isBlind75 = data.dataset === 'blind75';
@@ -123,15 +124,13 @@ export function ProblemGenerator() {
         throw new Error("Invalid problem data received from API. Missing statement, test cases, or constraints.");
       }
       
-      const elapsedTimeMs = Date.now() - loadingStartTime;
-      const minDurationMs = MIN_LOADING_DURATION_SECONDS * 1000;
-      const remainingDelayMs = Math.max(0, minDurationMs - elapsedTimeMs);
-
-      setTimeout(() => {
-        setProblem(formattedProblem);
-        setCodeDetails(formattedCodeDetails);
-        setCurrentStep('problem');
-      }, remainingDelayMs);
+      // Mark that API response has been received
+      setApiResponseReceived(true);
+      
+      // Immediately proceed to problem step once data is ready
+      setProblem(formattedProblem);
+      setCodeDetails(formattedCodeDetails);
+      setCurrentStep('problem');
 
     } catch (err) {
       console.error('Error preparing problem:', err);
@@ -167,6 +166,7 @@ export function ProblemGenerator() {
     setProblem(null);
     setCodeDetails(null);
     setError(null);
+    setApiResponseReceived(false);
   };
 
   const handleGoBackToProblem = () => {
@@ -189,7 +189,8 @@ export function ProblemGenerator() {
         )}
         {currentStep === 'loading' && <LoadingSequence 
             company={formData.company === 'custom' ? formData.customCompany : formData.company} 
-            minTotalDuration={MIN_LOADING_DURATION_SECONDS} 
+            maxTotalDuration={MAX_LOADING_DURATION_SECONDS}
+            forceComplete={apiResponseReceived}
         />}
         {currentStep === 'problem' && problem && codeDetails && (
           <ProblemSolver 
