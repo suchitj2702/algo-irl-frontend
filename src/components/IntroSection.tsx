@@ -7,18 +7,18 @@ interface IntroSectionProps {
 export function IntroSection({
   onStartClick
 }: IntroSectionProps) {
-  return <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
-      <div className="text-center max-w-2xl px-4">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-neutral-750 dark:text-white mb-4">
+  return <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] px-4">
+      <div className="text-center max-w-4xl mx-auto">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-gray-900 dark:text-white mb-6">
           Algorithms In Real Life
         </h1>
-        <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-300 mb-8 leading-relaxed">
-          Practice for your coding interviews like never before...
+        <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+          Practice for your coding interviews like never before
         </p>
-        <button onClick={onStartClick} className="inline-flex items-center justify-center px-6 py-2.5 text-base font-medium text-white bg-brand-primary hover:bg-brand-secondary rounded-lg transition-all duration-200 shadow-subtle hover:shadow-medium">
+        <button onClick={onStartClick} className="inline-flex items-center justify-center px-8 py-3 text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl">
           <span className="flex items-center">
             Let's Go
-            <ArrowRightIcon className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            <ArrowRightIcon className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
           </span>
         </button>
       </div>
