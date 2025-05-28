@@ -1,4 +1,3 @@
-import React from 'react';
 export function LoadingAnimation() {
   return <div className="bg-white shadow-lg rounded-lg p-8">
       <div className="text-center">

@@ -45,7 +45,7 @@ const generateStepDurations = (numSteps: number, minTotalDurationSeconds: number
 
 export function LoadingSequence({
   company,
-  minTotalDuration = 25, // Updated default to 25 seconds
+  minTotalDuration = 35,
   onComplete,
   forceComplete = false
 }: LoadingSequenceProps) {
