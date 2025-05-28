@@ -36,15 +36,30 @@ interface ProblemSolverProps {
   } | null;
 }
 
-// Helper function to render text with backtick support
+// Helper function to render text with backtick and bold markdown support
 const renderTextWithBackticks = (text: string, keyPrefix: string) => {
   if (!text) return null;
-  const parts = text.split('`');
-  return parts.map((part, index) => {
-    if (index % 2 === 1) { // Content inside backticks
-      return <code key={`${keyPrefix}-bt-${index}`} className="font-mono bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm">{part}</code>;
+  
+  // First split by backticks to handle code formatting
+  const backtickParts = text.split('`');
+  
+  return backtickParts.map((part, backtickIndex) => {
+    if (backtickIndex % 2 === 1) {
+      // Content inside backticks - render as code
+      return <code key={`${keyPrefix}-bt-${backtickIndex}`} className="font-mono bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm">{part}</code>;
+    } else {
+      // Normal text - check for bold formatting
+      const boldParts = part.split('**');
+      return boldParts.map((boldPart, boldIndex) => {
+        if (boldIndex % 2 === 1) {
+          // Content inside ** - render as bold
+          return <strong key={`${keyPrefix}-bt-${backtickIndex}-bold-${boldIndex}`} className="font-semibold">{boldPart}</strong>;
+        } else {
+          // Regular text
+          return <span key={`${keyPrefix}-bt-${backtickIndex}-txt-${boldIndex}`}>{boldPart}</span>;
+        }
+      });
     }
-    return <span key={`${keyPrefix}-txt-${index}`}>{part}</span>; // Normal text
   });
 };
 
@@ -135,9 +150,11 @@ export function ProblemSolver({
     if (problem.constraints && problem.constraints.length > 0) { fullTextContent += "Constraints: \n"; problem.constraints.forEach(c => fullTextContent += `• ${c}\n`); fullTextContent += "\n"; }
     if (problem.requirements && problem.requirements.length > 0) { fullTextContent += "Requirements: \n"; problem.requirements.forEach(r => fullTextContent += `• ${r}\n`); fullTextContent += "\n"; }
     if (problem.leetcodeUrl) fullTextContent += "Original LeetCode problem for this problem statement";
-    // Removed debug console logs
-    if (process.env.NODE_ENV === 'development') { setTypedText(fullTextContent); setTypingComplete(true); setShowEditor(true); }
-    else { let i = 0; const interval = setInterval(() => { i++; setTypedText(fullTextContent.substring(0, i)); if (i >= fullTextContent.length) { clearInterval(interval); setTimeout(() => { setTypingComplete(true); setTimeout(() => setShowEditor(true), 300); }, 500); } }, 25); return () => clearInterval(interval); }
+    
+    // Display text immediately without typing animation
+    setTypedText(fullTextContent);
+    setTypingComplete(true);
+    setShowEditor(true);
   }, [problem]);
   
   const handleReset = () => { 
@@ -299,7 +316,7 @@ export function ProblemSolver({
       <div className="flex flex-1 md:flex-row overflow-hidden">
         <div className="w-full md:w-1/2 h-full flex flex-col bg-white dark:bg-neutral-850"><div className="flex-1 overflow-y-auto"><div className="p-6">{problem && problem.title ? <div className="prose dark:prose-invert max-w-none">{formatTypedText()}</div> : <div className="flex items-center justify-center h-full"><p className="text-lg text-gray-500">Loading problem...</p></div>}</div></div></div>
         <div className={`w-full md:w-1/2 h-full flex flex-col bg-neutral-800 dark:bg-neutral-900 transition-all duration-500 transform ${showEditor ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}>
-          <div className="flex-shrink-0 p-3 bg-neutral-700 dark:bg-neutral-800 flex justify-between items-center border-b border-neutral-600"><div className="flex items-center"><h3 className="font-medium text-white">Solution Editor</h3><div className="ml-3 flex items-center text-xs text-neutral-400 border-l border-neutral-600 pl-3"><InfoIcon className="h-3 w-3 mr-1 flex-shrink-0" /><span>{codeDetails?.language || 'python'}</span></div></div><button onClick={handleReset} disabled={isLoadingRun || isLoadingSubmit} className="flex items-center px-3 py-1 text-sm text-neutral-300 hover:text-white transition-colors disabled:opacity-50"><RotateCcwIcon className="w-4 h-4 mr-1" /> Reset</button></div>
+          <div className="flex-shrink-0 p-3 bg-neutral-700 dark:bg-neutral-800 flex justify-between items-center border-b border-neutral-600"><div className="flex items-center"><h3 className="font-medium text-white">Solution Editor</h3><div className="ml-3 flex items-center text-xs text-neutral-400 border-l border-neutral-600 pl-3"><InfoIcon className="h-3 w-3 mr-1 flex-shrink-0" /><span>{codeDetails?.language || 'python'}</span><div className="ml-2 text-xs text-neutral-400">(support for more languages coming soon...)</div></div></div><button onClick={handleReset} disabled={isLoadingRun || isLoadingSubmit} className="flex items-center px-3 py-1 text-sm text-neutral-300 hover:text-white transition-colors disabled:opacity-50"><RotateCcwIcon className="w-4 h-4 mr-1" /> Reset</button></div>
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className={`${showResultsPanel ? 'h-3/4' : 'h-full'} bg-neutral-900 overflow-hidden transition-all duration-300`}>
               <CodeEditor code={code} language={codeDetails?.language || 'python'} onChange={setCode} height="100%" width="100%"/>

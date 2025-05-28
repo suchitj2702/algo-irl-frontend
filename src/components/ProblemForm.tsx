@@ -1,5 +1,9 @@
 import { useState } from 'react';
-import { SparklesIcon } from 'lucide-react';
+import { SparklesIcon, BuildingIcon } from 'lucide-react';
+
+const CompanyIcon = () => (
+  <BuildingIcon className="w-5 h-5" />
+);
 
 export interface FormData {
   dataset: string;
@@ -17,26 +21,30 @@ export function ProblemForm({
   initialData,
   onSubmit
 }: ProblemFormProps) {
-  const [formData, setFormData] = useState<FormData>({...initialData, dataset: 'blind75'});
+  const [formData, setFormData] = useState<FormData>({...initialData, dataset: 'blind75', company: 'custom'});
   
   const companies = [{
-    id: 'openai',
-    name: 'OpenAI'
-  }, {
-    id: 'google',
-    name: 'Google'
-  }, {
-    id: 'amazon',
-    name: 'Amazon'
-  }, {
-    id: 'microsoft',
-    name: 'Microsoft'
+    id: 'custom',
+    name: 'Company Name',
+    logo: CompanyIcon
   }, {
     id: 'meta',
     name: 'Meta'
   }, {
-    id: 'custom',
-    name: 'Custom Company'
+    id: 'apple',
+    name: 'Apple'
+  }, {
+    id: 'amazon',
+    name: 'Amazon'
+  }, {
+    id: 'netflix',
+    name: 'Netflix'
+  }, {
+    id: 'google',
+    name: 'Google'
+  }, {
+    id: 'microsoft',
+    name: 'Microsoft'
   }];
   
   const difficulties = [{
@@ -82,24 +90,42 @@ export function ProblemForm({
             <label className="block text-sm font-medium text-neutral-750 dark:text-neutral-200 mb-1">
               Company
             </label>
-            <div className="grid grid-cols-3 gap-2">
-              {companies.map(company => <button key={company.id} type="button" onClick={() => {
-                console.log(`Company selected: ${company.id}`);
+            <div className="space-y-2">
+              <button 
+                type="button" 
+                onClick={() => {
+                  console.log(`Company selected: custom`);
+                  setFormData({
+                    ...formData,
+                    company: 'custom'
+                  });
+                }} 
+                className={`w-full py-2 px-3 border rounded-md text-sm flex items-center justify-center gap-2 ${formData.company === 'custom' ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
+              >
+                <CompanyIcon />
+                Company Name
+              </button>
+              {formData.company === 'custom' && <input type="text" value={formData.customCompany} onChange={e => {
+                console.log(`Custom company entered: ${e.target.value}`);
                 setFormData({
                   ...formData,
-                  company: company.id
+                  customCompany: e.target.value
                 });
-              }} className={`py-2 px-3 border rounded-md text-sm ${formData.company === company.id ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}>
-                  {company.name}
-                </button>)}
+              }} placeholder="Enter any company name" className="block w-full rounded-md border-gray-300 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />}
+              <div className="grid grid-cols-3 gap-2">
+                {companies.slice(1).map(company => {
+                  return <button key={company.id} type="button" onClick={() => {
+                    console.log(`Company selected: ${company.id}`);
+                    setFormData({
+                      ...formData,
+                      company: company.id
+                    });
+                  }} className={`py-2 px-3 border rounded-md text-sm flex items-center justify-center gap-2 ${formData.company === company.id ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}>
+                    {company.name}
+                  </button>;
+                })}
+              </div>
             </div>
-            {formData.company === 'custom' && <input type="text" value={formData.customCompany} onChange={e => {
-              console.log(`Custom company entered: ${e.target.value}`);
-              setFormData({
-                ...formData,
-                customCompany: e.target.value
-              });
-            }} placeholder="Enter company name" className="mt-2 block w-full rounded-md border-gray-300 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />}
           </div>
           <div>
             <label className="block text-sm font-medium text-neutral-750 dark:text-neutral-200 mb-1">
@@ -131,4 +157,4 @@ export function ProblemForm({
         </form>
       </div>
     </div>;
-}
+} 
