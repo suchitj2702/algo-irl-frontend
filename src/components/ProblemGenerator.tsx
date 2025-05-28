@@ -38,7 +38,7 @@ interface CodeDetails {
   language: string;
 }
 
-export const MAX_LOADING_DURATION_SECONDS = 40;
+export const MAX_LOADING_DURATION_SECONDS = 60;
 
 export function ProblemGenerator() {
   const [currentStep, setCurrentStep] = useState('intro');
