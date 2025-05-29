@@ -58,7 +58,7 @@ export default function CodeEditor({
     ...DEFAULT_OPTIONS,
     fontSize: preferences?.fontSize || DEFAULT_OPTIONS.fontSize,
     tabSize: preferences?.tabSize || DEFAULT_OPTIONS.tabSize,
-    lineNumbers: preferences?.showLineNumbers ? 'on' as const : 'off' as const,
+    lineNumbers: 'on' as const,
   };
 
   // Check if editor is initialized after a timeout

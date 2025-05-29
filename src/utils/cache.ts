@@ -121,12 +121,16 @@ export const addProblemToCache = (
 ): void => {
   const cache = getCache();
   
-  // Remove existing entry if present
-  cache.problems = cache.problems.filter(p => p.problemId !== problemId);
+  // Create a unique identifier that includes both problem and company
+  // This allows multiple company attempts for the same problem to be stored
+  const uniqueProblemId = `${problemId}_${companyId}`;
   
-  // Add new entry
+  // Remove existing entry if present (same problem + same company)
+  cache.problems = cache.problems.filter(p => p.problemId !== uniqueProblemId);
+  
+  // Add new entry with unique problem ID
   cache.problems.push({
-    problemId,
+    problemId: uniqueProblemId,
     status,
     solution,
     companyId,
@@ -173,5 +177,14 @@ export const updateProblemSolution = (problemId: string, solution: string): void
     cache.problems[problemIndex].solution = solution;
     cache.problems[problemIndex].timestamp = Date.now();
     saveCache(cache);
+  }
+};
+
+// Clear all cached data
+export const clearCache = (): void => {
+  try {
+    localStorage.removeItem(CACHE_KEY);
+  } catch (error) {
+    console.error('Error clearing cache:', error);
   }
 }; 

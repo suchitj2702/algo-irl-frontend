@@ -12,7 +12,7 @@ export const loadingPrompts = [
     {
       "theme": "Git Workflow",
       "sequence": [
-        "git clone [company]/interview-problems.git",
+        "git clone [company]/interview-problem.git",
         "Resolving merge conflicts with difficulty...",
         "git commit -m 'Add perfect problem for candidate'",
         "git push origin main --force",
@@ -30,26 +30,6 @@ export const loadingPrompts = [
       ]
     },
     {
-      "theme": "Stack Overflow",
-      "sequence": [
-        "Searching '[company] interview questions' on Stack Overflow...",
-        "Found answer marked as duplicate...",
-        "Following 47 nested duplicate links...",
-        "Finally found the accepted answer!",
-        "Copy-pasting solution with proper attribution..."
-      ]
-    },
-    {
-      "theme": "Database Query",
-      "sequence": [
-        "SELECT * FROM [company]_problems WHERE difficulty = 'perfect'",
-        "Query execution time: 15.7 seconds...",
-        "Optimizing with proper indexing...",
-        "LIMIT 1 ORDER BY interview_success DESC",
-        "Result set returned successfully!"
-      ]
-    },
-    {
       "theme": "Docker Container",
       "sequence": [
         "docker pull [company]/interview-problem:latest",
@@ -62,7 +42,7 @@ export const loadingPrompts = [
     {
       "theme": "API Integration",
       "sequence": [
-        "GET /api/v2/[company]/problems HTTP/1.1",
+        "GET /api/v2/[company]/problem HTTP/1.1",
         "Status: 429 Too Many Requests (rate limited)...",
         "Implementing exponential backoff...",
         "Status: 200 OK - Problem retrieved!",

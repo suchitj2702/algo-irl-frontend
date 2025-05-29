@@ -5,7 +5,8 @@ import { LoadingSequence } from './LoadingSequence';
 import { ResumeLoadingSequence } from './ResumeLoadingSequence';
 import { ProblemSolver } from './ProblemSolver';
 import { ResultsView } from './ResultsView';
-import { ProgressPage } from './ProgressPage';
+import { Blind75 } from './Blind75';
+import { CompanyContextForm, CompanyContextFormData } from './CompanyContextForm';
 import { DarkModeProvider } from './DarkModeContext';
 import { Navbar } from './Navbar';
 import { TestCase } from '../utils/codeExecution';
@@ -81,11 +82,163 @@ export function ProblemGenerator() {
   const [apiResponseReceived, setApiResponseReceived] = useState(false);
   const [isResuming, setIsResuming] = useState(false);
   const [resumeProblemId, setResumeProblemId] = useState<string | null>(null);
+  
+  // New state for Blind75 functionality
+  const [companyContextFormData, setCompanyContextFormData] = useState<CompanyContextFormData>({
+    company: 'meta',
+    customCompany: ''
+  });
+  const [selectedProblemSlug, setSelectedProblemSlug] = useState<string | null>(null);
+  const [isCompanyContextFlow, setIsCompanyContextFlow] = useState(false);
 
-  const handleStartClick = () => setCurrentStep('form');
-
-  const handleProgressClick = () => setCurrentStep('progress');
+  const handleStartClick = () => {
+    setIsCompanyContextFlow(false);
+    setCurrentStep('form');
+  };
   const handleHomeClick = () => setCurrentStep('intro');
+  const handleBlind75Click = () => setCurrentStep('blind75');
+
+  // Updated handler for "Practice with company context" button to accept problem slug
+  const handlePracticeWithContext = (problemSlug: string) => {
+    setSelectedProblemSlug(problemSlug);
+    setIsCompanyContextFlow(true);
+    setCurrentStep('company-context-form');
+  };
+
+  // New handler for company context form submission
+  const handleCompanyContextSubmit = async (data: CompanyContextFormData) => {
+    try {
+      setCompanyContextFormData(data);
+      setCurrentStep('loading');
+      setError(null);
+      setProblem(null);
+      setCodeDetails(null);
+      setEvaluationResults(null);
+      setSolutionFromSolver(null);
+      setApiResponseReceived(false);
+      setIsResuming(false);
+      setResumeProblemId(null);
+      
+      const { company, customCompany } = data;
+      const isBlind75 = true; // Always true for context practice
+      let companyId = company;
+      let companyName = company;
+      
+      if (company === 'custom' && customCompany) {
+        const companyResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_INITIALIZE), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ companyName: customCompany }),
+        });
+        if (!companyResponse.ok) throw new Error(`Failed to initialize company: ${await companyResponse.text()}`);
+        const companyData = await companyResponse.json();
+        if (!companyData.success) throw new Error(companyData.message || 'Failed to initialize company');
+        companyId = companyData.company.id;
+        companyName = customCompany;
+      } else {
+        // For standard companies, use the proper display name
+        companyName = getCompanyDisplayName(company);
+      }
+      
+      // Use selected problem slug or get a random difficulty
+      let apiPayload: any = { companyId, isBlind75 };
+      if (selectedProblemSlug) {
+        apiPayload.problemId = selectedProblemSlug;
+      } else {
+        const difficulties = ['Easy', 'Medium', 'Hard'];
+        apiPayload.difficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
+      }
+      
+      console.log('API Payload being sent:', apiPayload);
+      
+      const prepareResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEM_PREPARE), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(apiPayload),
+      });
+      
+      console.log('API Response status:', prepareResponse.status);
+      
+      if (!prepareResponse.ok) {
+        const errorText = await prepareResponse.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`Failed to prepare problem: ${errorText}`);
+      }
+      
+      const responseData = await prepareResponse.json();
+      console.log('API Response data:', responseData);
+
+      const apiTestCases = responseData.problem?.testCases || [];
+      const formattedTestCases: TestCase[] = apiTestCases.map((tc: any) => ({
+        id: tc.id || undefined,
+        stdin: tc.input || tc.stdin,
+        expectedStdout: tc.output || tc.expected_output || tc.expectedOutput || tc.expectedStdout,
+        isSample: tc.isSample === true || tc.is_sample === true,
+        explanation: tc.explanation || undefined,
+      }));
+
+      // Get base problemId from API response or generate fallback
+      const baseProblemId = responseData.problem?.id || responseData.problem?.problemId || `${selectedProblemSlug || 'random'}_${Date.now()}`;
+      
+      // Generate unique problemId that matches what cache will store
+      const uniqueProblemId = `${baseProblemId}_${companyId}`;
+
+      const formattedProblem: Problem = {
+        title: responseData.problem?.title || "Algorithm Challenge",
+        background: responseData.problem?.background || "",
+        problemStatement: responseData.problem?.problemStatement || "",
+        testCases: formattedTestCases,
+        constraints: responseData.problem?.constraints || [],
+        requirements: responseData.problem?.requirements || [],
+        leetcodeUrl: responseData.problem?.leetcodeUrl || "",
+        problemId: uniqueProblemId
+      };
+      
+      const formattedCodeDetails: CodeDetails = {
+        boilerplateCode: responseData.codeDetails?.boilerplateCode || "",
+        defaultUserCode: responseData.codeDetails?.defaultUserCode || "",
+        functionName: responseData.codeDetails?.functionName || "",
+        solutionStructureHint: responseData.codeDetails?.solutionStructureHint || "",
+        language: responseData.codeDetails?.language || "python"
+      };
+      
+      if (!formattedProblem.problemStatement || !formattedProblem.testCases || formattedProblem.testCases.length === 0 || !formattedProblem.constraints) {
+        throw new Error("Invalid problem data received from API. Missing statement, test cases, or constraints.");
+      }
+      
+      // Cache the company selection
+      addCompanyToCache(companyId, companyName);
+      
+      // Cache the problem as "in_progress" when first viewed
+      // Use base problemId (without company context) - let cache function add company identifier
+      addProblemToCache(
+        baseProblemId,
+        'in_progress',
+        formattedCodeDetails.defaultUserCode || '',
+        companyId,
+        companyName,
+        selectedProblemSlug ? 'Mixed' : 'Random', // Use 'Mixed' for specific problems, 'Random' for random selection
+        formattedProblem.title
+      );
+      
+      setApiResponseReceived(true);
+      setProblem(formattedProblem);
+      setCodeDetails(formattedCodeDetails);
+      setCurrentStep('problem');
+
+    } catch (err) {
+      console.error('Error preparing contextualized problem:', err);
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      setCurrentStep('company-context-form');
+    }
+  };
+
+  // New handler for canceling company context form
+  const handleCompanyContextCancel = () => {
+    setSelectedProblemSlug(null);
+    setIsCompanyContextFlow(false);
+    setCurrentStep('blind75');
+  };
 
   const handleResumeProblem = async (problemId: string) => {
     try {
@@ -99,12 +252,18 @@ export function ProblemGenerator() {
         throw new Error('Cached problem not found');
       }
 
-      // Prepare API request with problemId instead of difficulty
+      // Extract the base problemId from the unique identifier for API calls
+      // The cached problemId format is: ${baseProblemId}_${companyId}
+      const baseProblemId = problemId.includes('_') 
+        ? problemId.substring(0, problemId.lastIndexOf('_'))
+        : problemId;
+
+      // Prepare API request with base problemId instead of the full unique identifier
       const prepareResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEM_PREPARE), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          problemId: problemId,
+          problemId: baseProblemId, // Use base problemId for API call
           companyId: cachedProblem.companyId,
           isBlind75: true 
         }),
@@ -133,7 +292,7 @@ export function ProblemGenerator() {
         constraints: responseData.problem?.constraints || [],
         requirements: responseData.problem?.requirements || [],
         leetcodeUrl: responseData.problem?.leetcodeUrl || "",
-        problemId: problemId
+        problemId: problemId // Keep the full unique problemId for cache operations
       };
       
       const formattedCodeDetails: CodeDetails = {
@@ -158,6 +317,7 @@ export function ProblemGenerator() {
   const handleFormSubmit = async (data: FormData) => {
     try {
       setFormData(data);
+      setIsCompanyContextFlow(false);
       setCurrentStep('loading');
       setError(null);
       setProblem(null);
@@ -206,6 +366,12 @@ export function ProblemGenerator() {
         explanation: tc.explanation || undefined,
       }));
 
+      // Get base problemId from API response or generate fallback
+      const baseProblemId = responseData.problem?.id || responseData.problem?.problemId || `${difficulty}_${Date.now()}`;
+      
+      // Generate unique problemId that matches what cache will store
+      const uniqueProblemId = `${baseProblemId}_${companyId}`;
+
       const formattedProblem: Problem = {
         title: responseData.problem?.title || "Algorithm Challenge",
         background: responseData.problem?.background || "",
@@ -214,7 +380,7 @@ export function ProblemGenerator() {
         constraints: responseData.problem?.constraints || [],
         requirements: responseData.problem?.requirements || [],
         leetcodeUrl: responseData.problem?.leetcodeUrl || "",
-        problemId: responseData.problem?.id || responseData.problem?.problemId || `${companyId}_${difficulty}_${Date.now()}`
+        problemId: uniqueProblemId
       };
       
       const formattedCodeDetails: CodeDetails = {
@@ -233,8 +399,9 @@ export function ProblemGenerator() {
       addCompanyToCache(companyId, companyName);
       
       // Cache the problem as "in_progress" when first viewed
+      // Use base problemId (without company context) - let cache function add company identifier
       addProblemToCache(
-        formattedProblem.problemId!,
+        baseProblemId,
         'in_progress',
         formattedCodeDetails.defaultUserCode || '',
         companyId,
@@ -287,6 +454,7 @@ export function ProblemGenerator() {
 
   const handleTryAgain = () => {
     setCurrentStep('form');
+    setIsCompanyContextFlow(false);
     setSolutionFromSolver(null);
     setEvaluationResults(null);
     setProblem(null);
@@ -308,8 +476,24 @@ export function ProblemGenerator() {
   return (
     <DarkModeProvider>
       <div className="min-h-screen font-sans text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        <Navbar onProgressClick={handleProgressClick} onHomeClick={handleHomeClick} />
+        <Navbar 
+          onHomeClick={handleHomeClick} 
+          onBlind75Click={handleBlind75Click}
+        />
         {currentStep === 'intro' && <IntroSection onStartClick={handleStartClick} />}
+        {currentStep === 'blind75' && (
+          <Blind75 
+            onPracticeWithContext={handlePracticeWithContext}
+            onResumeProblem={handleResumeProblem}
+          />
+        )}
+        {currentStep === 'company-context-form' && (
+          <CompanyContextForm 
+            onSubmit={handleCompanyContextSubmit}
+            onCancel={handleCompanyContextCancel}
+            problemSlug={selectedProblemSlug || undefined}
+          />
+        )}
         {currentStep === 'form' && (
           <>
             <ProblemForm initialData={formData} onSubmit={handleFormSubmit} />
@@ -317,7 +501,11 @@ export function ProblemGenerator() {
           </>
         )}
         {currentStep === 'loading' && <LoadingSequence 
-            company={formData.company === 'custom' ? formData.customCompany : formData.company} 
+            company={
+              isCompanyContextFlow
+                ? (companyContextFormData.company === 'custom' ? companyContextFormData.customCompany : getCompanyDisplayName(companyContextFormData.company))
+                : (formData.company === 'custom' ? formData.customCompany : getCompanyDisplayName(formData.company))
+            }
             maxTotalDuration={MAX_LOADING_DURATION_SECONDS}
             forceComplete={apiResponseReceived}
         />}
@@ -343,11 +531,6 @@ export function ProblemGenerator() {
             problem={problem} 
             onTryAgain={handleTryAgain} 
             onGoBackToProblem={handleGoBackToProblem}
-          />
-        )}
-        {currentStep === 'progress' && (
-          <ProgressPage 
-            onResumeProblem={handleResumeProblem}
           />
         )}
       </div>

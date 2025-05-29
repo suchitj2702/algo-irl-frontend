@@ -1,28 +1,27 @@
 import { useState, useEffect } from 'react';
-import { SparklesIcon, BuildingIcon, ClockIcon } from 'lucide-react';
+import { BuildingIcon, ClockIcon, SparklesIcon } from 'lucide-react';
 import { getRecentCompanies, CachedCompany } from '../utils/cache';
 
 const CompanyIcon = () => (
   <BuildingIcon className="w-5 h-5" />
 );
 
-export interface FormData {
-  dataset: string;
+export interface CompanyContextFormData {
   company: string;
   customCompany: string;
-  difficulty: string;
 }
 
-interface ProblemFormProps {
-  initialData: Omit<FormData, 'dataset'> & { dataset?: string };
-  onSubmit: (data: FormData) => void;
+interface CompanyContextFormProps {
+  onSubmit: (data: CompanyContextFormData) => void;
+  onCancel: () => void;
+  problemSlug?: string;
 }
 
-export function ProblemForm({
-  initialData,
-  onSubmit
-}: ProblemFormProps) {
-  const [formData, setFormData] = useState<FormData>({...initialData, dataset: 'blind75', company: 'custom'});
+export function CompanyContextForm({ onSubmit, onCancel, problemSlug }: CompanyContextFormProps) {
+  const [formData, setFormData] = useState<CompanyContextFormData>({
+    company: 'custom',
+    customCompany: ''
+  });
   const [recentCompanies, setRecentCompanies] = useState<CachedCompany[]>([]);
   
   useEffect(() => {
@@ -54,59 +53,49 @@ export function ProblemForm({
     name: 'Microsoft'
   }];
   
-  const difficulties = [{
-    id: 'Easy',
-    name: 'Easy'
-  }, {
-    id: 'Medium',
-    name: 'Medium'
-  }, {
-    id: 'Hard',
-    name: 'Hard'
-  }];
-  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted with data:", formData);
     onSubmit(formData);
   };
 
   const selectCompany = (companyId: string, isCustom: boolean = false) => {
-    console.log(`Company selected: ${companyId}`);
     setFormData({
       ...formData,
       company: companyId,
       customCompany: isCustom ? formData.customCompany : ''
     });
   };
+
+  // Helper function to convert slug to title
+  const slugToTitle = (slug: string): string => {
+    return slug
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
   
-  return <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4">
+  return (
+    <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4">
       <div className="w-full max-w-md bg-white dark:bg-neutral-850 rounded-lg shadow-medium p-6">
-        <h2 className="text-xl font-medium text-neutral-750 dark:text-white text-center mb-6">
-          Configure Your Problem
+        <h2 className="text-xl font-medium text-neutral-750 dark:text-white text-center mb-2">
+          Practice with Company Context
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-neutral-750 dark:text-neutral-200 mb-1">
-              Dataset
-            </label>
-            <div className="grid grid-cols-1 gap-2">
-              <button 
-                type="button" 
-                className={'py-2 px-3 border rounded-md text-sm bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300 cursor-default'}
-              >
-                Blind 75
-              </button>
-            </div>
-            <div className="mt-2 space-y-2">
-              <p className="text-xs text-gray-500 dark:text-gray-500 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/30 rounded-lg p-2">
-                💡 <strong>What is Blind 75?</strong> A curated list of 75 essential coding problems covering all major algorithms and data structures. Perfect for efficient interview preparation at top tech companies.
-              </p>
-              <p className="text-xs text-neutral-500 dark:text-neutral-500 italic pl-1">
-                More datasets coming soon...
-              </p>
-            </div>
+        {problemSlug ? (
+          <div className="text-center mb-6">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+              Selected problem:
+            </p>
+            <p className="font-medium text-indigo-600 dark:text-indigo-400">
+              {slugToTitle(problemSlug)}
+            </p>
           </div>
+        ) : (
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
+            Get a random Blind75 problem with company-specific context
+          </p>
+        )}
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-neutral-750 dark:text-neutral-200 mb-1">
               Company
@@ -168,7 +157,6 @@ export function ProblemForm({
                   type="text" 
                   value={formData.customCompany} 
                   onChange={e => {
-                    console.log(`Custom company entered: ${e.target.value}`);
                     setFormData({
                       ...formData,
                       customCompany: e.target.value
@@ -182,41 +170,41 @@ export function ProblemForm({
               {/* Standard Companies */}
               <div className="grid grid-cols-3 gap-2">
                 {companies.slice(1).map(company => {
-                  return <button key={company.id} type="button" onClick={() => selectCompany(company.id)} className={`py-2 px-3 border rounded-md text-sm flex items-center justify-center gap-2 ${formData.company === company.id ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}>
-                    {company.name}
-                  </button>;
+                  return (
+                    <button 
+                      key={company.id} 
+                      type="button" 
+                      onClick={() => selectCompany(company.id)} 
+                      className={`py-2 px-3 border rounded-md text-sm flex items-center justify-center gap-2 ${formData.company === company.id ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}
+                    >
+                      {company.name}
+                    </button>
+                  );
                 })}
               </div>
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-neutral-750 dark:text-neutral-200 mb-1">
-              Difficulty
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {difficulties.map(difficulty => <button key={difficulty.id} type="button" onClick={() => {
-                console.log(`Difficulty selected: ${difficulty.id}`);
-                setFormData({
-                  ...formData,
-                  difficulty: difficulty.id
-                });
-              }} className={`py-2 px-3 border rounded-md text-sm ${formData.difficulty === difficulty.id ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800'}`}>
-                  {difficulty.name}
-                </button>)}
-            </div>
-          </div>
-          <div className="pt-4">
+          
+          <div className="pt-4 space-y-3">
             <button 
               type="submit" 
-              onClick={() => console.log("Submit button clicked")}
               className="w-full flex justify-center items-center px-4 py-2.5 text-base font-medium text-white bg-brand-primary hover:bg-brand-secondary rounded-lg transition-all duration-200 shadow-subtle hover:shadow-medium disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={formData.company === 'custom' && !formData.customCompany?.trim()}
             >
               <SparklesIcon className="h-4 w-4 mr-2" />
-              Generate Challenge
+              {problemSlug ? 'Get Contextualized Problem' : 'Get Random Problem'}
+            </button>
+            
+            <button 
+              type="button"
+              onClick={onCancel}
+              className="w-full px-4 py-2.5 text-base font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-all duration-200"
+            >
+              Cancel
             </button>
           </div>
         </form>
       </div>
-    </div>;
-}
+    </div>
+  );
+} 

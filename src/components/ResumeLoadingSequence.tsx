@@ -8,7 +8,7 @@ export function ResumeLoadingSequence({ onComplete }: ResumeLoadingSequenceProps
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const totalDuration = 2000; // 2 seconds total
+    const totalDuration = 500; // 0.5 seconds total
     const interval = 50; // Update every 50ms
     const increment = 100 / (totalDuration / interval);
 

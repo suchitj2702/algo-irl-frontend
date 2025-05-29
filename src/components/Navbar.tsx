@@ -3,27 +3,27 @@ import { MenuIcon, XIcon, SunIcon, MoonIcon, TrendingUpIcon } from 'lucide-react
 import { useDarkMode } from './DarkModeContext';
 
 interface NavbarProps {
-  onProgressClick?: () => void;
   onHomeClick?: () => void;
+  onBlind75Click?: () => void;
 }
 
-export function Navbar({ onProgressClick, onHomeClick }: NavbarProps) {
+export function Navbar({ onHomeClick, onBlind75Click }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const {
     isDarkMode,
     toggleDarkMode
   } = useDarkMode();
 
-  const handleProgressClick = () => {
-    if (onProgressClick) {
-      onProgressClick();
+  const handleHomeClick = () => {
+    if (onHomeClick) {
+      onHomeClick();
     }
     setIsMenuOpen(false);
   };
 
-  const handleHomeClick = () => {
-    if (onHomeClick) {
-      onHomeClick();
+  const handleBlind75Click = () => {
+    if (onBlind75Click) {
+      onBlind75Click();
     }
     setIsMenuOpen(false);
   };
@@ -41,11 +41,11 @@ export function Navbar({ onProgressClick, onHomeClick }: NavbarProps) {
           </div>
           <div className="hidden md:flex items-center space-x-4">
             <button 
-              onClick={handleProgressClick}
+              onClick={handleBlind75Click}
               className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-750 dark:hover:text-white transition-colors text-sm flex items-center gap-1"
             >
               <TrendingUpIcon className="h-4 w-4" />
-              Progress
+              Blind75 Progress
             </button>
             <button onClick={toggleDarkMode} className="p-2 text-neutral-600 dark:text-neutral-400 hover:text-neutral-750 dark:hover:text-white transition-colors" aria-label="Toggle dark mode">
               {isDarkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
@@ -53,9 +53,9 @@ export function Navbar({ onProgressClick, onHomeClick }: NavbarProps) {
           </div>
           <div className="md:hidden flex items-center">
             <button 
-              onClick={handleProgressClick}
+              onClick={handleBlind75Click}
               className="text-neutral-600 dark:text-neutral-400 hover:text-neutral-750 dark:hover:text-white transition-colors text-sm mr-2 p-2"
-              aria-label="Progress"
+              aria-label="Blind75 Progress"
             >
               <TrendingUpIcon className="h-5 w-5" />
             </button>
@@ -72,11 +72,11 @@ export function Navbar({ onProgressClick, onHomeClick }: NavbarProps) {
       {isMenuOpen && <div className="md:hidden">
           <div className="pt-2 pb-3 space-y-1 px-4 sm:px-6 lg:px-8">
             <button 
-              onClick={handleProgressClick}
+              onClick={handleBlind75Click}
               className="block text-neutral-600 dark:text-neutral-400 hover:text-neutral-750 dark:hover:text-white transition-colors text-sm py-2 flex items-center gap-2"
             >
               <TrendingUpIcon className="h-4 w-4" />
-              Progress
+              Blind75 Progress
             </button>
           </div>
         </div>}
