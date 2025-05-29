@@ -2,12 +2,21 @@ import { useState, useEffect } from 'react';
 import { IntroSection } from './IntroSection';
 import { ProblemForm, FormData } from './ProblemForm';
 import { LoadingSequence } from './LoadingSequence';
+import { ResumeLoadingSequence } from './ResumeLoadingSequence';
 import { ProblemSolver } from './ProblemSolver';
 import { ResultsView } from './ResultsView';
+import { ProgressPage } from './ProgressPage';
 import { DarkModeProvider } from './DarkModeContext';
 import { Navbar } from './Navbar';
 import { TestCase } from '../utils/codeExecution';
 import { API_CONFIG, buildApiUrl } from '../config/api';
+import { 
+  addCompanyToCache, 
+  addProblemToCache, 
+  getCachedProblem, 
+  markProblemAsSolved, 
+  updateProblemSolution 
+} from '../utils/cache';
 
 interface Problem {
   title: string;
@@ -17,6 +26,7 @@ interface Problem {
   constraints: string[];
   requirements: string[];
   leetcodeUrl: string;
+  problemId?: string; // Add problemId to Problem interface
 }
 
 interface TestResultsFromParent {
@@ -40,6 +50,20 @@ interface CodeDetails {
 
 export const MAX_LOADING_DURATION_SECONDS = 60;
 
+// Helper function to get the proper display name for a company
+const getCompanyDisplayName = (companyId: string): string => {
+  const companyMap: { [key: string]: string } = {
+    'meta': 'Meta',
+    'apple': 'Apple', 
+    'amazon': 'Amazon',
+    'netflix': 'Netflix',
+    'google': 'Google',
+    'microsoft': 'Microsoft'
+  };
+  
+  return companyMap[companyId] || companyId;
+};
+
 export function ProblemGenerator() {
   const [currentStep, setCurrentStep] = useState('intro');
   const [formData, setFormData] = useState<FormData>({
@@ -55,8 +79,81 @@ export function ProblemGenerator() {
   const [showSaveProgress, setShowSaveProgress] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [apiResponseReceived, setApiResponseReceived] = useState(false);
+  const [isResuming, setIsResuming] = useState(false);
+  const [resumeProblemId, setResumeProblemId] = useState<string | null>(null);
 
   const handleStartClick = () => setCurrentStep('form');
+
+  const handleProgressClick = () => setCurrentStep('progress');
+  const handleHomeClick = () => setCurrentStep('intro');
+
+  const handleResumeProblem = async (problemId: string) => {
+    try {
+      setIsResuming(true);
+      setResumeProblemId(problemId);
+      setCurrentStep('resume-loading');
+      
+      // Get cached problem data
+      const cachedProblem = getCachedProblem(problemId);
+      if (!cachedProblem) {
+        throw new Error('Cached problem not found');
+      }
+
+      // Prepare API request with problemId instead of difficulty
+      const prepareResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEM_PREPARE), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          problemId: problemId,
+          companyId: cachedProblem.companyId,
+          isBlind75: true 
+        }),
+      });
+
+      if (!prepareResponse.ok) {
+        throw new Error(`Failed to prepare problem: ${await prepareResponse.text()}`);
+      }
+
+      const responseData = await prepareResponse.json();
+
+      const apiTestCases = responseData.problem?.testCases || [];
+      const formattedTestCases: TestCase[] = apiTestCases.map((tc: any) => ({
+        id: tc.id || undefined,
+        stdin: tc.input || tc.stdin,
+        expectedStdout: tc.output || tc.expected_output || tc.expectedOutput || tc.expectedStdout,
+        isSample: tc.isSample === true || tc.is_sample === true,
+        explanation: tc.explanation || undefined,
+      }));
+
+      const formattedProblem: Problem = {
+        title: responseData.problem?.title || "Algorithm Challenge",
+        background: responseData.problem?.background || "",
+        problemStatement: responseData.problem?.problemStatement || "",
+        testCases: formattedTestCases,
+        constraints: responseData.problem?.constraints || [],
+        requirements: responseData.problem?.requirements || [],
+        leetcodeUrl: responseData.problem?.leetcodeUrl || "",
+        problemId: problemId
+      };
+      
+      const formattedCodeDetails: CodeDetails = {
+        boilerplateCode: responseData.codeDetails?.boilerplateCode || "",
+        defaultUserCode: responseData.codeDetails?.defaultUserCode || "",
+        functionName: responseData.codeDetails?.functionName || "",
+        solutionStructureHint: responseData.codeDetails?.solutionStructureHint || "",
+        language: responseData.codeDetails?.language || "python"
+      };
+
+      setProblem(formattedProblem);
+      setCodeDetails(formattedCodeDetails);
+      setSolutionFromSolver(cachedProblem.solution);
+      
+    } catch (err) {
+      console.error('Error resuming problem:', err);
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred while resuming');
+      setCurrentStep('progress');
+    }
+  };
 
   const handleFormSubmit = async (data: FormData) => {
     try {
@@ -65,13 +162,16 @@ export function ProblemGenerator() {
       setError(null);
       setProblem(null);
       setCodeDetails(null);
-      setEvaluationResults(null); // Clear previous evaluation results
-      setSolutionFromSolver(null); // Clear previous solution
-      setApiResponseReceived(false); // Reset API response flag
+      setEvaluationResults(null);
+      setSolutionFromSolver(null);
+      setApiResponseReceived(false);
+      setIsResuming(false);
+      setResumeProblemId(null);
       
       const { company, customCompany, difficulty } = data;
       const isBlind75 = data.dataset === 'blind75';
       let companyId = company;
+      let companyName = company;
       
       if (company === 'custom' && customCompany) {
         const companyResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_INITIALIZE), {
@@ -83,6 +183,10 @@ export function ProblemGenerator() {
         const companyData = await companyResponse.json();
         if (!companyData.success) throw new Error(companyData.message || 'Failed to initialize company');
         companyId = companyData.company.id;
+        companyName = customCompany;
+      } else {
+        // For standard companies, use the proper display name
+        companyName = getCompanyDisplayName(company);
       }
       
       const prepareResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEM_PREPARE), {
@@ -96,11 +200,11 @@ export function ProblemGenerator() {
       const apiTestCases = responseData.problem?.testCases || [];
       const formattedTestCases: TestCase[] = apiTestCases.map((tc: any) => ({
         id: tc.id || undefined,
-        stdin: tc.input || tc.stdin, // Accommodate both 'input' and 'stdin' from API
-        expectedStdout: tc.output || tc.expected_output || tc.expectedOutput || tc.expectedStdout, // Accommodate variations
+        stdin: tc.input || tc.stdin,
+        expectedStdout: tc.output || tc.expected_output || tc.expectedOutput || tc.expectedStdout,
         isSample: tc.isSample === true || tc.is_sample === true,
         explanation: tc.explanation || undefined,
-      }));        
+      }));
 
       const formattedProblem: Problem = {
         title: responseData.problem?.title || "Algorithm Challenge",
@@ -109,7 +213,8 @@ export function ProblemGenerator() {
         testCases: formattedTestCases,
         constraints: responseData.problem?.constraints || [],
         requirements: responseData.problem?.requirements || [],
-        leetcodeUrl: responseData.problem?.leetcodeUrl || ""
+        leetcodeUrl: responseData.problem?.leetcodeUrl || "",
+        problemId: responseData.problem?.id || responseData.problem?.problemId || `${companyId}_${difficulty}_${Date.now()}`
       };
       
       const formattedCodeDetails: CodeDetails = {
@@ -124,10 +229,21 @@ export function ProblemGenerator() {
         throw new Error("Invalid problem data received from API. Missing statement, test cases, or constraints.");
       }
       
-      // Mark that API response has been received
-      setApiResponseReceived(true);
+      // Cache the company selection
+      addCompanyToCache(companyId, companyName);
       
-      // Immediately proceed to problem step once data is ready
+      // Cache the problem as "in_progress" when first viewed
+      addProblemToCache(
+        formattedProblem.problemId!,
+        'in_progress',
+        formattedCodeDetails.defaultUserCode || '',
+        companyId,
+        companyName,
+        difficulty,
+        formattedProblem.title
+      );
+      
+      setApiResponseReceived(true);
       setProblem(formattedProblem);
       setCodeDetails(formattedCodeDetails);
       setCurrentStep('problem');
@@ -139,19 +255,29 @@ export function ProblemGenerator() {
     }
   };
 
+  const handleCodeChange = (code: string) => {
+    // Update cache with current solution for in-progress problems
+    if (problem?.problemId) {
+      updateProblemSolution(problem.problemId, code);
+    }
+  };
+
   const handleFinalSolutionSubmit = (code: string) => {
     setSolutionFromSolver(code);
-    // Since ProblemSolver confirms all tests passed, its internal results reflect this.
-    // We construct TestResultsFromParent for ResultsView.
+    
+    // Mark problem as solved in cache
+    if (problem?.problemId) {
+      markProblemAsSolved(problem.problemId, code);
+    }
+    
     const mockFinalResults: TestResultsFromParent = {
         passed: true, 
-        executionTime: problem?.testCases && problem.testCases.length > 0 ? Math.floor(Math.random() * 100) + 'ms' : 'N/A', // Example metric
-        memoryUsed: problem?.testCases && problem.testCases.length > 0 ? Math.floor(Math.random() * 10) + 'MB' : 'N/A',    // Example metric
-        // Populate with all test cases from the problem, marked as passed
+        executionTime: problem?.testCases && problem.testCases.length > 0 ? Math.floor(Math.random() * 100) + 'ms' : 'N/A',
+        memoryUsed: problem?.testCases && problem.testCases.length > 0 ? Math.floor(Math.random() * 10) + 'MB' : 'N/A',
         testCases: problem?.testCases.map(tc => ({
             input: typeof tc.stdin === 'object' ? JSON.stringify(tc.stdin) : String(tc.stdin),
             output: typeof tc.expectedStdout === 'object' ? JSON.stringify(tc.expectedStdout) : String(tc.expectedStdout),
-            passed: true // Mark all as passed since this is the success path
+            passed: true
         })) || [],
     };
     setEvaluationResults(mockFinalResults);
@@ -167,19 +293,22 @@ export function ProblemGenerator() {
     setCodeDetails(null);
     setError(null);
     setApiResponseReceived(false);
+    setIsResuming(false);
+    setResumeProblemId(null);
   };
 
   const handleGoBackToProblem = () => {
     setCurrentStep('problem');
-    // evaluationResults is kept so if user navigates back from browser history, they see results
-    // but if they click this button, we assume they want to re-solve, so ProblemSolver won't show old results.
-    // ProblemSolver clears its own executionResults state when the problem prop changes or on reset.
+  };
+
+  const handleResumeLoadingComplete = () => {
+    setCurrentStep('problem');
   };
 
   return (
     <DarkModeProvider>
       <div className="min-h-screen font-sans text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        <Navbar />
+        <Navbar onProgressClick={handleProgressClick} onHomeClick={handleHomeClick} />
         {currentStep === 'intro' && <IntroSection onStartClick={handleStartClick} />}
         {currentStep === 'form' && (
           <>
@@ -192,25 +321,33 @@ export function ProblemGenerator() {
             maxTotalDuration={MAX_LOADING_DURATION_SECONDS}
             forceComplete={apiResponseReceived}
         />}
+        {currentStep === 'resume-loading' && (
+          <ResumeLoadingSequence onComplete={handleResumeLoadingComplete} />
+        )}
         {currentStep === 'problem' && problem && codeDetails && (
           <ProblemSolver 
             problem={problem} 
             solution={solutionFromSolver} 
             codeDetails={codeDetails}
             onSubmit={handleFinalSolutionSubmit}
-            testResults={evaluationResults} // This prop is for ProblemSolver to potentially use if needed.
+            onCodeChange={handleCodeChange}
+            testResults={evaluationResults}
           />
         )}
         {currentStep === 'problem' && (!problem || !codeDetails) && (
-            <div className="flex items-center justify-center min-h-screen"><div className="text-center"><div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mb-4"></div><h2 className="text-xl font-medium">Loading problem data...</h2><p className="text-sm text-gray-500 mt-2">If this persists, please try again.</p></div></div>
+            <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]"><div className="text-center"><div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mb-4"></div><h2 className="text-xl font-medium">Loading problem data...</h2><p className="text-sm text-gray-500 mt-2">If this persists, please try again.</p></div></div>
         )}
-        {/* Evaluating step is removed as ProblemSolver handles evaluation before calling handleFinalSolutionSubmit */}
         {currentStep === 'results' && evaluationResults && problem && (
           <ResultsView 
             results={evaluationResults} 
             problem={problem} 
             onTryAgain={handleTryAgain} 
-            onGoBackToProblem={handleGoBackToProblem} // Pass the new handler
+            onGoBackToProblem={handleGoBackToProblem}
+          />
+        )}
+        {currentStep === 'progress' && (
+          <ProgressPage 
+            onResumeProblem={handleResumeProblem}
           />
         )}
       </div>

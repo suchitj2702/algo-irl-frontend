@@ -111,7 +111,7 @@ export function LoadingSequence({
     return <div>Loading theme...</div>; // Or some other placeholder
   }
 
-  return <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-50 dark:bg-gray-900">
+  return <div className="flex flex-col items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-2xl">
         <div className="mb-8 relative">
           <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">

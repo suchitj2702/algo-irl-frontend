@@ -29,7 +29,7 @@ export function ResultsView({
   const totalCount = results.testCases.length;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-4">
+    <div className="min-h-[calc(100vh-3.5rem)] bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
         <div className="text-center mb-6">
           {results.passed ? (

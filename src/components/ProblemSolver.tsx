@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { PlayIcon, SendIcon, RotateCcwIcon, InfoIcon } from 'lucide-react';
 import CodeEditor from './CodeEditor';
-import { executeCodeAndPoll, ExecutionResults, ExecutionTestResult, TestCase } from '../utils/codeExecution';
+import { executeCodeAndPoll, ExecutionResults, TestCase } from '../utils/codeExecution';
 
 interface Problem {
   title: string;
@@ -24,6 +24,7 @@ interface ProblemSolverProps {
   solution: string | null;
   codeDetails: CodeDetails;
   onSubmit: (code: string) => void;
+  onCodeChange?: (code: string) => void;
   testResults: {
     passed: boolean;
     executionTime: string;
@@ -68,13 +69,14 @@ export function ProblemSolver({
   solution,
   codeDetails,
   onSubmit,
+  onCodeChange,
 }: ProblemSolverProps) {
   const processedProblem = useRef<Problem>(problem);
   
   if (!problem || !problem.title || !problem.testCases) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
-        <div className="flex items-center justify-center min-h-screen">
+      <div className="min-h-[calc(100vh-3.5rem)] bg-gray-50 dark:bg-gray-900 flex flex-col">
+        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
           <div className="text-center">
             <div className="bg-red-100 text-red-700 p-4 rounded-md mb-4">
               <p className="font-medium">Error: Invalid problem data</p>
@@ -311,15 +313,22 @@ export function ProblemSolver({
 
   const showResultsPanel = executionResults && (isLoadingRun || isLoadingSubmit || resultsToShow.length > 0 || !!executionResults.error || (lastActionType === 'submit' && executionResults.passed));
 
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    if (onCodeChange) {
+      onCodeChange(newCode);
+    }
+  };
+
   return (
-    <div className="h-[calc(100vh-64px)] max-h-[calc(100vh-64px)] flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
+    <div className="h-[calc(100vh-3.5rem)] max-h-[calc(100vh-3.5rem)] flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
       <div className="flex flex-1 md:flex-row overflow-hidden">
-        <div className="w-full md:w-1/2 h-full flex flex-col bg-white dark:bg-neutral-850"><div className="flex-1 overflow-y-auto"><div className="p-6">{problem && problem.title ? <div className="prose dark:prose-invert max-w-none">{formatTypedText()}</div> : <div className="flex items-center justify-center h-full"><p className="text-lg text-gray-500">Loading problem...</p></div>}</div></div></div>
+        <div className="w-full md:w-1/2 h-full flex flex-col bg-white dark:bg-neutral-850"><div className="flex-1 overflow-y-auto"><div className="px-6 pt-3 pb-6">{problem && problem.title ? <div className="prose dark:prose-invert max-w-none">{formatTypedText()}</div> : <div className="flex items-center justify-center h-full"><p className="text-lg text-gray-500">Loading problem...</p></div>}</div></div></div>
         <div className={`w-full md:w-1/2 h-full flex flex-col bg-neutral-800 dark:bg-neutral-900 transition-all duration-500 transform ${showEditor ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}>
           <div className="flex-shrink-0 p-3 bg-neutral-700 dark:bg-neutral-800 flex justify-between items-center border-b border-neutral-600"><div className="flex items-center"><h3 className="font-medium text-white">Solution Editor</h3><div className="ml-3 flex items-center text-xs text-neutral-400 border-l border-neutral-600 pl-3"><InfoIcon className="h-3 w-3 mr-1 flex-shrink-0" /><span>{codeDetails?.language || 'python'}</span><div className="ml-2 text-xs text-neutral-400">(support for more languages coming soon)</div></div></div><button onClick={handleReset} disabled={isLoadingRun || isLoadingSubmit} className="flex items-center px-3 py-1 text-sm text-neutral-300 hover:text-white transition-colors disabled:opacity-50"><RotateCcwIcon className="w-4 h-4 mr-1" /> Reset</button></div>
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className={`${showResultsPanel ? 'h-3/4' : 'h-full'} bg-neutral-900 overflow-hidden transition-all duration-300`}>
-              <CodeEditor code={code} language={codeDetails?.language || 'python'} onChange={setCode} height="100%" width="100%"/>
+              <CodeEditor code={code} language={codeDetails?.language || 'python'} onChange={handleCodeChange} height="100%" width="100%"/>
             </div>
             {showResultsPanel && executionResults && (
               <div className={'h-1/4 flex-shrink-0 border-t border-neutral-700 bg-neutral-800 overflow-y-auto p-3 transition-all duration-300 opacity-100'}>
