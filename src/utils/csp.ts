@@ -34,7 +34,7 @@ export const setEnvironmentBasedCSP = () => {
     meta.setAttribute('content', `
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;
-      style-src 'self' 'unsafe-inline' blob: data:;
+      style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net;
       img-src 'self' data: blob: https:;
       connect-src 'self' http://localhost:3000 https://algo-irl.vercel.app https://judge0-ce.p.rapidapi.com ws: wss:;
       font-src 'self' data: blob:;
@@ -56,7 +56,7 @@ export const setEnvironmentBasedCSP = () => {
     meta.setAttribute('content', `
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;
-      style-src 'self' 'unsafe-inline' blob: data:;
+      style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net;
       img-src 'self' data: blob: https:;
       connect-src 'self' https://algo-irl.vercel.app https://judge0-ce.p.rapidapi.com;
       font-src 'self' data: blob:;
