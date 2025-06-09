@@ -1,6 +1,10 @@
 /**
  * Content Security Policy utilities
  * Provides different CSP configurations for development vs production
+ * 
+ * Note: frame-ancestors directive is NOT included here because it's ignored 
+ * when delivered via <meta> tag. For clickjacking protection, implement 
+ * frame-ancestors via HTTP response headers or use X-Frame-Options header.
  */
 
 // Set to false to completely disable CSP in development for debugging
@@ -43,7 +47,6 @@ export const setEnvironmentBasedCSP = () => {
       object-src 'none';
       base-uri 'self';
       form-action 'self';
-      frame-ancestors 'none';
     `.replace(/\s+/g, ' ').trim());
   } else {
     // Production - More restrictive but still Monaco compatible
@@ -64,7 +67,6 @@ export const setEnvironmentBasedCSP = () => {
       object-src 'none';
       base-uri 'self';
       form-action 'self';
-      frame-ancestors 'none';
     `.replace(/\s+/g, ' ').trim();
     
     console.log('Setting production CSP for Monaco Editor compatibility:', cspContent);
