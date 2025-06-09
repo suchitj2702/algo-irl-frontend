@@ -28,6 +28,7 @@ interface ProblemSolverProps {
   onSubmit: (code: string) => void;
   onCodeChange?: (code: string) => void;
   onSolveAnother?: () => void;
+  maxSubmitTestCases?: number; // Maximum number of test cases to use for submission (default: 20)
   testResults: {
     passed: boolean;
     executionTime: string;
@@ -74,6 +75,7 @@ export function ProblemSolver({
   onSubmit,
   onCodeChange,
   onSolveAnother,
+  maxSubmitTestCases = 20, // Default to 20 test cases for submission
 }: ProblemSolverProps) {
   const processedProblem = useRef<Problem>(problem);
   
@@ -221,14 +223,18 @@ export function ProblemSolver({
       return; 
     }
     setLastActionType('submit');
-    setExecutionResults(null); 
+    setExecutionResults(null);
+    
+    // Limit test cases for submission to improve performance
+    const submitTestCases = problem.testCases.slice(0, maxSubmitTestCases);
+    
     secureExecuteCodeAndPoll({ 
       code, 
       language: codeDetails.language, 
       boilerplateCode: codeDetails.boilerplateCode, 
-      testCases: problem.testCases,
+      testCases: submitTestCases,
       onResults: r => { commonExecutionHandler(r); if (r.passed) onSubmit(code); }, 
-      onError: (errorMsg, submissionId) => commonErrorHandler(errorMsg, submissionId, problem.testCases.length),
+      onError: (errorMsg, submissionId) => commonErrorHandler(errorMsg, submissionId, submitTestCases.length),
       onLoadingChange: setIsLoadingSubmit 
     });
   };
