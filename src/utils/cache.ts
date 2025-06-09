@@ -187,4 +187,46 @@ export const clearCache = (): void => {
   } catch (error) {
     console.error('Error clearing cache:', error);
   }
+};
+
+// Interface for tracking problem show timestamps
+export interface ProblemShowTimestamp {
+  slug: string;
+  lastShown: number;
+}
+
+// Get problem show timestamps from cache
+export const getProblemShowTimestamps = (): ProblemShowTimestamp[] => {
+  try {
+    const cached = localStorage.getItem('algo_irl_problem_timestamps');
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (error) {
+    console.error('Error reading problem timestamps:', error);
+  }
+  return [];
+};
+
+// Save problem show timestamps to cache
+export const saveProblemShowTimestamps = (timestamps: ProblemShowTimestamp[]): void => {
+  try {
+    localStorage.setItem('algo_irl_problem_timestamps', JSON.stringify(timestamps));
+  } catch (error) {
+    console.error('Error saving problem timestamps:', error);
+  }
+};
+
+// Update timestamp for a shown problem
+export const updateProblemShowTimestamp = (slug: string): void => {
+  const timestamps = getProblemShowTimestamps();
+  const existingIndex = timestamps.findIndex(t => t.slug === slug);
+  
+  if (existingIndex !== -1) {
+    timestamps[existingIndex].lastShown = Date.now();
+  } else {
+    timestamps.push({ slug, lastShown: Date.now() });
+  }
+  
+  saveProblemShowTimestamps(timestamps);
 }; 

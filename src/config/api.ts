@@ -1,6 +1,16 @@
-// API Configuration
+// Environment-based API Configuration
+const getBaseUrl = (): string => {
+  // In development mode, use relative URLs to leverage Vite's proxy
+  if (import.meta.env.DEV) {
+    return '';
+  }
+  
+  // Production URL
+  return 'https://algo-irl.vercel.app';
+};
+
 export const API_CONFIG = {
-  BASE_URL: 'https://algo-irl.vercel.app',
+  BASE_URL: getBaseUrl(),
   ENDPOINTS: {
     COMPANIES_INITIALIZE: '/api/companies/initialize',
     PROBLEM_PREPARE: '/api/problem/prepare',

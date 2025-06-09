@@ -18,6 +18,7 @@ import {
   markProblemAsSolved, 
   updateProblemSolution 
 } from '../utils/cache';
+import { blind75Data } from '../constants/blind75';
 
 interface Problem {
   title: string;
@@ -65,13 +66,24 @@ const getCompanyDisplayName = (companyId: string): string => {
   return companyMap[companyId] || companyId;
 };
 
+// Helper function to find which topic a problem belongs to
+const findTopicForProblem = (problemSlug: string): string => {
+  for (const [topic, problems] of Object.entries(blind75Data)) {
+    if (problems.some(p => p.slug === problemSlug)) {
+      return topic;
+    }
+  }
+  return 'random'; // fallback if not found
+};
+
 export function ProblemGenerator() {
   const [currentStep, setCurrentStep] = useState('intro');
   const [formData, setFormData] = useState<FormData>({
     dataset: 'blind75',
     company: 'openai',
     customCompany: '',
-    difficulty: 'Medium'
+    difficulty: 'Medium',
+    topic: 'random'
   });
   const [problem, setProblem] = useState<Problem | null>(null);
   const [codeDetails, setCodeDetails] = useState<CodeDetails | null>(null);
@@ -82,6 +94,7 @@ export function ProblemGenerator() {
   const [apiResponseReceived, setApiResponseReceived] = useState(false);
   const [isResuming, setIsResuming] = useState(false);
   const [resumeProblemId, setResumeProblemId] = useState<string | null>(null);
+  const [resumeDataLoaded, setResumeDataLoaded] = useState(false);
   
   // New state for Blind75 functionality
   const [companyContextFormData, setCompanyContextFormData] = useState<CompanyContextFormData>({
@@ -244,6 +257,7 @@ export function ProblemGenerator() {
     try {
       setIsResuming(true);
       setResumeProblemId(problemId);
+      setResumeDataLoaded(false);
       setCurrentStep('resume-loading');
       
       // Get cached problem data
@@ -307,10 +321,16 @@ export function ProblemGenerator() {
       setCodeDetails(formattedCodeDetails);
       setSolutionFromSolver(cachedProblem.solution);
       
+      // Signal that data is loaded
+      setResumeDataLoaded(true);
+      
     } catch (err) {
       console.error('Error resuming problem:', err);
       setError(err instanceof Error ? err.message : 'An unexpected error occurred while resuming');
-      setCurrentStep('progress');
+      setCurrentStep('blind75'); // Go back to blind75 instead of 'progress'
+      setIsResuming(false);
+      setResumeProblemId(null);
+      setResumeDataLoaded(false);
     }
   };
 
@@ -328,7 +348,7 @@ export function ProblemGenerator() {
       setIsResuming(false);
       setResumeProblemId(null);
       
-      const { company, customCompany, difficulty } = data;
+      const { company, customCompany, difficulty, specificProblemSlug } = data;
       const isBlind75 = data.dataset === 'blind75';
       let companyId = company;
       let companyName = company;
@@ -349,10 +369,18 @@ export function ProblemGenerator() {
         companyName = getCompanyDisplayName(company);
       }
       
+      // Prepare API payload for specific problem or difficulty-based selection
+      let apiPayload: any = { companyId, isBlind75 };
+      if (specificProblemSlug) {
+        apiPayload.problemId = specificProblemSlug;
+      } else {
+        apiPayload.difficulty = difficulty;
+      }
+      
       const prepareResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEM_PREPARE), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ difficulty, companyId, isBlind75 }),
+        body: JSON.stringify(apiPayload),
       });
       if (!prepareResponse.ok) throw new Error(`Failed to prepare problem: ${await prepareResponse.text()}`);
       const responseData = await prepareResponse.json();
@@ -367,7 +395,7 @@ export function ProblemGenerator() {
       }));
 
       // Get base problemId from API response or generate fallback
-      const baseProblemId = responseData.problem?.id || responseData.problem?.problemId || `${difficulty}_${Date.now()}`;
+      const baseProblemId = responseData.problem?.id || responseData.problem?.problemId || specificProblemSlug || `${difficulty}_${Date.now()}`;
       
       // Generate unique problemId that matches what cache will store
       const uniqueProblemId = `${baseProblemId}_${companyId}`;
@@ -406,7 +434,7 @@ export function ProblemGenerator() {
         formattedCodeDetails.defaultUserCode || '',
         companyId,
         companyName,
-        difficulty,
+        specificProblemSlug ? 'Mixed' : difficulty, // Use 'Mixed' for topic-based selections, actual difficulty for manual selection
         formattedProblem.title
       );
       
@@ -463,23 +491,139 @@ export function ProblemGenerator() {
     setApiResponseReceived(false);
     setIsResuming(false);
     setResumeProblemId(null);
+    setResumeDataLoaded(false);
   };
 
   const handleGoBackToProblem = () => {
     setCurrentStep('problem');
   };
 
+  const handleSolveAnother = () => {
+    // Current progress is already saved via handleCodeChange
+    // Get current problem's cached information to preserve context
+    let currentCompanyInfo = { company: 'meta', customCompany: '' };
+    let currentDifficulty = 'Medium';
+    let currentTopic = 'random';
+    
+    // First, determine the topic based on the flow and selected problem
+    if (isCompanyContextFlow && selectedProblemSlug) {
+      // User came from Blind75 list - preserve the topic of the selected problem
+      currentTopic = findTopicForProblem(selectedProblemSlug);
+      console.log(`Topic determined from Blind75 problem ${selectedProblemSlug}: ${currentTopic}`);
+    } else if (isCompanyContextFlow) {
+      // Company context flow but no specific problem - keep random
+      currentTopic = 'random';
+    } else {
+      // Regular form flow - preserve the current topic selection
+      currentTopic = formData.topic || 'random';
+    }
+    
+    // Also preserve the current difficulty from form state as fallback
+    const fallbackDifficulty = isCompanyContextFlow ? 'Medium' : (formData.difficulty || 'Medium');
+    
+    // Try to get current problem info from cache
+    if (problem?.problemId) {
+      const cachedProblem = getCachedProblem(problem.problemId);
+      if (cachedProblem) {
+        console.log('Found cached problem info:', cachedProblem);
+        
+        // Use cached company information
+        if (cachedProblem.companyId === 'custom') {
+          currentCompanyInfo = {
+            company: 'custom',
+            customCompany: cachedProblem.companyName
+          };
+        } else {
+          currentCompanyInfo = {
+            company: cachedProblem.companyId,
+            customCompany: ''
+          };
+        }
+        
+        // Use cached difficulty, but if it's 'Mixed' or 'Random', use fallback
+        currentDifficulty = ['Mixed', 'Random'].includes(cachedProblem.difficulty) 
+          ? fallbackDifficulty 
+          : cachedProblem.difficulty;
+        
+        // Topic is determined above based on the flow, not from cache
+      } else {
+        console.log('No cached problem found, using current state');
+        // Use current form state for company/difficulty
+        if (isCompanyContextFlow) {
+          currentCompanyInfo = {
+            company: companyContextFormData.company,
+            customCompany: companyContextFormData.customCompany || ''
+          };
+          currentDifficulty = fallbackDifficulty;
+        } else {
+          currentCompanyInfo = {
+            company: formData.company,
+            customCompany: formData.customCompany || ''
+          };
+          currentDifficulty = fallbackDifficulty;
+        }
+      }
+    } else {
+      console.log('No problem ID available, using current state');
+      // Use current form state for company/difficulty
+      if (isCompanyContextFlow) {
+        currentCompanyInfo = {
+          company: companyContextFormData.company,
+          customCompany: companyContextFormData.customCompany || ''
+        };
+        currentDifficulty = fallbackDifficulty;
+      } else {
+        currentCompanyInfo = {
+          company: formData.company,
+          customCompany: formData.customCompany || ''
+        };
+        currentDifficulty = fallbackDifficulty;
+      }
+    }
+    
+    const newFormData = {
+      dataset: 'blind75',
+      company: currentCompanyInfo.company,
+      customCompany: currentCompanyInfo.customCompany,
+      difficulty: currentDifficulty,
+      topic: currentTopic,
+    };
+    
+    console.log('Setting form data for "Solve Another Problem":', newFormData);
+    
+    // Update form data with preserved information
+    setFormData(newFormData);
+    
+    // Reset state and go back to form
+    setCurrentStep('form');
+    setIsCompanyContextFlow(false);
+    setSolutionFromSolver(null);
+    setEvaluationResults(null);
+    setProblem(null);
+    setCodeDetails(null);
+    setError(null);
+    setApiResponseReceived(false);
+    setIsResuming(false);
+    setResumeProblemId(null);
+    setResumeDataLoaded(false);
+  };
+
   const handleResumeLoadingComplete = () => {
     setCurrentStep('problem');
+    setIsResuming(false);
+    setResumeProblemId(null);
+    setResumeDataLoaded(false);
   };
 
   return (
     <DarkModeProvider>
       <div className="min-h-screen font-sans text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+        {currentStep !== 'intro' && (
         <Navbar 
           onHomeClick={handleHomeClick} 
           onBlind75Click={handleBlind75Click}
         />
+        )}
         {currentStep === 'intro' && <IntroSection onStartClick={handleStartClick} />}
         {currentStep === 'blind75' && (
           <Blind75 
@@ -510,7 +654,10 @@ export function ProblemGenerator() {
             forceComplete={apiResponseReceived}
         />}
         {currentStep === 'resume-loading' && (
-          <ResumeLoadingSequence onComplete={handleResumeLoadingComplete} />
+          <ResumeLoadingSequence 
+            onComplete={handleResumeLoadingComplete} 
+            isDataLoaded={resumeDataLoaded}
+          />
         )}
         {currentStep === 'problem' && problem && codeDetails && (
           <ProblemSolver 
@@ -520,6 +667,7 @@ export function ProblemGenerator() {
             onSubmit={handleFinalSolutionSubmit}
             onCodeChange={handleCodeChange}
             testResults={evaluationResults}
+            onSolveAnother={handleSolveAnother}
           />
         )}
         {currentStep === 'problem' && (!problem || !codeDetails) && (

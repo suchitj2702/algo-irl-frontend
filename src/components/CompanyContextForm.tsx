@@ -153,18 +153,25 @@ export function CompanyContextForm({ onSubmit, onCancel, problemSlug }: CompanyC
                 Company Name
               </button>
               {formData.company === 'custom' && (
-                <input 
-                  type="text" 
-                  value={formData.customCompany} 
-                  onChange={e => {
-                    setFormData({
-                      ...formData,
-                      customCompany: e.target.value
-                    });
-                  }} 
-                  placeholder="Enter any company name" 
-                  className="block w-full rounded-md border-gray-300 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" 
-                />
+                <div className="mt-2">
+                  <input 
+                    type="text" 
+                    value={formData.customCompany} 
+                    onChange={e => {
+                      setFormData({
+                        ...formData,
+                        customCompany: e.target.value
+                      });
+                    }} 
+                    placeholder="Type your company name here..." 
+                    autoFocus
+                    className="block w-full rounded-md border border-indigo-200 dark:border-indigo-700 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-indigo-400 focus:ring-1 focus:ring-indigo-200 dark:focus:ring-indigo-700 sm:text-sm px-3 py-2.5 transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500" 
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                    <span className="inline-block w-1.5 h-1.5 bg-indigo-400 rounded-full"></span>
+                    Enter any company name to get tailored questions
+                  </p>
+                </div>
               )}
 
               {/* Standard Companies */}

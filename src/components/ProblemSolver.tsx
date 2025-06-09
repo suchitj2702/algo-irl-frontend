@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { PlayIcon, SendIcon, RotateCcwIcon, InfoIcon } from 'lucide-react';
 import CodeEditor from './CodeEditor';
 import { executeCodeAndPoll, ExecutionResults, TestCase } from '../utils/codeExecution';
+import { secureExecuteCodeAndPoll } from '../utils/secureCodeExecution';
+import { HoneypotField } from '../utils/security';
 
 interface Problem {
   title: string;
@@ -25,6 +27,7 @@ interface ProblemSolverProps {
   codeDetails: CodeDetails;
   onSubmit: (code: string) => void;
   onCodeChange?: (code: string) => void;
+  onSolveAnother?: () => void;
   testResults: {
     passed: boolean;
     executionTime: string;
@@ -70,6 +73,7 @@ export function ProblemSolver({
   codeDetails,
   onSubmit,
   onCodeChange,
+  onSolveAnother,
 }: ProblemSolverProps) {
   const processedProblem = useRef<Problem>(problem);
   
@@ -218,7 +222,7 @@ export function ProblemSolver({
     }
     setLastActionType('submit');
     setExecutionResults(null); 
-    executeCodeAndPoll({ 
+    secureExecuteCodeAndPoll({ 
       code, 
       language: codeDetails.language, 
       boilerplateCode: codeDetails.boilerplateCode, 
@@ -322,6 +326,8 @@ export function ProblemSolver({
 
   return (
     <div className="h-[calc(100vh-3.5rem)] max-h-[calc(100vh-3.5rem)] flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
+      {/* Hidden honeypot field for security */}
+      <HoneypotField />
       <div className="flex flex-1 md:flex-row overflow-hidden">
         <div className="w-full md:w-1/2 h-full flex flex-col bg-white dark:bg-neutral-850"><div className="flex-1 overflow-y-auto"><div className="px-6 pt-3 pb-6">{problem && problem.title ? <div className="prose dark:prose-invert max-w-none">{formatTypedText()}</div> : <div className="flex items-center justify-center h-full"><p className="text-lg text-gray-500">Loading problem...</p></div>}</div></div></div>
         <div className={`w-full md:w-1/2 h-full flex flex-col bg-neutral-800 dark:bg-neutral-900 transition-all duration-500 transform ${showEditor ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}>
@@ -384,7 +390,48 @@ export function ProblemSolver({
               </div>
             )}
           </div>
-          <div className="flex-shrink-0 p-3 bg-neutral-700 dark:bg-neutral-800 border-t border-neutral-600 dark:border-neutral-700 flex justify-end space-x-3"><button onClick={handleRun} disabled={isLoadingRun || isLoadingSubmit} className="flex items-center px-4 py-2 bg-neutral-600 text-white rounded hover:bg-neutral-500 transition-colors disabled:opacity-50">{isLoadingRun ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div> : <PlayIcon className="w-4 h-4 mr-2" />}Run Code</button><button onClick={handleSubmit} disabled={isLoadingRun || isLoadingSubmit} className="flex items-center px-4 py-2 bg-brand-primary text-white rounded hover:bg-brand-secondary transition-colors disabled:opacity-50">{isLoadingSubmit ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div> : <SendIcon className="w-4 h-4 mr-2" />}Submit</button></div>
+          <div className="flex-shrink-0 p-3 bg-neutral-700 dark:bg-neutral-800 border-t border-neutral-600 dark:border-neutral-700 flex justify-end space-x-3">
+            <button 
+              onClick={handleRun} 
+              disabled={isLoadingRun || isLoadingSubmit} 
+              className="flex items-center px-4 py-2 bg-neutral-600 text-white rounded hover:bg-neutral-500 transition-colors disabled:opacity-50"
+            >
+              {isLoadingRun ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              ) : (
+                <PlayIcon className="w-4 h-4 mr-2" />
+              )}
+              Run Code
+            </button>
+            <button 
+              onClick={handleSubmit} 
+              disabled={isLoadingRun || isLoadingSubmit} 
+              className="flex items-center px-4 py-2 bg-brand-primary text-white rounded hover:bg-brand-secondary transition-colors disabled:opacity-50"
+            >
+              {isLoadingSubmit ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              ) : (
+                <SendIcon className="w-4 h-4 mr-2" />
+              )}
+              Submit
+            </button>
+            {onSolveAnother && (
+              <button 
+                onClick={() => {
+                  // Save current progress before navigating away
+                  if (onCodeChange) {
+                    onCodeChange(code);
+                  }
+                  onSolveAnother();
+                }} 
+                disabled={isLoadingRun || isLoadingSubmit} 
+                className="flex items-center px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 transition-colors disabled:opacity-50"
+              >
+                <RotateCcwIcon className="w-4 h-4 mr-2" />
+                Solve Another Problem
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
