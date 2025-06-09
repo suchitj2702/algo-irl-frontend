@@ -41,7 +41,7 @@ export const setEnvironmentBasedCSP = () => {
       style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net;
       img-src 'self' data: blob: https:;
       connect-src 'self' http://localhost:3000 https://algo-irl.vercel.app https://judge0-ce.p.rapidapi.com ws: wss:;
-      font-src 'self' data: blob:;
+      font-src 'self' data: blob: https://cdn.jsdelivr.net;
       worker-src 'self' blob: data:;
       child-src 'self' blob: data:;
       object-src 'none';
@@ -61,7 +61,7 @@ export const setEnvironmentBasedCSP = () => {
       style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net;
       img-src 'self' data: blob: https:;
       connect-src 'self' https://algo-irl.vercel.app https://judge0-ce.p.rapidapi.com;
-      font-src 'self' data: blob:;
+      font-src 'self' data: blob: https://cdn.jsdelivr.net;
       worker-src 'self' blob: data:;
       child-src 'self' blob: data:;
       object-src 'none';
