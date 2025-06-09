@@ -7,7 +7,7 @@
 const ENABLE_CSP_IN_DEV = false;
 
 // Set to false to temporarily disable CSP in production for Monaco debugging
-const ENABLE_CSP_IN_PROD = true;
+const ENABLE_CSP_IN_PROD = false;
 
 export const setEnvironmentBasedCSP = () => {
   // Only run in browser environment
@@ -52,8 +52,7 @@ export const setEnvironmentBasedCSP = () => {
       return;
     }
     
-    console.log('Setting production CSP for Monaco Editor compatibility');
-    meta.setAttribute('content', `
+    const cspContent = `
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;
       style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net;
@@ -66,9 +65,22 @@ export const setEnvironmentBasedCSP = () => {
       base-uri 'self';
       form-action 'self';
       frame-ancestors 'none';
-    `.replace(/\s+/g, ' ').trim());
+    `.replace(/\s+/g, ' ').trim();
+    
+    console.log('Setting production CSP for Monaco Editor compatibility:', cspContent);
+    meta.setAttribute('content', cspContent);
   }
 
   // Add the new CSP to the document head
   document.head.appendChild(meta);
+  
+  // Verify CSP was added
+  setTimeout(() => {
+    const addedCSP = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+    if (addedCSP) {
+      console.log('CSP successfully added to document:', addedCSP.getAttribute('content'));
+    } else {
+      console.error('Failed to add CSP to document');
+    }
+  }, 100);
 }; 
