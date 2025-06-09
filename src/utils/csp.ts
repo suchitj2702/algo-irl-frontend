@@ -6,6 +6,9 @@
 // Set to false to completely disable CSP in development for debugging
 const ENABLE_CSP_IN_DEV = false;
 
+// Set to false to temporarily disable CSP in production for Monaco debugging
+const ENABLE_CSP_IN_PROD = true;
+
 export const setEnvironmentBasedCSP = () => {
   // Only run in browser environment
   if (typeof document === 'undefined') return;
@@ -30,7 +33,7 @@ export const setEnvironmentBasedCSP = () => {
     // Development - More permissive for Monaco Editor and debugging
     meta.setAttribute('content', `
       default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;
       style-src 'self' 'unsafe-inline' blob: data:;
       img-src 'self' data: blob: https:;
       connect-src 'self' http://localhost:3000 https://algo-irl.vercel.app https://judge0-ce.p.rapidapi.com ws: wss:;
@@ -44,9 +47,15 @@ export const setEnvironmentBasedCSP = () => {
     `.replace(/\s+/g, ' ').trim());
   } else {
     // Production - More restrictive but still Monaco compatible
+    if (!ENABLE_CSP_IN_PROD) {
+      console.log('CSP disabled in production mode for Monaco Editor debugging');
+      return;
+    }
+    
+    console.log('Setting production CSP for Monaco Editor compatibility');
     meta.setAttribute('content', `
       default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;
       style-src 'self' 'unsafe-inline' blob: data:;
       img-src 'self' data: blob: https:;
       connect-src 'self' https://algo-irl.vercel.app https://judge0-ce.p.rapidapi.com;
