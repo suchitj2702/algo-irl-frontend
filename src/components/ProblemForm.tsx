@@ -31,9 +31,18 @@ export function ProblemForm({
   error: externalError = null,
   onClearError
 }: ProblemFormProps) {
+  // Helper function to validate company selection
+  const getValidCompany = (company: string | undefined) => {
+    const validCompanyIds = ['custom', 'meta', 'apple', 'amazon', 'netflix', 'google', 'microsoft'];
+    if (!company || !validCompanyIds.includes(company)) {
+      return 'custom'; // Always default to 'custom' (Company Name)
+    }
+    return company;
+  };
+
   const [formData, setFormData] = useState<FormData>({
     dataset: initialData.dataset || 'blind75',
-    company: initialData.company || 'custom', 
+    company: getValidCompany(initialData.company), 
     topic: initialData.topic || 'random',
     customCompany: initialData.customCompany || '',
     difficulty: initialData.difficulty || 'Medium',

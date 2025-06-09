@@ -8,14 +8,6 @@ interface Blind75Props {
   onResumeProblem: (problemId: string) => void;
 }
 
-// Helper function to properly format company names
-const formatCompanyName = (name: string): string => {
-  return name
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
-};
-
 export function Blind75({ onPracticeWithContext, onResumeProblem }: Blind75Props) {
   const [cachedProblems, setCachedProblems] = useState<CachedProblem[]>([]);
   const [showResetConfirmation, setShowResetConfirmation] = useState(false);
@@ -131,10 +123,10 @@ export function Blind75({ onPracticeWithContext, onResumeProblem }: Blind75Props
     const seenCompanies = new Set();
     
     for (const problem of problemSolutions) {
-      const formattedName = formatCompanyName(problem.companyName);
-      if (!seenCompanies.has(formattedName.toLowerCase())) {
-        seenCompanies.add(formattedName.toLowerCase());
-        uniqueCompanies.push(formattedName);
+      const companyName = problem.companyName; // Use exact name from cache
+      if (!seenCompanies.has(companyName.toLowerCase())) {
+        seenCompanies.add(companyName.toLowerCase());
+        uniqueCompanies.push(companyName);
       }
     }
 

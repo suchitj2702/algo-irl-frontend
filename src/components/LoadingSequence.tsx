@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { loadingPrompts } from '../utils/loadingPrompts';
 import { MAX_LOADING_DURATION_SECONDS } from './ProblemGenerator';
+import { getRecentCompanies } from '../utils/cache';
 
 interface LoadingSequenceProps {
   company: string;
@@ -60,7 +61,13 @@ export function LoadingSequence({
     // Select a random theme and prepare its steps
     const randomIndex = Math.floor(Math.random() * loadingPrompts.length);
     const theme = loadingPrompts[randomIndex];
-    const processedSequence = theme.sequence.map(step => step.replace('[company]', company));
+    
+    // Check if we have a better formatted company name in cache
+    const recentCompanies = getRecentCompanies();
+    const cachedCompany = recentCompanies.find(c => c.id === company);
+    const displayCompanyName = cachedCompany ? cachedCompany.name : company;
+    
+    const processedSequence = theme.sequence.map(step => step.replace('[company]', displayCompanyName));
     
     setSelectedTheme(theme);
     setSteps(processedSequence);

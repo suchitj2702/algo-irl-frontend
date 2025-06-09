@@ -147,7 +147,7 @@ export function ProblemGenerator() {
         const companyData = await companyResponse.json();
         if (!companyData.success) throw new Error(companyData.message || 'Failed to initialize company');
         companyId = companyData.company.id;
-        companyName = customCompany;
+        companyName = companyData.company.name || companyData.company.displayName || customCompany;
       } else {
         // For standard companies, use the proper display name
         companyName = getCompanyDisplayName(company);
@@ -363,7 +363,7 @@ export function ProblemGenerator() {
         const companyData = await companyResponse.json();
         if (!companyData.success) throw new Error(companyData.message || 'Failed to initialize company');
         companyId = companyData.company.id;
-        companyName = customCompany;
+        companyName = companyData.company.name || companyData.company.displayName || customCompany;
       } else {
         // For standard companies, use the proper display name
         companyName = getCompanyDisplayName(company);
@@ -528,12 +528,16 @@ export function ProblemGenerator() {
         console.log('Found cached problem info:', cachedProblem);
         
         // Use cached company information
-        if (cachedProblem.companyId === 'custom') {
+        // Check if this is a predefined company or a custom one
+        const predefinedCompanies = ['meta', 'apple', 'amazon', 'netflix', 'google', 'microsoft'];
+        if (cachedProblem.companyId === 'custom' || !predefinedCompanies.includes(cachedProblem.companyId)) {
+          // This is a custom company (either stored as 'custom' or any other non-predefined ID)
           currentCompanyInfo = {
             company: 'custom',
             customCompany: cachedProblem.companyName
           };
         } else {
+          // This is a predefined company
           currentCompanyInfo = {
             company: cachedProblem.companyId,
             customCompany: ''

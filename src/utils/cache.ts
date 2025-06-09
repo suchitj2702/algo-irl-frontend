@@ -70,14 +70,6 @@ export const saveCache = (cache: UserCache): void => {
 // Default company IDs that should not be cached as recently used
 const DEFAULT_COMPANY_IDS = ['meta', 'apple', 'amazon', 'netflix', 'google', 'microsoft'];
 
-// Utility function to properly capitalize company names
-const capitalizeCompanyName = (name: string): string => {
-  return name
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
-};
-
 // Add or update a company in cache (keep last 4)
 export const addCompanyToCache = (companyId: string, companyName: string): void => {
   // Don't cache default companies - they're always available
@@ -90,10 +82,10 @@ export const addCompanyToCache = (companyId: string, companyName: string): void 
   // Remove existing entry if present
   cache.companies = cache.companies.filter(c => c.id !== companyId);
   
-  // Add new entry at the beginning with properly capitalized name
+  // Add new entry at the beginning with the exact API-provided name
   cache.companies.unshift({
     id: companyId,
-    name: capitalizeCompanyName(companyName),
+    name: companyName, // Use the exact name from API instead of applying our own capitalization
     timestamp: Date.now()
   });
   
