@@ -57,9 +57,7 @@ export function ResultsView({
           </p>
           <p className="text-gray-600 dark:text-gray-300 mt-2">
             {results.passed 
-              ? (totalTestCases && actualExecutedCount < totalTestCases
-                  ? `Great job! Your solution passed all tested cases. (${actualExecutedCount} of ${totalTestCases} total test cases were run for faster execution)`
-                  : 'Great job! Your solution works correctly.')
+              ? 'Great job! Your solution works correctly.'
               : (totalTestCases && actualExecutedCount < totalTestCases
                   ? `Your solution needs some adjustments. (${actualExecutedCount} of ${totalTestCases} total test cases were run)`
                   : 'Your solution needs some adjustments.')}

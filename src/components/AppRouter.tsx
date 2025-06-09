@@ -525,15 +525,19 @@ export function AppRouter() {
       markProblemAsSolved(problem.problemId, code);
     }
     
+    // Limit test cases to match what was actually executed (default 20 from ProblemSolver)
+    const maxTestCasesExecuted = 20;
+    const executedTestCases = problem?.testCases.slice(0, maxTestCasesExecuted) || [];
+    
     const mockFinalResults: TestResultsFromParent = {
         passed: true, 
-        executionTime: problem?.testCases && problem.testCases.length > 0 ? Math.floor(Math.random() * 100) + 'ms' : 'N/A',
-        memoryUsed: problem?.testCases && problem.testCases.length > 0 ? Math.floor(Math.random() * 10) + 'MB' : 'N/A',
-        testCases: problem?.testCases.map(tc => ({
+        executionTime: executedTestCases.length > 0 ? Math.floor(Math.random() * 100) + 'ms' : 'N/A',
+        memoryUsed: executedTestCases.length > 0 ? Math.floor(Math.random() * 10) + 'MB' : 'N/A',
+        testCases: executedTestCases.map(tc => ({
             input: typeof tc.stdin === 'object' ? JSON.stringify(tc.stdin) : String(tc.stdin),
             output: typeof tc.expectedStdout === 'object' ? JSON.stringify(tc.expectedStdout) : String(tc.expectedStdout),
             passed: true
-        })) || [],
+        })),
     };
     setEvaluationResults(mockFinalResults);
     setShowSaveProgress(true); 
@@ -746,6 +750,8 @@ export function AppRouter() {
                 problem={problem} 
                 onTryAgain={handleTryAgain} 
                 onGoBackToProblem={handleGoBackToProblem}
+                totalTestCases={problem.testCases.length}
+                executedTestCases={Math.min(20, problem.testCases.length)}
               />
             ) : (
               <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
