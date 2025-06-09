@@ -16,17 +16,23 @@ interface ResultsViewProps {
   problem: any; // Consider defining a specific type for problem as well if not already done elsewhere
   onTryAgain: () => void;
   onGoBackToProblem?: () => void; // New optional prop
+  totalTestCases?: number; // Total number of test cases in the problem (for display purposes)
+  executedTestCases?: number; // Number of test cases actually executed (for submission limit)
 }
 
 export function ResultsView({
   results,
   problem, // problem prop is available but not directly used in this snippet for brevity
   onTryAgain,
-  onGoBackToProblem // Destructure the new prop
+  onGoBackToProblem, // Destructure the new prop
+  totalTestCases,
+  executedTestCases
 }: ResultsViewProps) {
   // Calculate the number of passed test cases if results are not overall passed
   const passedCount = results.passed ? results.testCases.length : results.testCases.filter(tc => tc.passed).length;
-  const totalCount = results.testCases.length;
+  
+  // Use executedTestCases if provided, otherwise fall back to results.testCases.length
+  const actualExecutedCount = executedTestCases || results.testCases.length;
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-4">
@@ -46,11 +52,17 @@ export function ResultsView({
           </h2> */}
           <p className={`text-2xl font-bold mt-2 ${results.passed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
             {results.passed 
-              ? `Awesome! All ${totalCount}/${totalCount} test cases passed!`
-              : `Oops! ${passedCount}/${totalCount} test cases passed.`}
+              ? `Awesome! All ${actualExecutedCount}/${actualExecutedCount} test cases passed!`
+              : `Oops! ${passedCount}/${actualExecutedCount} test cases passed.`}
           </p>
           <p className="text-gray-600 dark:text-gray-300 mt-2">
-            {results.passed ? 'Great job! Your solution works correctly.' : 'Your solution needs some adjustments.'}
+            {results.passed 
+              ? (totalTestCases && actualExecutedCount < totalTestCases
+                  ? `Great job! Your solution passed all tested cases. (${actualExecutedCount} of ${totalTestCases} total test cases were run for faster execution)`
+                  : 'Great job! Your solution works correctly.')
+              : (totalTestCases && actualExecutedCount < totalTestCases
+                  ? `Your solution needs some adjustments. (${actualExecutedCount} of ${totalTestCases} total test cases were run)`
+                  : 'Your solution needs some adjustments.')}
           </p>
         </div>
 
