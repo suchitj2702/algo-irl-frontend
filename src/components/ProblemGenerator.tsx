@@ -16,7 +16,8 @@ import {
   addProblemToCache, 
   getCachedProblem, 
   markProblemAsSolved, 
-  updateProblemSolution 
+  updateProblemSolution,
+  getRecentCompanies
 } from '../utils/cache';
 import { blind75Data } from '../constants/blind75';
 
@@ -136,21 +137,36 @@ export function ProblemGenerator() {
       const isBlind75 = true; // Always true for context practice
       let companyId = company;
       let companyName = company;
+      let shouldCacheCompany = false;
       
       if (company === 'custom' && customCompany) {
-        const companyResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_INITIALIZE), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ companyName: customCompany }),
-        });
-        if (!companyResponse.ok) throw new Error(`Failed to initialize company: ${await companyResponse.text()}`);
-        const companyData = await companyResponse.json();
-        if (!companyData.success) throw new Error(companyData.message || 'Failed to initialize company');
-        companyId = companyData.company.id;
-        companyName = companyData.company.name || companyData.company.displayName || customCompany;
+        // Check if this custom company is already in cache
+        const recentCompanies = getRecentCompanies();
+        const cachedCompany = recentCompanies.find(c => c.name === customCompany);
+        
+        if (cachedCompany) {
+          // Use cached company info instead of calling API again
+          companyId = cachedCompany.id;
+          companyName = cachedCompany.name;
+          shouldCacheCompany = false; // Already in cache
+        } else {
+          // Company not in cache, call API to initialize
+          const companyResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_INITIALIZE), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ companyName: customCompany }),
+          });
+          if (!companyResponse.ok) throw new Error(`Failed to initialize company: ${await companyResponse.text()}`);
+          const companyData = await companyResponse.json();
+          if (!companyData.success) throw new Error(companyData.message || 'Failed to initialize company');
+          companyId = companyData.company.id;
+          companyName = companyData.company.name || companyData.company.displayName || customCompany;
+          shouldCacheCompany = true; // New company, should cache
+        }
       } else {
         // For standard companies, use the proper display name
         companyName = getCompanyDisplayName(company);
+        shouldCacheCompany = false; // Predefined companies don't get cached
       }
       
       // Use selected problem slug or get a random difficulty
@@ -219,8 +235,10 @@ export function ProblemGenerator() {
         throw new Error("Invalid problem data received from API. Missing statement, test cases, or constraints.");
       }
       
-      // Cache the company selection
-      addCompanyToCache(companyId, companyName);
+      // Only add to cache if we made an API call to get new company info
+      if (shouldCacheCompany) {
+        addCompanyToCache(companyId, companyName);
+      }
       
       // Cache the problem as "in_progress" when first viewed
       // Use base problemId (without company context) - let cache function add company identifier
@@ -352,21 +370,36 @@ export function ProblemGenerator() {
       const isBlind75 = data.dataset === 'blind75';
       let companyId = company;
       let companyName = company;
+      let shouldCacheCompany = false;
       
       if (company === 'custom' && customCompany) {
-        const companyResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_INITIALIZE), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ companyName: customCompany }),
-        });
-        if (!companyResponse.ok) throw new Error(`Failed to initialize company: ${await companyResponse.text()}`);
-        const companyData = await companyResponse.json();
-        if (!companyData.success) throw new Error(companyData.message || 'Failed to initialize company');
-        companyId = companyData.company.id;
-        companyName = companyData.company.name || companyData.company.displayName || customCompany;
+        // Check if this custom company is already in cache
+        const recentCompanies = getRecentCompanies();
+        const cachedCompany = recentCompanies.find(c => c.name === customCompany);
+        
+        if (cachedCompany) {
+          // Use cached company info instead of calling API again
+          companyId = cachedCompany.id;
+          companyName = cachedCompany.name;
+          shouldCacheCompany = false; // Already in cache
+        } else {
+          // Company not in cache, call API to initialize
+          const companyResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_INITIALIZE), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ companyName: customCompany }),
+          });
+          if (!companyResponse.ok) throw new Error(`Failed to initialize company: ${await companyResponse.text()}`);
+          const companyData = await companyResponse.json();
+          if (!companyData.success) throw new Error(companyData.message || 'Failed to initialize company');
+          companyId = companyData.company.id;
+          companyName = companyData.company.name || companyData.company.displayName || customCompany;
+          shouldCacheCompany = true; // New company, should cache
+        }
       } else {
         // For standard companies, use the proper display name
         companyName = getCompanyDisplayName(company);
+        shouldCacheCompany = false; // Predefined companies don't get cached
       }
       
       // Prepare API payload for specific problem or difficulty-based selection
@@ -423,8 +456,10 @@ export function ProblemGenerator() {
         throw new Error("Invalid problem data received from API. Missing statement, test cases, or constraints.");
       }
       
-      // Cache the company selection
-      addCompanyToCache(companyId, companyName);
+      // Only add to cache if we made an API call to get new company info
+      if (shouldCacheCompany) {
+        addCompanyToCache(companyId, companyName);
+      }
       
       // Cache the problem as "in_progress" when first viewed
       // Use base problemId (without company context) - let cache function add company identifier
