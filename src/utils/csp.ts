@@ -7,7 +7,7 @@
 const ENABLE_CSP_IN_DEV = false;
 
 // Set to false to temporarily disable CSP in production for Monaco debugging
-const ENABLE_CSP_IN_PROD = false;
+const ENABLE_CSP_IN_PROD = true;
 
 export const setEnvironmentBasedCSP = () => {
   // Only run in browser environment
