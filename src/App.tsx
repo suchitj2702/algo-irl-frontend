@@ -1,5 +1,5 @@
-import { ProblemGenerator } from './components/ProblemGenerator';
+import { AppRouter } from './components/AppRouter';
 
 export function App() {
-  return <ProblemGenerator />;
+  return <AppRouter />;
 }

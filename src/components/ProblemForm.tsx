@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SparklesIcon, BuildingIcon, ClockIcon } from 'lucide-react';
+import { SparklesIcon, BuildingIcon, ClockIcon, AlertCircleIcon, XCircleIcon } from 'lucide-react';
 import { getRecentCompanies, CachedCompany, getProblemShowTimestamps, updateProblemShowTimestamp } from '../utils/cache';
 import { blind75Data, TopicName, getTopicNames, getAllProblems, getProblemsByTopic } from '../constants/blind75';
 
@@ -19,11 +19,17 @@ export interface FormData {
 interface ProblemFormProps {
   initialData: Omit<FormData, 'dataset'> & { dataset?: string };
   onSubmit: (data: FormData) => void;
+  isLoading?: boolean;
+  error?: string | null;
+  onClearError?: () => void;
 }
 
 export function ProblemForm({
   initialData,
-  onSubmit
+  onSubmit,
+  isLoading = false,
+  error: externalError = null,
+  onClearError
 }: ProblemFormProps) {
   const [formData, setFormData] = useState<FormData>({
     dataset: initialData.dataset || 'blind75',
@@ -34,11 +40,26 @@ export function ProblemForm({
     specificProblemSlug: initialData.specificProblemSlug
   });
   const [recentCompanies, setRecentCompanies] = useState<CachedCompany[]>([]);
+  const [localError, setLocalError] = useState<string | null>(null);
   
   useEffect(() => {
     const recent = getRecentCompanies();
     setRecentCompanies(recent);
   }, []);
+
+  // Clear local error when external error changes
+  useEffect(() => {
+    if (externalError) {
+      setLocalError(null);
+    }
+  }, [externalError]);
+
+  const clearAllErrors = () => {
+    setLocalError(null);
+    if (onClearError) {
+      onClearError();
+    }
+  };
 
   const companies = [{
     id: 'custom',
@@ -131,11 +152,17 @@ export function ProblemForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Clear any existing errors
+    clearAllErrors();
+    
     // Get the least recently shown problem
     const selectedProblem = getLeastRecentlyShownProblem();
     
     if (!selectedProblem) {
-      console.error("No problems found for the selected criteria");
+      const topicDisplay = formData.topic === 'random' ? 'any topic' : formData.topic;
+      setLocalError(
+        `No ${formData.difficulty.toLowerCase()} problems found for ${topicDisplay}. Try selecting a different difficulty or topic.`
+      );
       return;
     }
 
@@ -154,12 +181,15 @@ export function ProblemForm({
 
   const selectCompany = (companyId: string, isCustom: boolean = false) => {
     console.log(`Company selected: ${companyId}`);
+    clearAllErrors(); // Clear errors when user makes changes
     setFormData({
       ...formData,
       company: companyId,
       customCompany: isCustom ? formData.customCompany : ''
     });
   };
+
+  const currentError = externalError || localError;
   
   return <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-md bg-white dark:bg-neutral-850 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
@@ -171,6 +201,35 @@ export function ProblemForm({
             Customize your coding challenge experience
           </p>
         </div>
+
+        {/* Error Message */}
+        {currentError && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
+            <div className="flex items-start gap-3">
+              <XCircleIcon className="h-5 w-5 text-red-500 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-200 mb-1">
+                  {externalError ? 'Generation Failed' : 'Configuration Error'}
+                </h3>
+                <p className="text-sm text-red-700 dark:text-red-300">
+                  {currentError}
+                </p>
+                {externalError && (
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-2">
+                    This might be due to high server load. Please try again in a moment.
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={clearAllErrors}
+                className="text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-300"
+              >
+                <XCircleIcon className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">
@@ -229,6 +288,7 @@ export function ProblemForm({
                             ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' 
                             : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800'
                         }`}
+                        disabled={isLoading}
                       >
                         <span className="truncate text-sm">
                           {recentCompany.name}
@@ -245,6 +305,7 @@ export function ProblemForm({
                 type="button" 
                 onClick={() => selectCompany('custom', true)} 
                 className={`w-full py-2.5 px-3 border rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-sm ${formData.company === 'custom' ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800 hover:border-gray-400 dark:hover:border-neutral-600'}`}
+                disabled={isLoading}
               >
                 <CompanyIcon />
                 Company Name
@@ -256,6 +317,7 @@ export function ProblemForm({
                     value={formData.customCompany} 
                     onChange={e => {
                       console.log(`Custom company entered: ${e.target.value}`);
+                      clearAllErrors(); // Clear errors when user makes changes
                       setFormData({
                         ...formData,
                         customCompany: e.target.value
@@ -263,7 +325,8 @@ export function ProblemForm({
                     }} 
                     placeholder="Enter your company name..." 
                     autoFocus
-                    className="block w-full rounded-lg border border-indigo-200 dark:border-indigo-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-700/50 sm:text-sm px-4 py-3 transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500" 
+                    disabled={isLoading}
+                    className="block w-full rounded-lg border border-indigo-200 dark:border-indigo-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-700/50 sm:text-sm px-4 py-3 transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed" 
                   />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                     <span className="inline-block w-1.5 h-1.5 bg-indigo-400 rounded-full"></span>
@@ -275,7 +338,7 @@ export function ProblemForm({
               {/* Standard Companies */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {companies.slice(1).map(company => {
-                  return <button key={company.id} type="button" onClick={() => selectCompany(company.id)} className={`py-2.5 px-3 border rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-sm ${formData.company === company.id ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800 hover:border-gray-400 dark:hover:border-neutral-600'}`}>
+                  return <button key={company.id} type="button" onClick={() => selectCompany(company.id)} className={`py-2.5 px-3 border rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-sm ${formData.company === company.id ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800 hover:border-gray-400 dark:hover:border-neutral-600'}`} disabled={isLoading}>
                     <span className="truncate">{company.name}</span>
                   </button>;
                 })}
@@ -289,11 +352,12 @@ export function ProblemForm({
             <div className="grid grid-cols-3 gap-2">
               {difficulties.map(difficulty => <button key={difficulty.id} type="button" onClick={() => {
                 console.log(`Difficulty selected: ${difficulty.id}`);
+                clearAllErrors(); // Clear errors when user makes changes
                 setFormData({
                   ...formData,
                   difficulty: difficulty.id
                 });
-              }} className={`py-2.5 px-3 border rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-sm ${formData.difficulty === difficulty.id ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800 hover:border-gray-400 dark:hover:border-neutral-600'}`}>
+              }} className={`py-2.5 px-3 border rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-sm ${formData.difficulty === difficulty.id ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800 hover:border-gray-400 dark:hover:border-neutral-600'}`} disabled={isLoading}>
                   {difficulty.name}
                 </button>)}
             </div>
@@ -309,6 +373,7 @@ export function ProblemForm({
                   type="button" 
                   onClick={() => {
                     console.log(`Topic selected: ${topic.id}`);
+                    clearAllErrors(); // Clear errors when user makes changes
                     setFormData({
                       ...formData,
                       topic: topic.id
@@ -319,6 +384,7 @@ export function ProblemForm({
                       ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300' 
                       : 'border-gray-300 text-neutral-750 dark:border-neutral-700 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800 hover:border-gray-400 dark:hover:border-neutral-600'
                   }`}
+                  disabled={isLoading}
                 >
                   {topic.id === 'random' && (
                     <SparklesIcon className="w-3.5 h-3.5" />
@@ -340,11 +406,25 @@ export function ProblemForm({
               type="submit" 
               onClick={() => console.log("Submit button clicked")}
               className="w-full flex justify-center items-center px-4 py-3 text-base font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-              disabled={formData.company === 'custom' && !formData.customCompany?.trim()}
+              disabled={isLoading || (formData.company === 'custom' && !formData.customCompany?.trim())}
             >
-              <SparklesIcon className="h-5 w-5 mr-2" />
-              Generate Challenge
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Generating Challenge...
+                </>
+              ) : (
+                <>
+                  <SparklesIcon className="h-5 w-5 mr-2" />
+                  Generate Challenge
+                </>
+              )}
             </button>
+            {isLoading && (
+              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
+                This may take up to a minute. Please be patient...
+              </p>
+            )}
           </div>
         </form>
       </div>
