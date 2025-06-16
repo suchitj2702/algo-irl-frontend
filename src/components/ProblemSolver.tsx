@@ -331,19 +331,33 @@ export function ProblemSolver({
   };
 
   return (
-    <div className="h-[calc(100vh-3.5rem)] max-h-[calc(100vh-3.5rem)] flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
+    <div className="min-h-[calc(100vh-3.5rem)] md:h-[calc(100vh-3.5rem)] md:max-h-[calc(100vh-3.5rem)] flex flex-col bg-gray-50 dark:bg-gray-900 md:overflow-hidden">
       {/* Hidden honeypot field for security */}
       <HoneypotField />
-      <div className="flex flex-1 md:flex-row overflow-hidden">
-        <div className="w-full md:w-1/2 h-full flex flex-col bg-white dark:bg-neutral-850"><div className="flex-1 overflow-y-auto"><div className="px-6 pt-3 pb-6">{problem && problem.title ? <div className="prose dark:prose-invert max-w-none">{formatTypedText()}</div> : <div className="flex items-center justify-center h-full"><p className="text-lg text-gray-500">Loading problem...</p></div>}</div></div></div>
-        <div className={`w-full md:w-1/2 h-full flex flex-col bg-neutral-800 dark:bg-neutral-900 transition-all duration-500 transform ${showEditor ? 'translate-x-0 opacity-100' : 'translate-x-8 opacity-0'}`}>
+      <div className="flex flex-1 flex-col md:flex-row md:overflow-hidden">
+        <div className="w-full md:w-1/2 md:h-full flex flex-col bg-white dark:bg-neutral-850">
+          <div className="flex-1 md:overflow-y-auto">
+            <div className="px-6 pt-3 pb-6">
+              {problem && problem.title ? (
+                <div className="prose dark:prose-invert max-w-none">
+                  {formatTypedText()}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-64 md:h-full">
+                  <p className="text-lg text-gray-500">Loading problem...</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className={`w-full md:w-1/2 md:h-full flex flex-col bg-neutral-800 dark:bg-neutral-900 transition-all duration-500 transform ${showEditor ? 'translate-x-0 opacity-100' : 'md:translate-x-8 md:opacity-0'}`}>
           <div className="flex-shrink-0 p-3 bg-neutral-700 dark:bg-neutral-800 flex justify-between items-center border-b border-neutral-600"><div className="flex items-center"><h3 className="font-medium text-white">Solution Editor</h3><div className="ml-3 flex items-center text-xs text-neutral-400 border-l border-neutral-600 pl-3"><InfoIcon className="h-3 w-3 mr-1 flex-shrink-0" /><span>{codeDetails?.language || 'python'}</span><div className="ml-2 text-xs text-neutral-400">(support for more languages coming soon)</div></div></div><button onClick={handleReset} disabled={isLoadingRun || isLoadingSubmit} className="flex items-center px-3 py-1 text-sm text-neutral-300 hover:text-white transition-colors disabled:opacity-50"><RotateCcwIcon className="w-4 h-4 mr-1" /> Reset</button></div>
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className={`${showResultsPanel ? 'h-3/4' : 'h-full'} bg-neutral-900 overflow-hidden transition-all duration-300`}>
+          <div className="flex-1 flex flex-col md:overflow-hidden">
+            <div className={`${showResultsPanel ? 'h-96 md:h-3/4' : 'h-96 md:h-full'} bg-neutral-900 md:overflow-hidden transition-all duration-300`}>
               <CodeEditor code={code} language={codeDetails?.language || 'python'} onChange={handleCodeChange} height="100%" width="100%"/>
             </div>
             {showResultsPanel && executionResults && (
-              <div className={'h-1/4 flex-shrink-0 border-t border-neutral-700 bg-neutral-800 overflow-y-auto p-3 transition-all duration-300 opacity-100'}>
+              <div className={'h-64 md:h-1/4 flex-shrink-0 border-t border-neutral-700 bg-neutral-800 overflow-y-auto p-3 transition-all duration-300 opacity-100'}>
                 {(isLoadingRun || isLoadingSubmit) ? (
                    <div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div><p className="ml-3 text-sm text-white">{isLoadingRun ? "Running sample tests..." : "Submitting and running all tests..."}</p></div>
                 ) : (

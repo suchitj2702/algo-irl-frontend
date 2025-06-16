@@ -25,7 +25,6 @@ export const setEnvironmentBasedCSP = () => {
 
   // Skip CSP in development if disabled for Monaco Editor debugging
   if (import.meta.env.DEV && !ENABLE_CSP_IN_DEV) {
-    console.log('CSP disabled in development mode for Monaco Editor compatibility');
     return;
   }
 
@@ -51,7 +50,6 @@ export const setEnvironmentBasedCSP = () => {
   } else {
     // Production - More restrictive but still Monaco compatible
     if (!ENABLE_CSP_IN_PROD) {
-      console.log('CSP disabled in production mode for Monaco Editor debugging');
       return;
     }
     
@@ -69,7 +67,6 @@ export const setEnvironmentBasedCSP = () => {
       form-action 'self';
     `.replace(/\s+/g, ' ').trim();
     
-    console.log('Setting production CSP for Monaco Editor compatibility:', cspContent);
     meta.setAttribute('content', cspContent);
   }
 
@@ -79,9 +76,7 @@ export const setEnvironmentBasedCSP = () => {
   // Verify CSP was added
   setTimeout(() => {
     const addedCSP = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-    if (addedCSP) {
-      console.log('CSP successfully added to document:', addedCSP.getAttribute('content'));
-    } else {
+    if (!addedCSP) {
       console.error('Failed to add CSP to document');
     }
   }, 100);

@@ -178,15 +178,11 @@ export function ProblemGenerator() {
         apiPayload.difficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
       }
       
-      console.log('API Payload being sent:', apiPayload);
-      
       const prepareResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEM_PREPARE), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(apiPayload),
       });
-      
-      console.log('API Response status:', prepareResponse.status);
       
       if (!prepareResponse.ok) {
         const errorText = await prepareResponse.text();
@@ -195,7 +191,6 @@ export function ProblemGenerator() {
       }
       
       const responseData = await prepareResponse.json();
-      console.log('API Response data:', responseData);
 
       const apiTestCases = responseData.problem?.testCases || [];
       const formattedTestCases: TestCase[] = apiTestCases.map((tc: any) => ({
@@ -548,7 +543,6 @@ export function ProblemGenerator() {
     if (isCompanyContextFlow && selectedProblemSlug) {
       // User came from Blind75 list - preserve the topic of the selected problem
       currentTopic = findTopicForProblem(selectedProblemSlug);
-      console.log(`Topic determined from Blind75 problem ${selectedProblemSlug}: ${currentTopic}`);
     } else if (isCompanyContextFlow) {
       // Company context flow but no specific problem - keep random
       currentTopic = 'random';
@@ -564,8 +558,6 @@ export function ProblemGenerator() {
     if (problem?.problemId) {
       const cachedProblem = getCachedProblem(problem.problemId);
       if (cachedProblem) {
-        console.log('Found cached problem info:', cachedProblem);
-        
         // Use cached company information
         // Check if this is a predefined company or a custom one
         const predefinedCompanies = ['meta', 'apple', 'amazon', 'netflix', 'google', 'microsoft'];
@@ -590,7 +582,6 @@ export function ProblemGenerator() {
         
         // Topic is determined above based on the flow, not from cache
       } else {
-        console.log('No cached problem found, using current state');
         // Use current form state for company/difficulty
         if (isCompanyContextFlow) {
           currentCompanyInfo = {
@@ -607,7 +598,6 @@ export function ProblemGenerator() {
         }
       }
     } else {
-      console.log('No problem ID available, using current state');
       // Use current form state for company/difficulty
       if (isCompanyContextFlow) {
         currentCompanyInfo = {
@@ -631,8 +621,6 @@ export function ProblemGenerator() {
       difficulty: currentDifficulty,
       topic: currentTopic,
     };
-    
-    console.log('Setting form data for "Solve Another Problem":', newFormData);
     
     // Update form data with preserved information
     setFormData(newFormData);

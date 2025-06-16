@@ -183,13 +183,10 @@ export function ProblemForm({
       specificProblemSlug: selectedProblem.slug
     };
     
-    console.log("Form submitted with data:", finalFormData);
-    console.log("Selected problem:", selectedProblem);
     onSubmit(finalFormData);
   };
 
   const selectCompany = (companyId: string, isCustom: boolean = false) => {
-    console.log(`Company selected: ${companyId}`);
     clearAllErrors(); // Clear errors when user makes changes
     setFormData({
       ...formData,
@@ -325,7 +322,6 @@ export function ProblemForm({
                     type="text" 
                     value={formData.customCompany} 
                     onChange={e => {
-                      console.log(`Custom company entered: ${e.target.value}`);
                       clearAllErrors(); // Clear errors when user makes changes
                       setFormData({
                         ...formData,
@@ -360,7 +356,6 @@ export function ProblemForm({
             </label>
             <div className="grid grid-cols-3 gap-2">
               {difficulties.map(difficulty => <button key={difficulty.id} type="button" onClick={() => {
-                console.log(`Difficulty selected: ${difficulty.id}`);
                 clearAllErrors(); // Clear errors when user makes changes
                 setFormData({
                   ...formData,
@@ -381,7 +376,6 @@ export function ProblemForm({
                   key={topic.id} 
                   type="button" 
                   onClick={() => {
-                    console.log(`Topic selected: ${topic.id}`);
                     clearAllErrors(); // Clear errors when user makes changes
                     setFormData({
                       ...formData,
@@ -413,7 +407,6 @@ export function ProblemForm({
           <div className="pt-4">
             <button 
               type="submit" 
-              onClick={() => console.log("Submit button clicked")}
               className="w-full flex justify-center items-center px-4 py-3 text-base font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               disabled={isLoading || (formData.company === 'custom' && !formData.customCompany?.trim())}
             >
