@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { PlayIcon, SendIcon, RotateCcwIcon, InfoIcon } from 'lucide-react';
 import CodeEditor from './CodeEditor';
-import { executeCodeAndPoll, ExecutionResults, TestCase } from '../utils/codeExecution';
-import { secureExecuteCodeAndPoll } from '../utils/secureCodeExecution';
-import { HoneypotField } from '../utils/security';
+import { executeCodeAndPoll, ExecutionResults } from '../utils/codeExecution';
+import { TestCase } from '../types';
 
 interface Problem {
   title: string;
@@ -228,7 +227,7 @@ export function ProblemSolver({
     // Limit test cases for submission to improve performance
     const submitTestCases = problem.testCases.slice(0, maxSubmitTestCases);
     
-    secureExecuteCodeAndPoll({ 
+    executeCodeAndPoll({ 
       code, 
       language: codeDetails.language, 
       boilerplateCode: codeDetails.boilerplateCode, 
@@ -332,8 +331,6 @@ export function ProblemSolver({
 
   return (
     <div className="min-h-[calc(100vh-3.5rem)] md:h-[calc(100vh-3.5rem)] md:max-h-[calc(100vh-3.5rem)] flex flex-col bg-gray-50 dark:bg-gray-900 md:overflow-hidden">
-      {/* Hidden honeypot field for security */}
-      <HoneypotField />
       <div className="flex flex-1 flex-col md:flex-row md:overflow-hidden">
         <div className="w-full md:w-1/2 md:h-full flex flex-col bg-white dark:bg-neutral-850">
           <div className="flex-1 md:overflow-y-auto">

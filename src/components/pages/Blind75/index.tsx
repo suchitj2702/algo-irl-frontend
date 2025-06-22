@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PlayIcon, CheckCircleIcon, ClockIcon, TrashIcon, AlertTriangleIcon, XIcon } from 'lucide-react';
-import { getAllCachedProblems, CachedProblem, clearCache } from '../utils/cache';
-import { blind75Data } from '../constants/blind75';
+import { getAllCachedProblems, CachedProblem, clearCache } from '../../../utils/cache';
+import { blind75Data } from '../../../constants/blind75';
 
 interface Blind75Props {
   onPracticeWithContext: (problemSlug: string) => void;

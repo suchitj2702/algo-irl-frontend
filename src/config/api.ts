@@ -2,11 +2,11 @@
 const getBaseUrl = (): string => {
   // In development mode, use relative URLs to leverage Vite's proxy
   if (import.meta.env.DEV) {
-    return '';
+    return import.meta.env.VITE_API_URL || '';
   }
   
-  // Production URL
-  return 'https://algo-irl.vercel.app';
+  // Production URL - use environment variable with fallback
+  return import.meta.env.VITE_PRODUCTION_API_URL;
 };
 
 export const API_CONFIG = {

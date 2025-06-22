@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { loadingPrompts } from '../utils/loadingPrompts';
-import { MAX_LOADING_DURATION_SECONDS } from './ProblemGenerator';
+import { MAX_LOADING_DURATION_SECONDS } from './AppRouter';
 import { getRecentCompanies } from '../utils/cache';
 
 interface LoadingSequenceProps {

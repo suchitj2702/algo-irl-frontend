@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BuildingIcon, ClockIcon, SparklesIcon } from 'lucide-react';
-import { getRecentCompanies, CachedCompany } from '../utils/cache';
+import { getRecentCompanies, CachedCompany } from '../../../utils/cache';
 
 const CompanyIcon = () => (
   <BuildingIcon className="w-5 h-5" />

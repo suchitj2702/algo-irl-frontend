@@ -1,20 +1,14 @@
 import { useState, useEffect } from 'react';
 import { SparklesIcon, BuildingIcon, ClockIcon, AlertCircleIcon, XCircleIcon } from 'lucide-react';
-import { getRecentCompanies, CachedCompany, getProblemShowTimestamps, updateProblemShowTimestamp } from '../utils/cache';
-import { blind75Data, TopicName, getTopicNames, getAllProblems, getProblemsByTopic } from '../constants/blind75';
+import { getRecentCompanies, CachedCompany, getProblemShowTimestamps, updateProblemShowTimestamp } from '../../../utils/cache';
+import { blind75Data, TopicName, getTopicNames, getAllProblems, getProblemsByTopic } from '../../../constants/blind75';
+import { FormData } from '../../../types';
 
 const CompanyIcon = () => (
   <BuildingIcon className="w-5 h-5" />
 );
 
-export interface FormData {
-  dataset: string;
-  company: string;
-  customCompany: string;
-  difficulty: string;
-  topic: string;
-  specificProblemSlug?: string;
-}
+
 
 interface ProblemFormProps {
   initialData: Omit<FormData, 'dataset'> & { dataset?: string };

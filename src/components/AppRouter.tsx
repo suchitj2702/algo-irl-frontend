@@ -1,16 +1,17 @@
 import { Routes, Route, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { IntroSection } from './IntroSection';
-import { ProblemForm, FormData } from './ProblemForm';
+import { IntroSection } from './pages/IntroSection';
+import { ProblemForm } from './pages/ProblemForm';
 import { LoadingSequence } from './LoadingSequence';
 import { ResumeLoadingSequence } from './ResumeLoadingSequence';
 import { ProblemSolver } from './ProblemSolver';
 import { ResultsView } from './ResultsView';
-import { Blind75 } from './Blind75';
-import { CompanyContextForm, CompanyContextFormData } from './CompanyContextForm';
+import { Blind75 } from './pages/Blind75';
+import { CompanyContextForm, CompanyContextFormData } from './pages/CompanyContextForm';
 import { DarkModeProvider } from './DarkModeContext';
 import { Navbar } from './Navbar';
-import { TestCase } from '../utils/codeExecution';
+import { ErrorBoundary } from './ErrorBoundary';
+import { Problem, CodeDetails, TestCase, FormData } from '../types';
 import { API_CONFIG, buildApiUrl } from '../config/api';
 import { 
   addCompanyToCache, 
@@ -22,17 +23,7 @@ import {
 } from '../utils/cache';
 import { blind75Data } from '../constants/blind75';
 
-// Re-use the interfaces from ProblemGenerator
-interface Problem {
-  title: string;
-  background: string;
-  problemStatement: string;
-  testCases: TestCase[];
-  constraints: string[];
-  requirements: string[];
-  leetcodeUrl: string;
-  problemId?: string;
-}
+
 
 interface TestResultsFromParent {
   passed: boolean;
@@ -45,13 +36,7 @@ interface TestResultsFromParent {
   }>;
 }
 
-interface CodeDetails {
-  defaultUserCode?: string;
-  functionName?: string;
-  solutionStructureHint?: string;
-  boilerplateCode: string;
-  language: string;
-}
+
 
 export const MAX_LOADING_DURATION_SECONDS = 60;
 
@@ -420,6 +405,34 @@ export function AppRouter() {
     }
   };
 
+  const initializeCustomCompany = async (customCompany: string): Promise<{ companyId: string; companyName: string }> => {
+    // Check if this custom company is already in cache
+    const recentCompanies = getRecentCompanies();
+    const cachedCompany = recentCompanies.find(c => c.name === customCompany);
+    
+    if (cachedCompany) {
+      // Use cached company info instead of calling API again
+      return {
+        companyId: cachedCompany.id,
+        companyName: cachedCompany.name
+      };
+    } else {
+      // Company not in cache, call API to initialize
+      const companyResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_INITIALIZE), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companyName: customCompany }),
+      });
+      if (!companyResponse.ok) throw new Error(`Failed to initialize company: ${await companyResponse.text()}`);
+      const companyData = await companyResponse.json();
+      if (!companyData.success) throw new Error(companyData.message || 'Failed to initialize company');
+      return {
+        companyId: companyData.company.id,
+        companyName: companyData.company.name || companyData.company.displayName || customCompany
+      };
+    }
+  };
+
   const handleFormSubmit = async (data: FormData) => {
     try {
       setFormData(data);
@@ -445,29 +458,10 @@ export function AppRouter() {
       let shouldCacheCompany = false;
       
       if (company === 'custom' && customCompany) {
-        // Check if this custom company is already in cache
-        const recentCompanies = getRecentCompanies();
-        const cachedCompany = recentCompanies.find(c => c.name === customCompany);
-        
-        if (cachedCompany) {
-          // Use cached company info instead of calling API again
-          companyId = cachedCompany.id;
-          companyName = cachedCompany.name;
-          shouldCacheCompany = false; // Already in cache
-        } else {
-          // Company not in cache, call API to initialize
-          const companyResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_INITIALIZE), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ companyName: customCompany }),
-          });
-          if (!companyResponse.ok) throw new Error(`Failed to initialize company: ${await companyResponse.text()}`);
-          const companyData = await companyResponse.json();
-          if (!companyData.success) throw new Error(companyData.message || 'Failed to initialize company');
-          companyId = companyData.company.id;
-          companyName = companyData.company.name || companyData.company.displayName || customCompany;
-          shouldCacheCompany = true; // New company, should cache
-        }
+        const companyInfo = await initializeCustomCompany(customCompany);
+        companyId = companyInfo.companyId;
+        companyName = companyInfo.companyName;
+        shouldCacheCompany = true;
       } else {
         companyName = getCompanyDisplayName(company);
         shouldCacheCompany = false; // Predefined companies don't get cached
@@ -702,15 +696,16 @@ export function AppRouter() {
 
   return (
     <DarkModeProvider>
-      <div className="min-h-screen font-sans text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        {location.pathname !== '/' && (
-          <Navbar 
-            onHomeClick={handleHomeClick} 
-            onBlind75Click={handleBlind75Click}
-          />
-        )}
-        
-        <Routes>
+      <ErrorBoundary>
+        <div className="min-h-screen font-sans text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+          {location.pathname !== '/' && (
+            <Navbar 
+              onHomeClick={handleHomeClick} 
+              onBlind75Click={handleBlind75Click}
+            />
+          )}
+          
+          <Routes>
           <Route path="/" element={<IntroSection onStartClick={handleStartClick} />} />
           
           <Route path="/blind75" element={
@@ -800,7 +795,8 @@ export function AppRouter() {
             )
           } />
         </Routes>
-      </div>
+        </div>
+      </ErrorBoundary>
     </DarkModeProvider>
   );
 } 

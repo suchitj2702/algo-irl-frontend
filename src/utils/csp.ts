@@ -7,12 +7,6 @@
  * frame-ancestors via HTTP response headers or use X-Frame-Options header.
  */
 
-// Set to false to completely disable CSP in development for debugging
-const ENABLE_CSP_IN_DEV = false;
-
-// Set to false to temporarily disable CSP in production for Monaco debugging
-const ENABLE_CSP_IN_PROD = true;
-
 export const setEnvironmentBasedCSP = () => {
   // Only run in browser environment
   if (typeof document === 'undefined') return;
@@ -23,10 +17,15 @@ export const setEnvironmentBasedCSP = () => {
     existingCSP.remove();
   }
 
-  // Skip CSP in development if disabled for Monaco Editor debugging
-  if (import.meta.env.DEV && !ENABLE_CSP_IN_DEV) {
-    return;
-  }
+  // Get API URL from environment variables
+  const getApiUrl = (): string => {
+    if (import.meta.env.DEV) {
+      return import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    }
+    return import.meta.env.VITE_PRODUCTION_API_URL;
+  };
+
+  const apiUrl = getApiUrl();
 
   // Create new CSP meta tag
   const meta = document.createElement('meta');
@@ -39,7 +38,7 @@ export const setEnvironmentBasedCSP = () => {
       script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;
       style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net;
       img-src 'self' data: blob: https:;
-      connect-src 'self' http://localhost:3000 https://algo-irl.vercel.app https://judge0-ce.p.rapidapi.com ws: wss:;
+      connect-src 'self' ${apiUrl} https://judge0-ce.p.rapidapi.com ws: wss:;
       font-src 'self' data: blob: https://cdn.jsdelivr.net;
       worker-src 'self' blob: data:;
       child-src 'self' blob: data:;
@@ -49,16 +48,12 @@ export const setEnvironmentBasedCSP = () => {
     `.replace(/\s+/g, ' ').trim());
   } else {
     // Production - More restrictive but still Monaco compatible
-    if (!ENABLE_CSP_IN_PROD) {
-      return;
-    }
-    
     const cspContent = `
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;
       style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net;
       img-src 'self' data: blob: https:;
-      connect-src 'self' https://algo-irl.vercel.app https://judge0-ce.p.rapidapi.com;
+      connect-src 'self' ${apiUrl} https://judge0-ce.p.rapidapi.com;
       font-src 'self' data: blob: https://cdn.jsdelivr.net;
       worker-src 'self' blob: data:;
       child-src 'self' blob: data:;

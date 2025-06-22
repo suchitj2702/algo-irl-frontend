@@ -1,12 +1,5 @@
 import { API_CONFIG, buildApiUrl } from '../config/api';
-
-export interface TestCase {
-  stdin: any;
-  expectedStdout: any;
-  isSample?: boolean;
-  explanation?: string;
-  // Add any other relevant fields for a test case
-}
+import { TestCase } from '../types';
 
 // Define interface for individual test results from execution
 export interface ExecutionTestResult {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircleIcon, XCircleIcon, Edit3Icon } from 'lucide-react';
+import { Problem } from '../types';
 
 // Define a more specific props interface for ResultsView
 interface ResultsViewProps {
@@ -13,7 +14,7 @@ interface ResultsViewProps {
       passed: boolean;
     }>;
   };
-  problem: any; // Consider defining a specific type for problem as well if not already done elsewhere
+  problem: Problem;
   onTryAgain: () => void;
   onGoBackToProblem?: () => void; // New optional prop
   totalTestCases?: number; // Total number of test cases in the problem (for display purposes)
