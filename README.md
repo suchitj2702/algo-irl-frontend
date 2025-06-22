@@ -29,7 +29,7 @@ Transform LeetCode problems into real-world scenarios from top tech companies. P
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/algo-irl-frontend.git
+git clone https://github.com/suchitj2702/algo-irl-frontend.git
 
 # Navigate to project directory
 cd algo-irl-frontend

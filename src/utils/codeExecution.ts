@@ -89,7 +89,10 @@ const pollForResults = async ({
       onLoadingChange(false);
     }
   } catch (error) {
-    console.error('Status polling error:', error);
+    // Only log errors in development to avoid exposing sensitive information
+    if (import.meta.env.DEV) {
+      console.error('Status polling error:', error);
+    }
     const errorMsg = error instanceof Error ? error.message : 'An unknown error occurred during polling';
     onError(errorMsg, submissionId);
     onLoadingChange(false);

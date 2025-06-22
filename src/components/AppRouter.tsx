@@ -229,7 +229,12 @@ export function AppRouter() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ companyName: customCompany }),
           });
-          if (!companyResponse.ok) throw new Error(`Failed to initialize company: ${await companyResponse.text()}`);
+          if (!companyResponse.ok) {
+            const errorText = await companyResponse.text();
+            // Sanitize error message to avoid exposing internal details
+            const sanitizedError = errorText.length > 100 ? 'Failed to initialize company' : errorText;
+            throw new Error(sanitizedError);
+          }
           const companyData = await companyResponse.json();
           if (!companyData.success) throw new Error(companyData.message || 'Failed to initialize company');
           companyId = companyData.company.id;
@@ -257,7 +262,9 @@ export function AppRouter() {
       
       if (!prepareResponse.ok) {
         const errorText = await prepareResponse.text();
-        throw new Error(`Failed to prepare problem: ${errorText}`);
+        // Sanitize error message to avoid exposing internal details
+        const sanitizedError = errorText.length > 100 ? 'Failed to prepare problem' : `Failed to prepare problem: ${errorText}`;
+        throw new Error(sanitizedError);
       }
       
       const responseData = await prepareResponse.json();
@@ -317,7 +324,10 @@ export function AppRouter() {
       navigateWithState('/problem', { problemId: uniqueProblemId }, true); // Replace loading sequence, keeping source page in history
 
     } catch (err) {
-      console.error('Error preparing contextualized problem:', err);
+      // Only log errors in development to avoid exposing sensitive information
+      if (import.meta.env.DEV) {
+        console.error('Error preparing contextualized problem:', err);
+      }
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       navigateWithState('/company-context-form');
     }

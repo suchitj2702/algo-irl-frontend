@@ -513,6 +513,13 @@ export function Blind75({ onPracticeWithContext, onResumeProblem }: Blind75Props
             </div>
           </div>
         )}
+
+        {/* Copyright Notice */}
+        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+            Copyright © 2025 AlgoIRL. All rights reserved.
+          </p>
+        </div>
       </div>
     </div>
   );
