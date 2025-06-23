@@ -13,6 +13,7 @@
     "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/typography": "^0.5.16",
     "@types/crypto-js": "^4.2.2",
+    "@vercel/analytics": "^1.5.0",
     "crypto-js": "^4.2.0",
     "lucide-react": "^0.441.0",
     "monaco-editor": "^0.52.2",
