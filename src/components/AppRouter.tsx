@@ -12,7 +12,8 @@ import { DarkModeProvider } from './DarkModeContext';
 import { Navbar } from './Navbar';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Problem, CodeDetails, TestCase, FormData } from '../types';
-import { API_CONFIG, buildApiUrl } from '../config/api';
+import { prepareProblem as prepareProblemAPI, createCustomCompany as createCustomCompanyAPI } from '../utils/api-service';
+import { APIAuthenticationError } from '../utils/api-signing';
 import { 
   addCompanyToCache, 
   addProblemToCache, 
@@ -224,18 +225,7 @@ export function AppRouter() {
           shouldCacheCompany = false; // Already in cache
         } else {
           // Company not in cache, call API to initialize
-          const companyResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_INITIALIZE), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ companyName: customCompany }),
-          });
-          if (!companyResponse.ok) {
-            const errorText = await companyResponse.text();
-            // Sanitize error message to avoid exposing internal details
-            const sanitizedError = errorText.length > 100 ? 'Failed to initialize company' : errorText;
-            throw new Error(sanitizedError);
-          }
-          const companyData = await companyResponse.json();
+          const companyData = await createCustomCompanyAPI(customCompany);
           if (!companyData.success) throw new Error(companyData.message || 'Failed to initialize company');
           companyId = companyData.company.id;
           companyName = companyData.company.name || companyData.company.displayName || customCompany;
@@ -254,20 +244,12 @@ export function AppRouter() {
         apiPayload.difficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
       }
       
-      const prepareResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEM_PREPARE), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(apiPayload),
-      });
-      
-      if (!prepareResponse.ok) {
-        const errorText = await prepareResponse.text();
-        // Sanitize error message to avoid exposing internal details
-        const sanitizedError = errorText.length > 100 ? 'Failed to prepare problem' : `Failed to prepare problem: ${errorText}`;
-        throw new Error(sanitizedError);
-      }
-      
-      const responseData = await prepareResponse.json();
+      const responseData = await prepareProblemAPI(
+        apiPayload.problemId,
+        apiPayload.companyId,
+        apiPayload.difficulty,
+        apiPayload.isBlind75
+      );
 
       const apiTestCases = responseData.problem?.testCases || [];
       const formattedTestCases: TestCase[] = apiTestCases.map((tc: any) => ({
@@ -328,7 +310,12 @@ export function AppRouter() {
       if (import.meta.env.DEV) {
         console.error('Error preparing contextualized problem:', err);
       }
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      
+      if (err instanceof APIAuthenticationError) {
+        setError(err.message + ' Please refresh the page and try again.');
+      } else {
+        setError(err instanceof Error ? err.message : 'An unexpected error occurred');
+      }
       navigateWithState('/company-context-form');
     }
   };
@@ -356,21 +343,12 @@ export function AppRouter() {
         ? problemId.substring(0, problemId.lastIndexOf('_'))
         : problemId;
 
-      const prepareResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEM_PREPARE), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          problemId: baseProblemId,
-          companyId: cachedProblem.companyId,
-          isBlind75: true 
-        }),
-      });
-
-      if (!prepareResponse.ok) {
-        throw new Error(`Failed to prepare problem: ${await prepareResponse.text()}`);
-      }
-
-      const responseData = await prepareResponse.json();
+      const responseData = await prepareProblemAPI(
+        baseProblemId,
+        cachedProblem.companyId,
+        undefined,
+        true
+      );
 
       const apiTestCases = responseData.problem?.testCases || [];
       const formattedTestCases: TestCase[] = apiTestCases.map((tc: any) => ({
@@ -407,7 +385,12 @@ export function AppRouter() {
       
     } catch (err) {
       console.error('Error resuming problem:', err);
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred while resuming');
+      
+      if (err instanceof APIAuthenticationError) {
+        setError(err.message + ' Please refresh the page and try again.');
+      } else {
+        setError(err instanceof Error ? err.message : 'An unexpected error occurred while resuming');
+      }
       navigate('/blind75');
       setIsResuming(false);
       setResumeProblemId(null);
@@ -428,13 +411,7 @@ export function AppRouter() {
       };
     } else {
       // Company not in cache, call API to initialize
-      const companyResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_INITIALIZE), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ companyName: customCompany }),
-      });
-      if (!companyResponse.ok) throw new Error(`Failed to initialize company: ${await companyResponse.text()}`);
-      const companyData = await companyResponse.json();
+      const companyData = await createCustomCompanyAPI(customCompany);
       if (!companyData.success) throw new Error(companyData.message || 'Failed to initialize company');
       return {
         companyId: companyData.company.id,
@@ -484,13 +461,12 @@ export function AppRouter() {
         apiPayload.difficulty = difficulty;
       }
       
-      const prepareResponse = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEM_PREPARE), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(apiPayload),
-      });
-      if (!prepareResponse.ok) throw new Error(`Failed to prepare problem: ${await prepareResponse.text()}`);
-      const responseData = await prepareResponse.json();
+      const responseData = await prepareProblemAPI(
+        apiPayload.problemId,
+        apiPayload.companyId,
+        apiPayload.difficulty,
+        apiPayload.isBlind75
+      );
 
       const apiTestCases = responseData.problem?.testCases || [];
       const formattedTestCases: TestCase[] = apiTestCases.map((tc: any) => ({

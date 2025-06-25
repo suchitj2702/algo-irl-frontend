@@ -1,5 +1,6 @@
-import { API_CONFIG, buildApiUrl } from '../config/api';
 import { TestCase } from '../types';
+import { executeCode as executeCodeAPI, checkSubmissionStatus as checkStatusAPI } from './api-service';
+import { APIAuthenticationError } from './api-signing';
 
 // Define interface for individual test results from execution
 export interface ExecutionTestResult {
@@ -45,14 +46,7 @@ const pollForResults = async ({
   testCasesTotal,
 }: PollArgs) => {
   try {
-    const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.EXECUTE_CODE_STATUS, submissionId));
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Failed to fetch submission status and parse error JSON.' }));
-      throw new Error(errorData.error || 'Failed to fetch submission status');
-    }
-    
-    const data = await response.json();
+    const data = await checkStatusAPI(submissionId);
     
     if (data.status === 'pending' || data.status === 'processing') {
       setTimeout(() => pollForResults({ submissionId, onResults, onError, onLoadingChange, testCasesTotal }), 1000);
@@ -93,8 +87,13 @@ const pollForResults = async ({
     if (import.meta.env.DEV) {
       console.error('Status polling error:', error);
     }
-    const errorMsg = error instanceof Error ? error.message : 'An unknown error occurred during polling';
-    onError(errorMsg, submissionId);
+    
+    if (error instanceof APIAuthenticationError) {
+      onError(error.message, submissionId);
+    } else {
+      const errorMsg = error instanceof Error ? error.message : 'An unknown error occurred during polling';
+      onError(errorMsg, submissionId);
+    }
     onLoadingChange(false);
   }
 };
@@ -120,23 +119,7 @@ export const executeCodeAndPoll = async ({
 }: ExecuteCodeParams): Promise<void> => {
   onLoadingChange(true);
   try {
-    const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.EXECUTE_CODE), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        code,
-        language,
-        boilerplateCode,
-        testCases,
-      }),
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Failed to execute code and parse error JSON.' }));
-      throw new Error(errorData.error || 'Failed to execute code');
-    }
-    
-    const data = await response.json();
+    const data = await executeCodeAPI(code, language, boilerplateCode, testCases);
     if (!data.submissionId) {
       throw new Error('No submission ID received from execute-code API.');
     }
@@ -151,8 +134,13 @@ export const executeCodeAndPoll = async ({
     });
   } catch (error) {
     console.error('Submission error:', error);
-    const errorMsg = error instanceof Error ? error.message : 'An unknown error occurred during submission';
-    onError(errorMsg);
+    
+    if (error instanceof APIAuthenticationError) {
+      onError(error.message);
+    } else {
+      const errorMsg = error instanceof Error ? error.message : 'An unknown error occurred during submission';
+      onError(errorMsg);
+    }
     onLoadingChange(false);
   }
 }; 
