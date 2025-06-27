@@ -41,7 +41,8 @@ export async function createSignedHeaders(
     throw new Error('VITE_REQUEST_SIGNATURE_SECRET is not configured');
   }
   
-  const timestamp = Date.now();
+  // Use high-precision timestamp to avoid collisions
+  const timestamp = Date.now() * 1000 + Math.floor(performance.now() % 1000);
   const signature = await generateRequestSignature(payload, timestamp, secret);
   
   return {
