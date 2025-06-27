@@ -3,6 +3,9 @@
  * Provides HMAC-SHA256 signature generation for API authentication
  */
 
+// Simple counter to prevent timestamp collisions
+let timestampCounter = 0;
+
 /**
  * Generates HMAC-SHA256 signature for API requests (browser-compatible)
  */
@@ -41,8 +44,11 @@ export async function createSignedHeaders(
     throw new Error('VITE_REQUEST_SIGNATURE_SECRET is not configured');
   }
   
-  // Use high-precision timestamp to avoid collisions
-  const timestamp = Date.now() * 1000 + Math.floor(performance.now() % 1000);
+  // Generate unique timestamp to prevent signature collisions
+  const baseTimestamp = Date.now();
+  const uniqueTimestamp = baseTimestamp + (timestampCounter % 100);
+  timestampCounter++;
+  const timestamp = uniqueTimestamp;
   const signature = await generateRequestSignature(payload, timestamp, secret);
   
   return {
