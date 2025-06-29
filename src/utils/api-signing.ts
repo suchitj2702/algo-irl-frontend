@@ -3,8 +3,32 @@
  * Provides HMAC-SHA256 signature generation for API authentication
  */
 
-// Simple counter to prevent timestamp collisions
-let timestampCounter = 0;
+/**
+ * Creates deterministic JSON string with sorted keys to match backend behavior
+ */
+function deterministicStringify(obj: Record<string, unknown>): string {
+  if (obj === null || obj === undefined) return 'null';
+  if (typeof obj !== 'object') return JSON.stringify(obj);
+  
+  // Sort keys to ensure consistent ordering with backend
+  const sortedKeys = Object.keys(obj).sort();
+  const pairs: string[] = [];
+  
+  for (const key of sortedKeys) {
+    const value = obj[key];
+    let valueStr: string;
+    
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      valueStr = deterministicStringify(value as Record<string, unknown>);
+    } else {
+      valueStr = JSON.stringify(value);
+    }
+    
+    pairs.push(`"${key}":${valueStr}`);
+  }
+  
+  return `{${pairs.join(',')}}`;
+}
 
 /**
  * Generates HMAC-SHA256 signature for API requests (browser-compatible)
@@ -12,9 +36,19 @@ let timestampCounter = 0;
 export async function generateRequestSignature(
   payload: Record<string, unknown>,
   timestamp: number,
-  secret: string
+  secret: string,
+  debugInfo?: { clientTime: number; payloadStr: string }
 ): Promise<string> {
-  const message = `${timestamp}:${JSON.stringify(payload)}`;
+  // Use deterministic JSON serialization to match backend
+  const payloadStr = deterministicStringify(payload);
+  const message = `${timestamp}:${payloadStr}`;
+  
+  // Store debug info if provided
+  if (debugInfo) {
+    debugInfo.clientTime = Date.now();
+    debugInfo.payloadStr = payloadStr;
+  }
+  
   const encoder = new TextEncoder();
   const data = encoder.encode(message);
   const key = encoder.encode(secret);
@@ -44,17 +78,28 @@ export async function createSignedHeaders(
     throw new Error('VITE_REQUEST_SIGNATURE_SECRET is not configured');
   }
   
-  // Generate unique timestamp to prevent signature collisions
-  const baseTimestamp = Date.now();
-  const uniqueTimestamp = baseTimestamp + (timestampCounter % 100);
-  timestampCounter++;
-  const timestamp = uniqueTimestamp;
-  const signature = await generateRequestSignature(payload, timestamp, secret);
+  // Use exact current time
+  const timestamp = Date.now();
+  
+  // Debug info object
+  const debugInfo = { clientTime: 0, payloadStr: '' };
+  const signature = await generateRequestSignature(payload, timestamp, secret, debugInfo);
+  
+  // Create debug headers that backend can log
+  const debugHeaders = {
+    'X-Debug-Client-Time': timestamp.toString(),
+    'X-Debug-Payload-Keys': Object.keys(payload).sort().join(','),
+    'X-Debug-Payload-Length': debugInfo.payloadStr.length.toString(),
+    'X-Debug-UA': navigator.userAgent,
+    'X-Debug-Timezone-Offset': new Date().getTimezoneOffset().toString(),
+    'X-Debug-Serialization': debugInfo.payloadStr.substring(0, 100), // First 100 chars for debugging
+  };
   
   return {
     'Content-Type': 'application/json',
     'X-Timestamp': timestamp.toString(),
     'X-Signature': signature,
+    ...debugHeaders,
     ...additionalHeaders
   };
 }
@@ -74,11 +119,39 @@ export async function signedFetch(
   // Generate signed headers
   const signedHeaders = await createSignedHeaders(payload, options.headers as Record<string, string>);
   
-  return fetch(url, {
+  // Ensure the request body uses the same deterministic serialization
+  const requestBody = typeof body === 'string' ? body : deterministicStringify(payload);
+  
+  const response = await fetch(url, {
     ...restOptions,
     headers: signedHeaders,
-    body: typeof body === 'string' ? body : JSON.stringify(payload)
+    body: requestBody
   });
+  
+  // If we get a 401, send additional debug info to a logging endpoint
+  if (response.status === 401) {
+    try {
+      // Send debug info without signature (since signing is failing)
+      await fetch(url.replace('/problem/prepare', '/debug/signature-failure'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          endpoint: url,
+          clientTimestamp: signedHeaders['X-Timestamp'],
+          debugHeaders: Object.keys(signedHeaders)
+            .filter(k => k.startsWith('X-Debug-'))
+            .reduce((obj, k) => ({ ...obj, [k]: signedHeaders[k] }), {}),
+          payloadSnapshot: requestBody.substring(0, 200), // First 200 chars
+        })
+      }).catch(() => {}); // Ignore debug logging failures
+    } catch (e) {
+      // Silently ignore debug logging errors
+    }
+  }
+  
+  return response;
 }
 
 /**
