@@ -38,7 +38,7 @@ coverage
 .parcel-cache
 
 # Log files
-log_results*
+logs_result*
 
 # Claude file
 CLAUDE.md
