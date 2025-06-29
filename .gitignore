@@ -36,3 +36,9 @@ coverage
 # Cache
 .eslintcache
 .parcel-cache
+
+# Log files
+log_results*
+
+# Claude file
+CLAUDE.md

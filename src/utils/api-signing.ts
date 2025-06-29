@@ -78,8 +78,8 @@ export async function createSignedHeaders(
     throw new Error('VITE_REQUEST_SIGNATURE_SECRET is not configured');
   }
   
-  // Use exact current time
-  const timestamp = Date.now();
+  // Subtract 2 seconds to account for potential clock drift (client ahead of server)
+  const timestamp = Date.now() - 2000;
   
   // Debug info object
   const debugInfo = { clientTime: 0, payloadStr: '' };
@@ -131,8 +131,11 @@ export async function signedFetch(
   // If we get a 401, send additional debug info to a logging endpoint
   if (response.status === 401) {
     try {
+      // Create debug endpoint URL by replacing the API path with /debug/signature-failure
+      const debugUrl = url.replace(/\/api\/[^\/]+.*$/, '/api/debug/signature-failure');
+      
       // Send debug info without signature (since signing is failing)
-      await fetch(url.replace('/problem/prepare', '/debug/signature-failure'), {
+      await fetch(debugUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
