@@ -1,0 +1,20 @@
+{
+  "day": {
+    "navy": "#9aa6b2",
+    "slate": "#bcccdc",
+    "mint": "#d9eafd",
+    "cream": "#f8fafc",
+    "panel": "#d9eafd",
+    "button": "#5f6c80",
+    "text": "#AAAAAA"
+  },
+  "night": {
+    "navy": "#5f6c80",
+    "slate": "#5f6c80",
+    "mint": "#1e293b",
+    "cream": "#041438",
+    "panel": "#0b1220",
+    "button": "#5f6c80",
+    "text": "#f8fafc"
+  }
+}

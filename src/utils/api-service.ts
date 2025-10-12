@@ -1,6 +1,7 @@
 import { signedFetch, createSignedHeaders, handleAPIResponse } from './api-signing';
 import { buildApiUrl, API_CONFIG } from '../config/api';
 import { TestCase } from '../types';
+import { StudyPlanConfig, StudyPlanResponse } from '../types/studyPlan';
 
 /**
  * Execute code with signed request
@@ -42,31 +43,17 @@ export async function checkSubmissionStatus(submissionId: string) {
 }
 
 /**
- * Initialize companies with signed request
+ * Fetch all companies with signed request
  */
-export async function initializeCompanies() {
+export async function fetchCompanies() {
   // For GET requests, use empty payload
   const headers = await createSignedHeaders({});
-  
-  const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_INITIALIZE), {
+
+  const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_LIST), {
     method: 'GET',
     headers
   });
-  
-  return handleAPIResponse(response);
-}
 
-/**
- * Create custom company with signed request
- */
-export async function createCustomCompany(companyName: string) {
-  const payload = { companyName };
-  
-  const response = await signedFetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_INITIALIZE), {
-    method: 'POST',
-    body: payload
-  });
-  
   return handleAPIResponse(response);
 }
 
@@ -77,13 +64,15 @@ export async function prepareProblem(
   problemId?: string,
   companyId?: string,
   difficulty?: string,
-  isBlind75?: boolean
+  isBlind75?: boolean,
+  roleFamily?: string
 ) {
   const payload = {
     ...(problemId && { problemId }),
     ...(companyId && { companyId }),
     ...(difficulty && { difficulty }),
-    ...(isBlind75 !== undefined && { isBlind75 })
+    ...(isBlind75 !== undefined && { isBlind75 }),
+    ...(roleFamily && { roleFamily })
   };
   
   const response = await signedFetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEM_PREPARE), {
@@ -92,4 +81,25 @@ export async function prepareProblem(
   });
   
   return handleAPIResponse(response);
-} 
+}
+
+/**
+ * Generate study plan with signed request
+ */
+export async function generateStudyPlan(config: StudyPlanConfig): Promise<StudyPlanResponse> {
+  const payload = {
+    companyId: config.companyId,
+    roleFamily: config.roleFamily,
+    timeline: config.timeline,
+    hoursPerDay: config.hoursPerDay,
+    ...(config.difficultyPreference && { difficultyPreference: config.difficultyPreference }),
+    ...(config.topicFocus && config.topicFocus.length > 0 && { topicFocus: config.topicFocus })
+  };
+
+  const response = await signedFetch(buildApiUrl(API_CONFIG.ENDPOINTS.STUDY_PLAN_GENERATE), {
+    method: 'POST',
+    body: payload
+  });
+
+  return handleAPIResponse(response);
+}

@@ -42,3 +42,8 @@ logs_result*
 
 # Claude file
 CLAUDE.md
+
+# Documentation
+COLOR_SYSTEM_DOCUMENTATION.md
+
+temp/*

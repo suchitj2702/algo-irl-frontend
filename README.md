@@ -13,10 +13,12 @@ Transform LeetCode problems into real-world scenarios from top tech companies. P
 ## Tech Stack
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS
+- **UI Components**: shadcn/ui with Radix UI primitives
 - **Code Editor**: Monaco Editor (VS Code's editor)
 - **State Management**: React Hooks + Context
 - **Build Tool**: Vite
 - **Code Execution**: Judge0 API
+- **Styling**: Tailwind CSS with CSS Variables
 
 ## Getting Started
 
@@ -54,6 +56,34 @@ VITE_PRODUCTION_API_URL=https://your-api-domain.com
 ```
 
 **Note**: The application will fall back to the default production URL if no environment variables are set.
+
+## Design System & v0 Integration
+
+This project is set up to use **v0.dev** for component redesign with shadcn/ui. If you're looking to contribute or redesign components:
+
+### Documentation
+- **[REDESIGN_SUMMARY.md](./REDESIGN_SUMMARY.md)** - Complete setup overview and next steps
+- **[V0_INTEGRATION_GUIDE.md](./V0_INTEGRATION_GUIDE.md)** - Detailed guide for using v0
+- **[V0_QUICK_REFERENCE.md](./V0_QUICK_REFERENCE.md)** - Quick lookup for classes and patterns
+- **[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)** - Full design system specification
+
+### Key Features
+- ✅ shadcn/ui components ready to use
+- ✅ CSS variables for consistent theming
+- ✅ Dark mode support with Tailwind
+- ✅ Path aliases configured (@/ imports)
+- ✅ Component library (Button, Card, Badge, Dialog)
+
+### Using Components
+```tsx
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+
+// Use with variants
+<Button variant="gradient" size="lg">Primary Action</Button>
+<Badge variant="success">Completed</Badge>
+```
 
 ## Contributing
 

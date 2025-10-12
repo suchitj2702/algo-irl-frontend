@@ -35,8 +35,13 @@ export interface CodeDetails {
 export interface FormData {
   dataset: string;
   company: string;
-  customCompany: string;
   difficulty: string;
   topic: string;
   specificProblemSlug?: string;
+}
+
+// Company from API
+export interface Company {
+  id: string;
+  name: string;
 } 

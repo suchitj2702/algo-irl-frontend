@@ -1,0 +1,194 @@
+// Study Plan Problem Card Component
+// Horizontal card layout for problems within a day schedule
+
+import { useState } from 'react';
+import { Clock, PlayIcon, CheckCircle2, Circle, Bookmark, BookmarkCheck } from 'lucide-react';
+import { EnrichedProblem } from '../types/studyPlan';
+import { HotnessBadge } from './HotnessBadge';
+import { HotnessScoreModal } from './HotnessScoreModal';
+
+interface StudyPlanProblemCardProps {
+ problem: EnrichedProblem;
+ companyName: string;
+ roleName: string;
+ onStartProblem: () => void;
+ isCompleted?: boolean;
+ isBookmarked?: boolean;
+ onToggleBookmark?: () => void;
+ isInProgress?: boolean;
+ showTopics?: boolean;
+ displayTitle: string;
+ showDifficulty?: boolean;
+ onResumeProblem?: () => void;
+}
+
+export function StudyPlanProblemCard({
+ problem,
+ companyName,
+ roleName,
+ onStartProblem,
+ isCompleted = false,
+ isBookmarked = false,
+ onToggleBookmark,
+ isInProgress = false,
+ showTopics = true,
+ displayTitle,
+ showDifficulty = true,
+ onResumeProblem
+}: StudyPlanProblemCardProps) {
+ const [showHotnessModal, setShowHotnessModal] = useState(false);
+
+ const getDifficultyColor = () => {
+  switch (problem.difficulty) {
+   case 'Easy':
+    return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800';
+   case 'Medium':
+    return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800';
+   case 'Hard':
+    return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-800';
+   default:
+    return 'bg-gray-100 text-content-muted dark:bg-gray-800 dark:text-content-subtle border-gray-200 dark:border-gray-700';
+  }
+ };
+
+ // Get top 3 topics to display
+ const displayTopics = [...problem.enrichedTopics.algorithmPatterns, ...problem.enrichedTopics.dataStructures]
+  .slice(0, 3);
+ const hasResumeHandler = Boolean(onResumeProblem);
+ const actionLabel = isCompleted
+  ? hasResumeHandler ? 'Review' : 'Start'
+  : isInProgress
+   ? hasResumeHandler ? 'Resume' : 'Start'
+   : 'Start';
+ const handleActionClick = () => {
+  if ((isInProgress || isCompleted) && onResumeProblem) {
+   onResumeProblem();
+   return;
+  }
+
+  onStartProblem();
+ };
+
+ return (
+  <>
+   <div className="bg-panel-muted dark:bg-panel-300 border border-panel-200 dark:border-panel-300 rounded-lg p-4 hover:shadow-md transition-all duration-200">
+    <div className="flex items-start gap-4">
+     {/* Left: Problem Info */}
+     <div className="flex-1 min-w-0">
+      {/* Title and Difficulty */}
+      <div className="flex items-start gap-2 mb-2">
+       <div
+        className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border ${
+         isCompleted
+          ? 'bg-mint-100 text-mint-700 border-mint-200 dark:bg-mint-900/30 dark:text-mint-300 dark:border-mint-800'
+          : 'bg-gray-100 text-content-subtle border-gray-200 dark:bg-gray-800 dark:text-content-subtle dark:border-gray-700'
+        }`}
+       >
+        {isCompleted ? (
+         <CheckCircle2 className="w-3.5 h-3.5" />
+        ) : (
+         <Circle className="w-3.5 h-3.5" />
+        )}
+       </div>
+       <h4 className="text-base font-semibold text-content flex-1 truncate">
+        {displayTitle}
+       </h4>
+       {showDifficulty && (
+        <span className={`px-2 py-0.5 rounded text-xs font-medium border flex-shrink-0 ${getDifficultyColor()}`}>
+         {problem.difficulty}
+        </span>
+       )}
+       {onToggleBookmark && (
+        <button
+         type="button"
+         onClick={(e) => {
+          e.stopPropagation();
+          onToggleBookmark();
+         }}
+         className={`flex-shrink-0 ml-1 inline-flex items-center justify-center rounded-full border px-2 py-1 text-xs font-medium transition-colors ${
+          isBookmarked
+           ? 'border-amber-400 text-amber-700 bg-amber-50 dark:border-amber-500 dark:text-amber-300 dark:bg-amber-900/30'
+           : 'border-gray-200 text-content-subtle bg-gray-100 dark:border-gray-700 dark:text-content-subtle dark:bg-gray-800'
+         }`}
+         aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark problem'}
+        >
+         {isBookmarked ? <BookmarkCheck className="w-3.5 h-3.5 mr-1" /> : <Bookmark className="w-3.5 h-3.5 mr-1" />}
+         <span className="hidden sm:inline">{isBookmarked ? 'Saved' : 'Save'}</span>
+        </button>
+       )}
+      </div>
+
+      {/* Topics */}
+      {showTopics && displayTopics.length > 0 && (
+       <div className="flex flex-wrap gap-2 mb-2">
+        {displayTopics.map((topic, index) => (
+         <span
+          key={`${topic}-${index}`}
+          className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-content-muted dark:text-content-subtle rounded text-xs"
+         >
+          {topic}
+         </span>
+        ))}
+       </div>
+      )}
+
+      {/* Bottom Row: Time + Hotness + Role Relevance */}
+      <div className={`flex items-center gap-3 flex-wrap ${showTopics ? '' : 'mt-2'}`}>
+       {/* Estimated Time */}
+       <div className="flex items-center gap-1 text-xs text-content-muted dark:text-content-subtle">
+        <Clock className="w-3 h-3" />
+        <span>~{problem.estimatedTimeMinutes} min</span>
+       </div>
+
+       {/* Hotness Badge */}
+       <HotnessBadge
+        problem={problem}
+        onClick={() => setShowHotnessModal(true)}
+        showTooltip={false}
+       />
+
+       {/* Role Relevance Bar (mini) */}
+       <div className="hidden sm:flex items-center gap-2">
+        <span className="text-xs text-content-muted dark:text-content-subtle">
+         {problem.roleRelevance}% role fit
+        </span>
+        <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+         <div
+          className="h-full bg-purple-500"
+          style={{ width: `${problem.roleRelevance}%` }}
+         />
+        </div>
+       </div>
+
+       {isInProgress && !isCompleted && (
+        <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 text-[11px] font-medium text-indigo-700 dark:text-indigo-300">
+         <Clock className="w-3 h-3" />
+         In progress
+        </span>
+       )}
+      </div>
+     </div>
+
+     {/* Right: Action Button */}
+     <button
+      onClick={handleActionClick}
+      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-[12px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_1px_20px_rgba(0,0,0,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.15),0_2px_30px_rgba(0,0,0,0.4)_inset] active:scale-[0.98] transition-all duration-200 flex-shrink-0"
+     >
+      <PlayIcon className="w-3.5 h-3.5" />
+      <span>{actionLabel}</span>
+     </button>
+    </div>
+   </div>
+
+   {/* Hotness Score Modal */}
+   {showHotnessModal && (
+    <HotnessScoreModal
+     problem={problem}
+     companyName={companyName}
+     roleName={roleName}
+     onClose={() => setShowHotnessModal(false)}
+    />
+   )}
+  </>
+ );
+}

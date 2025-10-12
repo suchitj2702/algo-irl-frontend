@@ -1,6 +1,19 @@
+@import './theme/palette.css';
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
 @keyframes pulseIndigo {
   0%, 100% {
     width: 5%;
@@ -65,7 +78,7 @@
 }
 /* Improved focus styles */
 *:focus-visible {
-  outline: 2px solid #1a7f64;
+  outline: 2px solid rgb(var(--ring-rgb));
   outline-offset: 2px;
 }
 /* Custom scrollbar */
@@ -77,11 +90,11 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: rgb(var(--navy-500-rgb));
   border-radius: 4px;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: rgb(var(--mint-700-rgb));
 }
 /* Typography improvements */
 html {

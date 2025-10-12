@@ -12,10 +12,11 @@ const getBaseUrl = (): string => {
 export const API_CONFIG = {
   BASE_URL: getBaseUrl(),
   ENDPOINTS: {
-    COMPANIES_INITIALIZE: '/api/companies/initialize',
+    COMPANIES_LIST: '/api/companies',
     PROBLEM_PREPARE: '/api/problem/prepare',
     EXECUTE_CODE: '/api/execute-code',
     EXECUTE_CODE_STATUS: '/api/execute-code/status',
+    STUDY_PLAN_GENERATE: '/api/study-plan/generate',
   }
 };
 

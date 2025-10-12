@@ -36,10 +36,10 @@ export const setEnvironmentBasedCSP = () => {
     meta.setAttribute('content', `
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;
-      style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net;
+      style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net https://fonts.googleapis.com;
       img-src 'self' data: blob: https:;
       connect-src 'self' ${apiUrl} https://judge0-ce.p.rapidapi.com ws: wss:;
-      font-src 'self' data: blob: https://cdn.jsdelivr.net;
+      font-src 'self' data: blob: https://cdn.jsdelivr.net https://fonts.gstatic.com;
       worker-src 'self' blob: data:;
       child-src 'self' blob: data:;
       object-src 'none';
@@ -51,10 +51,10 @@ export const setEnvironmentBasedCSP = () => {
     const cspContent = `
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;
-      style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net;
+      style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net https://fonts.googleapis.com;
       img-src 'self' data: blob: https:;
       connect-src 'self' ${apiUrl} https://judge0-ce.p.rapidapi.com;
-      font-src 'self' data: blob: https://cdn.jsdelivr.net;
+      font-src 'self' data: blob: https://cdn.jsdelivr.net https://fonts.gstatic.com;
       worker-src 'self' blob: data:;
       child-src 'self' blob: data:;
       object-src 'none';

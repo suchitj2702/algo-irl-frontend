@@ -1,9 +1,8 @@
 // Cache utility for managing user data in localStorage
-export interface CachedCompany {
-  id: string;
-  name: string;
-  timestamp: number;
-}
+import { Problem, CodeDetails } from '../types';
+
+const KEY_SEPARATOR = '::';
+const PLAN_PREFIX = 'plan::';
 
 export interface CachedProblem {
   problemId: string;
@@ -14,14 +13,74 @@ export interface CachedProblem {
   companyName: string; // Store company name for display
   difficulty: string;
   title?: string;
+  planId?: string;
 }
 
 export interface UserCache {
-  companies: CachedCompany[];
   problems: CachedProblem[];
 }
 
 const CACHE_KEY = 'algo_irl_user_cache';
+const PROBLEM_DATA_KEY = 'algo_irl_problem_data';
+
+export interface CachedProblemData {
+  problem: Problem;
+  codeDetails: CodeDetails;
+  updatedAt: number;
+}
+
+export interface ParsedProblemCacheKey {
+  baseProblemId: string;
+  companyId: string;
+  planId?: string;
+}
+
+export const buildProblemCacheKey = (
+  problemId: string,
+  companyId: string,
+  planId?: string
+): string => {
+  if (planId) {
+    return `${PLAN_PREFIX}${planId}${KEY_SEPARATOR}${problemId}${KEY_SEPARATOR}${companyId}`;
+  }
+
+  return `${problemId}${KEY_SEPARATOR}${companyId}`;
+};
+
+export const parseProblemCacheKey = (key: string): ParsedProblemCacheKey => {
+  if (key.startsWith(PLAN_PREFIX)) {
+    const trimmed = key.slice(PLAN_PREFIX.length);
+    const parts = trimmed.split(KEY_SEPARATOR);
+    const [planId, baseProblemId = '', companyId = ''] = parts;
+    return {
+      planId: planId || undefined,
+      baseProblemId,
+      companyId
+    };
+  }
+
+  const separatorParts = key.split(KEY_SEPARATOR);
+  if (separatorParts.length >= 2) {
+    const [baseProblemId, companyId] = separatorParts;
+    return {
+      baseProblemId,
+      companyId
+    };
+  }
+
+  const underscoreIndex = key.lastIndexOf('_');
+  if (underscoreIndex !== -1) {
+    return {
+      baseProblemId: key.substring(0, underscoreIndex),
+      companyId: key.substring(underscoreIndex + 1)
+    };
+  }
+
+  return {
+    baseProblemId: key,
+    companyId: ''
+  };
+};
 
 // Get cache from localStorage
 export const getCache = (): UserCache => {
@@ -29,31 +88,52 @@ export const getCache = (): UserCache => {
     const cached = localStorage.getItem(CACHE_KEY);
     if (cached) {
       const parsedCache = JSON.parse(cached);
-      
+
       // Migration: handle old format where company was just a string
       if (parsedCache.problems) {
         parsedCache.problems = parsedCache.problems.map((problem: any) => {
-          if (typeof problem.company === 'string') {
-            // Migrate old format to new format
-            return {
-              ...problem,
-              companyId: problem.company, // Use company string as ID for old entries
-              companyName: problem.company,
-              company: undefined // Remove old field
+          let normalizedProblem = problem;
+
+          if (typeof normalizedProblem.company === 'string') {
+            normalizedProblem = {
+              ...normalizedProblem,
+              companyId: normalizedProblem.company,
+              companyName: normalizedProblem.company,
+              company: undefined
             };
           }
-          return problem;
+
+          if (typeof normalizedProblem.problemId === 'string') {
+            const parsedKey = parseProblemCacheKey(normalizedProblem.problemId);
+
+            if (!normalizedProblem.companyId && parsedKey.companyId) {
+              normalizedProblem = {
+                ...normalizedProblem,
+                companyId: parsedKey.companyId
+              };
+            }
+
+            if (!normalizedProblem.planId && parsedKey.planId) {
+              normalizedProblem = {
+                ...normalizedProblem,
+                planId: parsedKey.planId
+              };
+            }
+          }
+
+          return normalizedProblem;
         });
       }
-      
-      return parsedCache;
+
+      return {
+        problems: parsedCache.problems || []
+      };
     }
   } catch (error) {
     console.error('Error reading from cache:', error);
   }
-  
+
   return {
-    companies: [],
     problems: []
   };
 };
@@ -67,61 +147,84 @@ export const saveCache = (cache: UserCache): void => {
   }
 };
 
-// Default company IDs that should not be cached as recently used
-const DEFAULT_COMPANY_IDS = ['meta', 'apple', 'amazon', 'netflix', 'google', 'microsoft'];
+const getProblemDataMap = (): Record<string, CachedProblemData> => {
+  try {
+    const data = localStorage.getItem(PROBLEM_DATA_KEY);
+    if (!data) return {};
 
-// Add or update a company in cache (keep last 4)
-export const addCompanyToCache = (companyId: string, companyName: string): void => {
-  // Don't cache default companies - they're always available
-  if (DEFAULT_COMPANY_IDS.includes(companyId)) {
-    return;
+    const parsed = JSON.parse(data);
+    if (parsed && typeof parsed === 'object') {
+      return parsed as Record<string, CachedProblemData>;
+    }
+  } catch (error) {
+    console.error('Error reading problem data cache:', error);
   }
-  
-  const cache = getCache();
-  
-  // Remove existing entry if present
-  cache.companies = cache.companies.filter(c => c.id !== companyId);
-  
-  // Add new entry at the beginning with the exact API-provided name
-  cache.companies.unshift({
-    id: companyId,
-    name: companyName, // Use the exact name from API instead of applying our own capitalization
-    timestamp: Date.now()
-  });
-  
-  // Keep only last 4
-  cache.companies = cache.companies.slice(0, 4);
-  
-  saveCache(cache);
+  return {};
 };
 
-// Get recent companies (last 4)
-export const getRecentCompanies = (): CachedCompany[] => {
-  const cache = getCache();
-  return cache.companies.slice(0, 4);
+const saveProblemDataMap = (map: Record<string, CachedProblemData>): void => {
+  try {
+    localStorage.setItem(PROBLEM_DATA_KEY, JSON.stringify(map));
+  } catch (error) {
+    console.error('Error saving problem data cache:', error);
+  }
+};
+
+export const setCachedProblemData = (
+  problemId: string,
+  problem: Problem,
+  codeDetails: CodeDetails
+): void => {
+  const map = getProblemDataMap();
+  map[problemId] = {
+    problem,
+    codeDetails,
+    updatedAt: Date.now()
+  };
+  saveProblemDataMap(map);
+};
+
+export const getCachedProblemData = (problemId: string): CachedProblemData | null => {
+  const map = getProblemDataMap();
+  return map[problemId] || null;
+};
+
+export const removeCachedProblemData = (problemId: string): void => {
+  const map = getProblemDataMap();
+  if (map[problemId]) {
+    delete map[problemId];
+    saveProblemDataMap(map);
+  }
 };
 
 // Add or update a problem in cache
 export const addProblemToCache = (
-  problemId: string, 
+  problemId: string,
   status: 'solved' | 'in_progress',
   solution: string,
   companyId: string,
   companyName: string,
   difficulty: string,
-  title?: string
+  title?: string,
+  planId?: string
 ): void => {
   const cache = getCache();
-  
-  // Create a unique identifier that includes both problem and company
-  // This allows multiple company attempts for the same problem to be stored
-  const uniqueProblemId = `${problemId}_${companyId}`;
-  
-  // Remove existing entry if present (same problem + same company)
-  cache.problems = cache.problems.filter(p => p.problemId !== uniqueProblemId);
-  
-  // Add new entry with unique problem ID
-  cache.problems.push({
+  const uniqueProblemId = buildProblemCacheKey(problemId, companyId, planId);
+
+  const filteredProblems = cache.problems.filter(existing => {
+    if (existing.problemId === uniqueProblemId) {
+      return false;
+    }
+
+    if (planId) {
+      const parsed = parseProblemCacheKey(existing.problemId);
+      return !(parsed.planId === planId && parsed.baseProblemId === problemId);
+    }
+
+    return true;
+  });
+
+  const nextEntry: CachedProblem = {
     problemId: uniqueProblemId,
     status,
     solution,
@@ -129,10 +232,13 @@ export const addProblemToCache = (
     companyName,
     difficulty,
     title,
-    timestamp: Date.now()
-  });
-  
-  saveCache(cache);
+    timestamp: Date.now(),
+    ...(planId ? { planId } : {})
+  };
+
+  filteredProblems.push(nextEntry);
+
+  saveCache({ problems: filteredProblems });
 };
 
 // Get cached problem
@@ -142,9 +248,21 @@ export const getCachedProblem = (problemId: string): CachedProblem | null => {
 };
 
 // Get all cached problems
-export const getAllCachedProblems = (): CachedProblem[] => {
+export interface GetAllCachedProblemsOptions {
+  includePlanScoped?: boolean;
+}
+
+export const getAllCachedProblems = (
+  options?: GetAllCachedProblemsOptions
+): CachedProblem[] => {
   const cache = getCache();
-  return cache.problems.sort((a, b) => b.timestamp - a.timestamp);
+  const includePlanScoped = options?.includePlanScoped ?? false;
+
+  const list = includePlanScoped
+    ? cache.problems
+    : cache.problems.filter(problem => !problem.planId);
+
+  return [...list].sort((a, b) => b.timestamp - a.timestamp);
 };
 
 // Update problem status to solved
@@ -169,6 +287,36 @@ export const updateProblemSolution = (problemId: string, solution: string): void
     cache.problems[problemIndex].solution = solution;
     cache.problems[problemIndex].timestamp = Date.now();
     saveCache(cache);
+  }
+};
+
+export const clearProblemsForPlan = (planId: string): void => {
+  if (!planId) return;
+
+  const cache = getCache();
+  const nextProblems = cache.problems.filter(problem => {
+    const parsed = parseProblemCacheKey(problem.problemId);
+    const detectedPlanId = problem.planId ?? parsed.planId;
+    return detectedPlanId !== planId;
+  });
+
+  if (nextProblems.length !== cache.problems.length) {
+    saveCache({ problems: nextProblems });
+  }
+
+  const map = getProblemDataMap();
+  let changed = false;
+
+  for (const key of Object.keys(map)) {
+    const parsed = parseProblemCacheKey(key);
+    if (parsed.planId === planId) {
+      delete map[key];
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    saveProblemDataMap(map);
   }
 };
 
