@@ -178,8 +178,8 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
    Math.max(regenerateTooltipWidth / 2 + 16, centerX)
   );
 
-  const desiredTop = buttonRect.top - 14;
-  const clampedTop = Math.max(32, desiredTop);
+  const desiredTop = buttonRect.bottom + 14;
+  const clampedTop = Math.min(window.innerHeight - 32, desiredTop);
 
   setRegenerateTooltipPosition({
    left: clampedCenterX,
@@ -268,7 +268,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   if (problem.constraints && problem.constraints.length > 0) { fullTextContent += "Constraints: \n"; problem.constraints.forEach(c => fullTextContent += `• ${c}\n`); fullTextContent += "\n"; }
   if (problem.requirements && problem.requirements.length > 0) { fullTextContent += "Requirements: \n"; problem.requirements.forEach(r => fullTextContent += `• ${r}\n`); fullTextContent += "\n"; }
   if (problem.leetcodeUrl) fullTextContent += "Original LeetCode problem for this problem statement";
-  
+
   // Display text immediately without typing animation
   setTypedText(fullTextContent);
   setTypingComplete(true);
@@ -445,14 +445,11 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
    {planContext && (
     <div className="border-b border-black/5 bg-white/70 dark:bg-neutral-900/80 backdrop-blur-md px-4 py-3">
      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      <div>
-       <div className="text-xs font-semibold uppercase tracking-wide text-content-muted dark:text-content-subtle">
+      <div className="flex flex-col gap-2">
+       <div className="text-xs font-semibold uppercase tracking-wide text-content-muted dark:text-content-subtle ml-1">
         Study Plan Mode
        </div>
        <div className="flex flex-wrap items-center gap-2">
-        <h2 className="text-lg font-semibold text-content">
-         {planContext.problemTitle || problem.title}
-        </h2>
         {planPositionLabel && (
          <span className="inline-flex items-center rounded-full bg-mint-100 dark:bg-mint-900/30 px-2 py-0.5 text-xs font-medium text-mint-700 dark:text-mint-300">
           {planPositionLabel}
@@ -463,12 +460,12 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
           {planStatusLabel}
          </span>
         )}
+        {planContext.day && (
+         <span className="text-xs text-content-muted dark:text-content-subtle">
+          Day {planContext.day}
+         </span>
+        )}
        </div>
-       {planContext.day && (
-        <div className="text-xs text-content-muted dark:text-content-subtle mt-1">
-         Day {planContext.day}
-        </div>
-       )}
       </div>
       <div className="flex flex-wrap gap-2">
        <button
@@ -679,17 +676,17 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
        left: regenerateTooltipPosition.left,
        top: regenerateTooltipPosition.top,
        width: regenerateTooltipWidth,
-       transform: 'translate(-50%, -100%)'
+       transform: 'translate(-50%, 0)'
       }}
      >
       <div className="relative rounded-2xl border border-emerald-200/70 bg-white/95 px-4 py-3 text-[11px] text-slate-700 shadow-xl ring-1 ring-emerald-100/50 backdrop-blur-sm dark:border-emerald-700/60 dark:bg-neutral-950/95 dark:text-slate-200 dark:ring-emerald-800/50">
-       <div className="absolute left-1/2 -bottom-1.5 h-3 w-3 -translate-x-1/2 rotate-45 border border-emerald-200/70 bg-white/95 dark:border-emerald-700/60 dark:bg-neutral-950/95" />
+       <div className="absolute left-1/2 -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45 border border-emerald-200/70 bg-white/95 dark:border-emerald-700/60 dark:bg-neutral-950/95" />
        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-300">
         <Sparkles className="h-3.5 w-3.5" />
         Prompt Remix
        </div>
        <p className="mt-2 text-[12px] leading-5 text-slate-700 dark:text-slate-200">
-        Let the AI reimagine the narrative, refresh constraints, and surface a sharper framing for this challenge.
+        Let the AI reimagine this problem.
        </p>
       </div>
      </div>,

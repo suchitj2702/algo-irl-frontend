@@ -40,6 +40,7 @@ import {
  setStudyPlanProblemInProgress,
  buildPlanProblemCacheKey
 } from '../utils/studyPlanCache';
+import { getCompanyDisplayName } from '../utils/companyDisplay';
 
 interface TestResultsFromParent {
  passed: boolean;
@@ -53,20 +54,6 @@ interface TestResultsFromParent {
 }
 
 export const MAX_LOADING_DURATION_SECONDS = 60;
-
-// Helper function to get the proper display name for a company
-const getCompanyDisplayName = (companyId: string): string => {
- const companyMap: { [key: string]: string } = {
-  'meta': 'Meta',
-  'apple': 'Apple',
-  'amazon': 'Amazon',
-  'netflix': 'Netflix',
-  'google': 'Google',
-  'microsoft': 'Microsoft'
- };
-
- return companyMap[companyId] || companyId;
-};
 
 export function AppRouter() {
  const navigate = useNavigate();
@@ -1207,7 +1194,6 @@ export function AppRouter() {
       studyPlanResponse && studyPlanConfig ? (
        <StudyPlanView
         studyPlan={studyPlanResponse}
-        companyName={getCompanyDisplayName(studyPlanConfig.companyId)}
         companyId={studyPlanConfig.companyId}
         studyPlanId={currentStudyPlanId}
         onBack={handleBackToStudyPlanForm}

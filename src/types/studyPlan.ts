@@ -103,39 +103,33 @@ export interface RoleOption {
   id: RoleFamily;
   name: string;
   description: string;
-  icon: string; // emoji or icon identifier
 }
 
 export const ROLE_OPTIONS: RoleOption[] = [
   {
     id: 'backend',
     name: 'Backend',
-    description: 'APIs, databases, distributed systems',
-    icon: '⚙️'
+    description: 'APIs, databases, distributed systems'
   },
   {
     id: 'ml',
     name: 'Machine Learning',
-    description: 'Algorithms, data processing, optimization',
-    icon: '🤖'
+    description: 'Algorithms, data processing, optimization'
   },
   {
     id: 'frontend',
     name: 'Frontend',
-    description: 'UI/UX, rendering, state management',
-    icon: '🎨'
+    description: 'UI/UX, rendering, state management'
   },
   {
     id: 'infrastructure',
     name: 'Infrastructure',
-    description: 'Systems, networking, scalability',
-    icon: '🏗️'
+    description: 'Systems, networking, scalability'
   },
   {
     id: 'security',
     name: 'Security',
-    description: 'Cryptography, authentication, vulnerabilities',
-    icon: '🔒'
+    description: 'Cryptography, authentication, vulnerabilities'
   }
 ];
 

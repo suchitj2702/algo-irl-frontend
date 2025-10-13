@@ -5,10 +5,11 @@ import { useState } from 'react';
 import { ChevronDown, Calendar, Clock } from 'lucide-react';
 import { DaySchedule, EnrichedProblem } from '../types/studyPlan';
 import { StudyPlanProblemCard } from './StudyPlanProblemCard';
+import { getCompanyDisplayName } from '../utils/companyDisplay';
 
 interface DayScheduleCardProps {
  day: DaySchedule;
- companyName: string;
+ companyId: string;
  roleName: string;
  onStartProblem: (problem: EnrichedProblem, planId?: string) => void;
  studyPlanId?: string;
@@ -27,7 +28,7 @@ interface DayScheduleCardProps {
 
 export function DayScheduleCard({
  day,
- companyName,
+ companyId,
  roleName,
  onStartProblem,
  studyPlanId,
@@ -43,6 +44,7 @@ export function DayScheduleCard({
  problemOrderMap,
  cachedProblemTitles
 }: DayScheduleCardProps) {
+ const companyName = getCompanyDisplayName(companyId);
  const [isExpanded, setIsExpanded] = useState(initialExpanded);
 
  const formattedDate = new Date(day.date).toLocaleDateString('en-US', {
@@ -140,7 +142,7 @@ export function DayScheduleCard({
        <StudyPlanProblemCard
         key={`${problem.problemId}-${index}`}
         problem={problem}
-        companyName={companyName}
+        companyId={companyId}
         roleName={roleName}
         isCompleted={isCompleted}
         isBookmarked={isBookmarked}

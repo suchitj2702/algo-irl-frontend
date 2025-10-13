@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Info, X } from 'lucide-react';
 import { StudyPlanResponse, EnrichedProblem, ROLE_OPTIONS } from '../../../types/studyPlan';
 import { StudyPlanOverviewCard } from '../../StudyPlanOverviewCard';
 import { DayScheduleCard } from '../../DayScheduleCard';
 import { getStudyPlan, getCompletionPercentage } from '../../../utils/studyPlanCache';
 import { getAllCachedProblems, parseProblemCacheKey } from '../../../utils/cache';
+import { getCompanyDisplayName } from '../../../utils/companyDisplay';
 
 interface StudyPlanViewProps {
  studyPlan: StudyPlanResponse;
- companyName: string;
  companyId: string;
  studyPlanId?: string | null;
  onBack: () => void;
@@ -22,7 +22,6 @@ interface StudyPlanViewProps {
 
 export function StudyPlanView({
  studyPlan,
- companyName,
  companyId,
  studyPlanId,
  onBack,
@@ -38,6 +37,8 @@ export function StudyPlanView({
  const [showTopics, setShowTopics] = useState(false);
  const [showDifficulty, setShowDifficulty] = useState(false);
  const [showSavedOnly, setShowSavedOnly] = useState(false);
+ const [showGuidance, setShowGuidance] = useState(false);
+ const companyName = getCompanyDisplayName(companyId);
  const problemOrderMap = useMemo(() => {
   const orderMap: Record<string, number> = {};
   let counter = 1;
@@ -164,7 +165,7 @@ export function StudyPlanView({
     <div className="mb-8">
      <StudyPlanOverviewCard
       studyPlan={plan}
-      companyName={companyName}
+      companyId={companyId}
       progress={{
        percentage: progressInfo.percentage,
        completedCount: progressInfo.completedCount,
@@ -249,7 +250,7 @@ export function StudyPlanView({
       <DayScheduleCard
        key={day.day}
        day={day}
-       companyName={companyName}
+       companyId={companyId}
        roleName={roleName}
        studyPlanId={studyPlanId || undefined}
        completedProblems={progressInfo.completedProblemsSet}

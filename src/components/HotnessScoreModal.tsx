@@ -5,10 +5,11 @@ import type { CSSProperties } from 'react';
 import { X } from 'lucide-react';
 import { EnrichedProblem } from '../types/studyPlan';
 import { getHeatPalette } from '../utils/heatPalette';
+import { getCompanyDisplayName } from '../utils/companyDisplay';
 
 interface HotnessScoreModalProps {
  problem: EnrichedProblem;
- companyName: string;
+ companyId: string;
  roleName: string;
  onClose: () => void;
 }
@@ -68,7 +69,8 @@ function getCompanyNarrative(score: number, companyName: string): string {
  return `It still complements ${companyName}’s expectations, even if the company leans on broader problem families.`;
 }
 
-export function HotnessScoreModal({ problem, companyName, roleName, onClose }: HotnessScoreModalProps) {
+export function HotnessScoreModal({ problem, companyId, roleName, onClose }: HotnessScoreModalProps) {
+ const companyName = getCompanyDisplayName(companyId);
  const { hotnessScore, hotnessBreakdown, frequencyData, roleRelevance } = problem;
  const clampedScore = Math.min(Math.max(hotnessScore, 0), 100);
 

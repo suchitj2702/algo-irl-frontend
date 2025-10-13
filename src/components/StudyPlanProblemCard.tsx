@@ -6,10 +6,11 @@ import { Clock, PlayIcon, CheckCircle2, Circle, Bookmark, BookmarkCheck } from '
 import { EnrichedProblem } from '../types/studyPlan';
 import { HotnessBadge } from './HotnessBadge';
 import { HotnessScoreModal } from './HotnessScoreModal';
+import { getCompanyDisplayName } from '../utils/companyDisplay';
 
 interface StudyPlanProblemCardProps {
  problem: EnrichedProblem;
- companyName: string;
+ companyId: string;
  roleName: string;
  onStartProblem: () => void;
  isCompleted?: boolean;
@@ -24,7 +25,7 @@ interface StudyPlanProblemCardProps {
 
 export function StudyPlanProblemCard({
  problem,
- companyName,
+ companyId,
  roleName,
  onStartProblem,
  isCompleted = false,
@@ -36,6 +37,7 @@ export function StudyPlanProblemCard({
  showDifficulty = true,
  onResumeProblem
 }: StudyPlanProblemCardProps) {
+ const companyName = getCompanyDisplayName(companyId);
  const [showHotnessModal, setShowHotnessModal] = useState(false);
 
  const getDifficultyColor = () => {
@@ -184,7 +186,7 @@ export function StudyPlanProblemCard({
    {showHotnessModal && (
     <HotnessScoreModal
      problem={problem}
-     companyName={companyName}
+     companyId={companyId}
      roleName={roleName}
      onClose={() => setShowHotnessModal(false)}
     />

@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Plus, Calendar, Target, Trash2, BookOpen, Clock } from 'lucide-react';
 import { CachedStudyPlan, ROLE_OPTIONS } from '../../../types/studyPlan';
 import { getAllStudyPlans, getCompletionPercentage, deleteStudyPlan } from '../../../utils/studyPlanCache';
+import { getCompanyDisplayName } from '../../../utils/companyDisplay';
 import { useState } from 'react';
 
 interface MyStudyPlansPageProps {
@@ -19,19 +20,6 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
    deleteStudyPlan(planId);
    setStudyPlans(getAllStudyPlans());
   }
- };
-
- // Helper to get company display name
- const getCompanyDisplayName = (companyId: string): string => {
-  const companyMap: { [key: string]: string } = {
-   'meta': 'Meta',
-   'apple': 'Apple',
-   'amazon': 'Amazon',
-   'netflix': 'Netflix',
-   'google': 'Google',
-   'microsoft': 'Microsoft'
-  };
-  return companyMap[companyId] || companyId.charAt(0).toUpperCase() + companyId.slice(1);
  };
 
  return (
@@ -93,7 +81,6 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
        const companyName = getCompanyDisplayName(plan.config.companyId);
        const roleOption = ROLE_OPTIONS.find(r => r.id === plan.config.roleFamily);
        const roleName = roleOption?.name || plan.config.roleFamily;
-       const roleIcon = roleOption?.icon || '📚';
 
        const createdDate = new Date(plan.createdAt).toLocaleDateString('en-US', {
         month: 'short',
@@ -136,7 +123,6 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
              </span>
             </div>
             <div className="flex items-center gap-1.5 text-sm text-content-muted dark:text-content-subtle">
-             <span>{roleIcon}</span>
              <span>{roleName}</span>
             </div>
            </div>
