@@ -1,4 +1,14 @@
-// Cache utility for managing user data in localStorage
+/**
+ * Cache utility for managing user data in localStorage
+ *
+ * ⚠️ IMPORTANT: This file should ONLY be used for Blind75 (non-study-plan) problems.
+ *
+ * For study plan problems, use Firestore functions from:
+ * - src/services/studyPlanFirestoreService.ts
+ *
+ * Study plan problems are stored in Firestore with full details, code, and progress tracking.
+ * This ensures cross-device sync and eliminates localStorage limitations.
+ */
 import { Problem, CodeDetails } from '../types';
 
 const KEY_SEPARATOR = '::';

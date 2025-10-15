@@ -1,6 +1,6 @@
 import { TestCase } from '../types';
 import { executeCode as executeCodeAPI, checkSubmissionStatus as checkStatusAPI } from './api-service';
-import { APIAuthenticationError } from './api-signing';
+import { APIAuthenticationError } from './api-errors';
 
 // Define interface for individual test results from execution
 export interface ExecutionTestResult {

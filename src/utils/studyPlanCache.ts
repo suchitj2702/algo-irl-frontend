@@ -1,3 +1,25 @@
+/**
+ * @deprecated This file uses localStorage and has been replaced with Firestore.
+ *
+ * ⚠️ DEPRECATED - DO NOT USE FOR NEW CODE
+ *
+ * This utility manages study plans in localStorage and is being phased out.
+ * All new code should use `src/services/studyPlanFirestoreService.ts` instead.
+ *
+ * Migration path:
+ * - saveStudyPlan() → saveStudyPlanToFirestore()
+ * - getAllStudyPlans() → getStudyPlansFromFirestore()
+ * - getStudyPlan() → getStudyPlanFromFirestore()
+ * - updateStudyPlanProgress() → updateStudyPlanProgressInFirestore()
+ * - deleteStudyPlan() → deleteStudyPlanFromFirestore()
+ *
+ * This file is kept for backwards compatibility and potential migration needs.
+ */
+
+console.warn(
+  '[DEPRECATED] studyPlanCache.ts is deprecated. Use studyPlanFirestoreService.ts instead.'
+);
+
 // Study Plan Cache Utility
 // Manages localStorage caching of study plans and progress tracking
 

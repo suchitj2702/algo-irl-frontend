@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, X, Calendar, Target } from 'lucide-react';
+import { AlertTriangle, X, Calendar, Target, CheckCircle2, Clock, Bookmark } from 'lucide-react';
 import { CachedStudyPlan } from '../types/studyPlan';
-import { getCompletionPercentage } from '../utils/studyPlanCache';
+import { getCompletionPercentageFromPlan } from '../services/studyPlanFirestoreService';
 
 interface DuplicateWarningModalProps {
  isOpen: boolean;
@@ -20,7 +20,7 @@ export function DuplicateWarningModal({
 }: DuplicateWarningModalProps) {
  if (!isOpen) return null;
 
- const completionPercentage = getCompletionPercentage(existingPlan.id);
+ const completionPercentage = getCompletionPercentageFromPlan(existingPlan);
  const createdDate = new Date(existingPlan.createdAt).toLocaleDateString('en-US', {
   month: 'short',
   day: 'numeric',
@@ -28,7 +28,10 @@ export function DuplicateWarningModal({
  });
 
  const completedCount = existingPlan.progress.completedProblems.length;
+ const inProgressCount = existingPlan.progress.inProgressProblems?.length || 0;
+ const bookmarkedCount = existingPlan.progress.bookmarkedProblems?.length || 0;
  const totalCount = existingPlan.response.studyPlan.totalProblems;
+ const hasProgress = completedCount > 0 || inProgressCount > 0;
 
  return (
   <AnimatePresence>
@@ -90,14 +93,40 @@ export function DuplicateWarningModal({
            <span className="font-medium text-content">{createdDate}</span>
           </div>
 
-          {/* Progress */}
+          {/* Overall Progress */}
           <div className="flex items-center gap-2.5 text-sm">
            <Target className="w-4 h-4 text-content-muted dark:text-content-subtle flex-shrink-0" />
-           <span className="text-content-muted dark:text-content-subtle">Progress:</span>
+           <span className="text-content-muted dark:text-content-subtle">Overall:</span>
            <span className="font-medium text-content">
             {completedCount}/{totalCount} problems ({completionPercentage}%)
            </span>
           </div>
+
+          {/* Detailed Stats */}
+          {hasProgress && (
+            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-panel-200 dark:border-panel-400">
+              {/* Completed */}
+              <div className="flex flex-col items-center py-2 px-1 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 mb-1" />
+                <span className="text-xs font-semibold text-green-700 dark:text-green-300">{completedCount}</span>
+                <span className="text-[10px] text-green-600 dark:text-green-400">Completed</span>
+              </div>
+
+              {/* In Progress */}
+              <div className="flex flex-col items-center py-2 px-1 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 mb-1" />
+                <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">{inProgressCount}</span>
+                <span className="text-[10px] text-blue-600 dark:text-blue-400">In Progress</span>
+              </div>
+
+              {/* Bookmarked */}
+              <div className="flex flex-col items-center py-2 px-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                <Bookmark className="w-4 h-4 text-amber-600 dark:text-amber-400 mb-1" />
+                <span className="text-xs font-semibold text-amber-700 dark:text-amber-300">{bookmarkedCount}</span>
+                <span className="text-[10px] text-amber-600 dark:text-amber-400">Bookmarked</span>
+              </div>
+            </div>
+          )}
 
           {/* Progress Bar */}
           {completionPercentage > 0 && (
@@ -120,7 +149,7 @@ export function DuplicateWarningModal({
          <ul className="mt-2 space-y-1 text-xs text-panel-strong opacity-80 dark:text-panel-muted">
           <li className="flex items-start gap-1.5">
            <span className="flex-shrink-0">•</span>
-           <span><strong>Overwrite:</strong> Generate a new plan and replace the existing one (progress will be lost)</span>
+           <span><strong>Overwrite:</strong> Generate a new plan and replace the existing one {hasProgress && <span className="text-red-600 dark:text-red-400 font-semibold">(⚠️ all progress will be permanently lost)</span>}</span>
           </li>
           <li className="flex items-start gap-1.5">
            <span className="flex-shrink-0">•</span>

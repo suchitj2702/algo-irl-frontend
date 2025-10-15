@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
 import { Plus, Calendar, Target, Trash2, BookOpen, Clock } from 'lucide-react';
 import { CachedStudyPlan, ROLE_OPTIONS } from '../../../types/studyPlan';
-import { getAllStudyPlans, getCompletionPercentage, deleteStudyPlan } from '../../../utils/studyPlanCache';
+import { getStudyPlansFromFirestore, deleteStudyPlanFromFirestore, getCompletionPercentageFromPlan } from '../../../services/studyPlanFirestoreService';
+import { getAllCachedPlans, removePlanFromCache, savePlanToCache, migrateToCachedPlanData } from '../../../services/studyPlanCacheService';
 import { getCompanyDisplayName } from '../../../utils/companyDisplay';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface MyStudyPlansPageProps {
  onCreateNew: () => void;
@@ -11,16 +13,142 @@ interface MyStudyPlansPageProps {
 }
 
 export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPageProps) {
- const [studyPlans, setStudyPlans] = useState<CachedStudyPlan[]>(getAllStudyPlans());
+ const { user, loading: authLoading } = useAuth();
+ const [studyPlans, setStudyPlans] = useState<CachedStudyPlan[]>([]);
+ const [loading, setLoading] = useState(true);
+ const [error, setError] = useState<string | null>(null);
 
- const handleDeletePlan = (planId: string, e: React.MouseEvent) => {
+ useEffect(() => {
+  // Wait for auth to be ready before attempting to load plans
+  if (authLoading) {
+   return;
+  }
+
+  // If no user after auth loads, don't try to fetch (PremiumGate should handle this)
+  if (!user) {
+   setLoading(false);
+   return;
+  }
+
+  async function loadPlans() {
+   try {
+    // Load from cache first for instant display
+    const cachedPlans = getAllCachedPlans();
+
+    if (cachedPlans.length > 0) {
+      // Convert to CachedStudyPlan format
+      const plans: CachedStudyPlan[] = cachedPlans.map(cached => ({
+        id: cached.planId,
+        config: cached.config,
+        response: cached.response,
+        progress: {
+          completedProblems: cached.progress.completedProblems,
+          bookmarkedProblems: cached.progress.bookmarkedProblems,
+          inProgressProblems: cached.progress.inProgressProblems,
+          currentDay: cached.progress.currentDay,
+          lastUpdated: cached.progress.lastUpdatedAt
+        },
+        createdAt: cached.cachedAt
+      }));
+
+      setStudyPlans(plans);
+      setLoading(false);
+      console.log(`💾 [Cache] Loaded ${plans.length} plans from cache`);
+
+      // Fetch from Firestore in background to check for updates
+      getStudyPlansFromFirestore()
+        .then(firestorePlans => {
+          console.log(`☁️ [Sync] Fetched ${firestorePlans.length} plans from Firestore`);
+
+          // Update cache and state with Firestore data
+          firestorePlans.forEach(plan => {
+            const cached = migrateToCachedPlanData(plan);
+            savePlanToCache(cached);
+          });
+
+          setStudyPlans(firestorePlans);
+        })
+        .catch(err => {
+          console.error('Background sync failed:', err);
+          // Keep showing cached plans
+        });
+    } else {
+      // No cache, load from Firestore
+      setLoading(true);
+      console.log('☁️ [Firestore] No cached plans, loading from Firestore');
+      const plans = await getStudyPlansFromFirestore();
+
+      // Save to cache
+      plans.forEach(plan => {
+        const cached = migrateToCachedPlanData(plan);
+        savePlanToCache(cached);
+      });
+
+      setStudyPlans(plans);
+      setLoading(false);
+    }
+   } catch (err) {
+    console.error('Failed to load study plans:', err);
+    setError('Failed to load study plans. Please try refreshing the page.');
+    setLoading(false);
+   }
+  }
+  loadPlans();
+ }, [authLoading, user]);
+
+ const handleDeletePlan = async (planId: string, e: React.MouseEvent) => {
   e.stopPropagation(); // Prevent card click
 
   if (confirm('Are you sure you want to delete this study plan? This action cannot be undone.')) {
-   deleteStudyPlan(planId);
-   setStudyPlans(getAllStudyPlans());
+   try {
+    // Optimistic update - remove from UI immediately
+    setStudyPlans(plans => plans.filter(p => p.id !== planId));
+
+    // Remove from cache
+    removePlanFromCache(planId);
+
+    // Delete from Firestore in background
+    await deleteStudyPlanFromFirestore(planId);
+
+    console.log(`🗑️ Plan ${planId} deleted successfully`);
+   } catch (err) {
+    console.error('Failed to delete study plan:', err);
+    alert('Failed to delete study plan. Please try again.');
+
+    // Reload plans on error
+    const updatedPlans = await getStudyPlansFromFirestore();
+    setStudyPlans(updatedPlans);
+   }
   }
  };
+
+ if (loading) {
+  return (
+   <div className="min-h-[calc(100vh-3.5rem)] bg-surface dark:bg-surface py-8 px-4 flex items-center justify-center">
+    <div className="text-center">
+     <div className="animate-spin w-12 h-12 border-4 border-mint-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+     <p className="text-content-muted">Loading your study plans...</p>
+    </div>
+   </div>
+  );
+ }
+
+ if (error) {
+  return (
+   <div className="min-h-[calc(100vh-3.5rem)] bg-surface dark:bg-surface py-8 px-4 flex items-center justify-center">
+    <div className="text-center max-w-md">
+     <div className="text-red-600 dark:text-red-400 mb-4 text-4xl">⚠️</div>
+     <p className="text-content mb-4">{error}</p>
+     <button
+      onClick={() => window.location.reload()}
+      className="px-6 py-3 bg-mint-600 hover:bg-mint-700 text-white rounded-lg font-medium transition-colors"
+     >
+      Refresh Page
+     </button>
+    </div>
+   </div>
+  );
+ }
 
  return (
   <div className="min-h-[calc(100vh-3.5rem)] bg-surface dark:bg-surface py-8 px-4">
@@ -77,7 +205,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
     ) : (
      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {studyPlans.map((plan, index) => {
-       const completionPercentage = getCompletionPercentage(plan.id);
+       const completionPercentage = getCompletionPercentageFromPlan(plan);
        const companyName = getCompanyDisplayName(plan.config.companyId);
        const roleOption = ROLE_OPTIONS.find(r => r.id === plan.config.roleFamily);
        const roleName = roleOption?.name || plan.config.roleFamily;

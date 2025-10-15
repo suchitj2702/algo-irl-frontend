@@ -3,7 +3,7 @@ import { AppRouter } from './components/AppRouter';
 import { initializeEnvironment } from './utils/config';
 
 export function App() {
- // Initialize and validate environment configuration
+ // initializeEnvironment must run before hooks that depend on feature flags
  initializeEnvironment();
  
  return (

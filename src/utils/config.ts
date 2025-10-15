@@ -1,22 +1,15 @@
 /**
  * Environment configuration validation
+ *
+ * This file can be used to validate required environment variables
+ * Currently all environment variables are optional with fallback defaults
  */
 
 export function validateEnvironment() {
-  const requiredVars = [
-    'VITE_REQUEST_SIGNATURE_SECRET'
-  ];
-  
-  const missing = requiredVars.filter(varName => !import.meta.env[varName]);
-  
-  if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
-  }
-  
-  const secret = import.meta.env.VITE_REQUEST_SIGNATURE_SECRET;
-  if (secret && secret.length < 32) {
-    console.warn('VITE_REQUEST_SIGNATURE_SECRET should be at least 32 characters long');
-  }
+  // No required environment variables at this time
+  // Firebase config is validated in firebase.ts
+  // API URLs have defaults in api.ts
+  console.log('Environment configuration check complete');
 }
 
 /**
@@ -25,9 +18,8 @@ export function validateEnvironment() {
 export function initializeEnvironment() {
   try {
     validateEnvironment();
-    console.log('Environment configuration validated successfully');
   } catch (error) {
     console.error('Environment validation failed:', error);
     throw error;
   }
-} 
+}

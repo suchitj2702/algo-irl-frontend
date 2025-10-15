@@ -83,7 +83,35 @@ export interface StudyPlanResponse {
   };
 }
 
-// For caching study plans locally
+// Backend Firestore types
+export interface ProblemProgressItem {
+  status: 'not_started' | 'in_progress' | 'solved';
+  code?: string;
+  isBookmarked: boolean;
+  lastWorkedAt: string;
+  attempts?: number;
+}
+
+export interface StudyPlanProgressRecord {
+  status?: 'not_started' | 'in_progress' | 'completed';
+  completedProblems?: number;  // COUNT not array
+  totalProblems?: number;
+  currentDay?: number;
+  lastUpdatedAt?: string;
+  note?: string;
+  problemProgress?: Record<string, ProblemProgressItem>;
+}
+
+export interface StudyPlanRecord {
+  id: string;
+  config: StudyPlanConfig;
+  response: StudyPlanResponse;
+  progress?: StudyPlanProgressRecord | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+// For caching study plans locally (frontend format)
 export interface CachedStudyPlan {
   id: string; // unique identifier
   config: StudyPlanConfig;
@@ -163,3 +191,46 @@ export const COMMON_TOPICS = [
   'Sorting',
   'Recursion'
 ];
+
+// Adapter functions to convert between backend and frontend formats
+
+/**
+ * Convert backend StudyPlanRecord to frontend CachedStudyPlan format
+ */
+export function adaptStudyPlanFromBackend(record: StudyPlanRecord): CachedStudyPlan {
+  const problemProgress = record.progress?.problemProgress || {};
+
+  const completedProblems: string[] = [];
+  const inProgressProblems: string[] = [];
+  const bookmarkedProblems: string[] = [];
+
+  Object.entries(problemProgress).forEach(([id, progress]) => {
+    if (progress.status === 'solved') completedProblems.push(id);
+    if (progress.status === 'in_progress') inProgressProblems.push(id);
+    if (progress.isBookmarked) bookmarkedProblems.push(id);
+  });
+
+  return {
+    id: record.id,
+    config: record.config,
+    response: record.response,
+    progress: {
+      completedProblems,
+      inProgressProblems,
+      bookmarkedProblems,
+      currentDay: record.progress?.currentDay || 1,
+      lastUpdated: record.updatedAt ? new Date(record.updatedAt).getTime() : Date.now()
+    },
+    createdAt: record.createdAt ? new Date(record.createdAt).getTime() : Date.now()
+  };
+}
+
+/**
+ * Get problem progress from backend record
+ */
+export function getProblemProgressFromRecord(
+  record: StudyPlanRecord,
+  problemId: string
+): ProblemProgressItem | undefined {
+  return record.progress?.problemProgress?.[problemId];
+}

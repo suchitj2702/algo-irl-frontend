@@ -35,33 +35,35 @@ export const setEnvironmentBasedCSP = () => {
     // Development - More permissive for Monaco Editor and debugging
     meta.setAttribute('content', `
       default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;
-      style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net https://fonts.googleapis.com;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net https://checkout.razorpay.com https://va.vercel-scripts.com https://apis.google.com https://www.gstatic.com;
+      style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net https://fonts.googleapis.com https://checkout.razorpay.com https://accounts.google.com;
       img-src 'self' data: blob: https:;
-      connect-src 'self' ${apiUrl} https://judge0-ce.p.rapidapi.com ws: wss:;
+      connect-src 'self' ${apiUrl} https://judge0-ce.p.rapidapi.com https://firebaseinstallations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firestore.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://accounts.google.com https://*.google.com https://*.googleapis.com https://vitals.vercel-insights.com https://va.vercel-scripts.com ws: wss:;
       font-src 'self' data: blob: https://cdn.jsdelivr.net https://fonts.gstatic.com;
+      frame-src 'self' https://checkout.razorpay.com https://api.razorpay.com https://accounts.google.com https://*.firebaseapp.com https://*.google.com;
       worker-src 'self' blob: data:;
       child-src 'self' blob: data:;
       object-src 'none';
       base-uri 'self';
-      form-action 'self';
+      form-action 'self' https://checkout.razorpay.com;
     `.replace(/\s+/g, ' ').trim());
   } else {
     // Production - More restrictive but still Monaco compatible
     const cspContent = `
       default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;
-      style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net https://fonts.googleapis.com;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net https://checkout.razorpay.com https://va.vercel-scripts.com https://apis.google.com https://www.gstatic.com;
+      style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net https://fonts.googleapis.com https://checkout.razorpay.com https://accounts.google.com;
       img-src 'self' data: blob: https:;
-      connect-src 'self' ${apiUrl} https://judge0-ce.p.rapidapi.com;
+      connect-src 'self' ${apiUrl} https://judge0-ce.p.rapidapi.com https://firebaseinstallations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firestore.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://accounts.google.com https://*.google.com https://*.googleapis.com https://vitals.vercel-insights.com https://va.vercel-scripts.com;
       font-src 'self' data: blob: https://cdn.jsdelivr.net https://fonts.gstatic.com;
+      frame-src 'self' https://checkout.razorpay.com https://api.razorpay.com https://accounts.google.com https://*.firebaseapp.com https://*.google.com;
       worker-src 'self' blob: data:;
       child-src 'self' blob: data:;
       object-src 'none';
       base-uri 'self';
-      form-action 'self';
+      form-action 'self' https://checkout.razorpay.com;
     `.replace(/\s+/g, ' ').trim();
-    
+
     meta.setAttribute('content', cspContent);
   }
 

@@ -5,6 +5,7 @@ import { Company } from '../../../types';
 import { StudyPlanConfig, ROLE_OPTIONS, COMMON_TOPICS, RoleFamily, DifficultyPreference } from '../../../types/studyPlan';
 import { fetchCompanies as fetchCompaniesAPI } from '../../../utils/api-service';
 import { getCachedCompanies, cacheCompanies } from '../../../utils/companiesCache';
+import { PremiumGate } from '../../PremiumGate';
 
 // Six fixed company IDs
 const FIXED_COMPANY_IDS = ['meta', 'apple', 'amazon', 'netflix', 'google', 'microsoft'];
@@ -134,52 +135,53 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
  const currentError = externalError || localError;
 
  return (
-  <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-surface dark:bg-surface">
-   <motion.div
-    initial={{ opacity: 0, y: 8 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-    className="w-full max-w-lg"
-   >
-    <div className="bg-panel-100 dark:bg-panel-300 backdrop-blur-lg rounded-[20px] shadow-[0_1px_3px_rgba(0,0,0,0.05),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3),0_8px_24px_rgba(0,0,0,0.2)] border border-panel-200 dark:border-panel-300 overflow-hidden">
-     {/* Header */}
-     <div className="text-center px-6 pt-6 pb-4 border-b border-black/5 dark:border-white/5">
-      <h2 className="text-lg font-semibold text-content mb-1">
-       Create Study Plan
-      </h2>
-      <p className="text-xs text-content-muted dark:text-content-subtle">
-       Personalized prep schedule for your target company
-      </p>
-     </div>
+  <PremiumGate feature="Study Plan Generation">
+   <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-surface dark:bg-surface">
+    <motion.div
+     initial={{ opacity: 0, y: 8 }}
+     animate={{ opacity: 1, y: 0 }}
+     transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+     className="w-full max-w-lg"
+    >
+     <div className="bg-panel-100 dark:bg-panel-300 backdrop-blur-lg rounded-[20px] shadow-[0_1px_3px_rgba(0,0,0,0.05),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3),0_8px_24px_rgba(0,0,0,0.2)] border border-panel-200 dark:border-panel-300 overflow-hidden">
+      {/* Header */}
+      <div className="text-center px-6 pt-6 pb-4 border-b border-black/5 dark:border-white/5">
+       <h2 className="text-lg font-semibold text-content mb-1">
+        Create Study Plan
+       </h2>
+       <p className="text-xs text-content-muted dark:text-content-subtle">
+        Personalized prep schedule for your target company
+       </p>
+      </div>
 
-     {/* Error Message */}
-     <AnimatePresence>
-      {currentError && (
-       <motion.div
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: 'auto' }}
-        exit={{ opacity: 0, height: 0 }}
-        className="mx-5 mt-4"
-       >
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-[12px]">
-         <div className="flex items-start gap-2">
-          <XCircleIcon className="h-4 w-4 text-red-500 dark:text-red-400 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-           <p className="text-xs text-red-700 dark:text-red-300">{currentError}</p>
+      {/* Error Message */}
+      <AnimatePresence>
+       {currentError && (
+        <motion.div
+         initial={{ opacity: 0, height: 0 }}
+         animate={{ opacity: 1, height: 'auto' }}
+         exit={{ opacity: 0, height: 0 }}
+         className="mx-5 mt-4"
+        >
+         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-[12px]">
+          <div className="flex items-start gap-2">
+           <XCircleIcon className="h-4 w-4 text-red-500 dark:text-red-400 flex-shrink-0 mt-0.5" />
+           <div className="flex-1">
+            <p className="text-xs text-red-700 dark:text-red-300">{currentError}</p>
+           </div>
+           <button
+            onClick={() => setLocalError(null)}
+            className="text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-300 transition-colors"
+           >
+            <XCircleIcon className="h-3.5 w-3.5" />
+           </button>
           </div>
-          <button
-           onClick={() => setLocalError(null)}
-           className="text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-300 transition-colors"
-          >
-           <XCircleIcon className="h-3.5 w-3.5" />
-          </button>
          </div>
-        </div>
-       </motion.div>
-      )}
-     </AnimatePresence>
+        </motion.div>
+       )}
+      </AnimatePresence>
 
-     <form onSubmit={handleSubmit} className="p-5 space-y-5">
+      <form onSubmit={handleSubmit} className="p-5 space-y-5">
       {/* Company Selection */}
       <div className="space-y-2">
        <label className="block text-xs font-medium text-content">
@@ -449,9 +451,10 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
         Analyzing company patterns and optimizing your schedule...
        </p>
       )}
-     </form>
-    </div>
-   </motion.div>
-  </div>
+      </form>
+     </div>
+    </motion.div>
+   </div>
+  </PremiumGate>
  );
 }

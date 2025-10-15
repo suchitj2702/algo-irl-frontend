@@ -17,6 +17,10 @@ export const API_CONFIG = {
     EXECUTE_CODE: '/api/execute-code',
     EXECUTE_CODE_STATUS: '/api/execute-code/status',
     STUDY_PLAN_GENERATE: '/api/study-plan/generate',
+
+    // User study plan endpoints (require auth)
+    USER_STUDY_PLANS: '/api/user/study-plans',
+    USER_STUDY_PLAN_BY_ID: '/api/user/study-plans', // Append /{planId}
   }
 };
 

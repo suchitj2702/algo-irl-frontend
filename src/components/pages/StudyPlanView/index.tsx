@@ -1,9 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { ArrowLeft, Info, X } from 'lucide-react';
 import { StudyPlanResponse, EnrichedProblem, ROLE_OPTIONS } from '../../../types/studyPlan';
 import { StudyPlanOverviewCard } from '../../StudyPlanOverviewCard';
 import { DayScheduleCard } from '../../DayScheduleCard';
-import { getStudyPlan, getCompletionPercentage } from '../../../utils/studyPlanCache';
 import { getAllCachedProblems, parseProblemCacheKey } from '../../../utils/cache';
 import { getCompanyDisplayName } from '../../../utils/companyDisplay';
 
@@ -54,37 +53,23 @@ export function StudyPlanView({
  }, [dailySchedule]);
 
  const progressInfo = useMemo(() => {
-  if (!studyPlanId || typeof window === 'undefined') {
-   return {
-    completedProblemsSet: completedProblems || new Set<string>(),
-    bookmarkedProblemsSet: bookmarkedProblems || new Set<string>(),
-    inProgressProblemsSet: inProgressProblems || new Set<string>(),
-    completedCount: 0,
-    totalProblems: plan.totalProblems,
-    percentage: 0
-   };
-  }
-
-  const cachedPlan = getStudyPlan(studyPlanId);
-  const completedFromCache = cachedPlan?.progress.completedProblems ?? [];
-  const bookmarkedFromCache = cachedPlan?.progress.bookmarkedProblems ?? [];
-  const inProgressFromCache = cachedPlan?.progress.inProgressProblems ?? [];
-  const totalProblems = cachedPlan?.response.studyPlan.totalProblems ?? plan.totalProblems;
-  const percentage = getCompletionPercentage(studyPlanId);
-
-  const completedSet = completedProblems ?? new Set<string>(completedFromCache);
-  const bookmarkedSet = bookmarkedProblems ?? new Set<string>(bookmarkedFromCache);
-  const inProgressSet = inProgressProblems ?? new Set<string>(inProgressFromCache);
+  // Use only passed props (already synced from Firestore in AppRouter)
+  const completedSet = completedProblems || new Set<string>();
+  const bookmarkedSet = bookmarkedProblems || new Set<string>();
+  const inProgressSet = inProgressProblems || new Set<string>();
+  const totalProblems = plan.totalProblems;
+  const completedCount = completedSet.size;
+  const percentage = totalProblems > 0 ? Math.round((completedCount / totalProblems) * 100) : 0;
 
   return {
    completedProblemsSet: completedSet,
    bookmarkedProblemsSet: bookmarkedSet,
    inProgressProblemsSet: inProgressSet,
-   completedCount: completedSet.size,
+   completedCount,
    totalProblems,
    percentage
   };
- }, [bookmarkedProblems, completedProblems, inProgressProblems, plan.totalProblems, studyPlanId]);
+ }, [bookmarkedProblems, completedProblems, inProgressProblems, plan.totalProblems]);
 
  const completedProblemCount = progressInfo.completedCount;
  const inProgressProblemCount = progressInfo.inProgressProblemsSet?.size ?? 0;

@@ -1,10 +1,35 @@
-import { signedFetch, createSignedHeaders, handleAPIResponse } from './api-signing';
+/**
+ * API Service Layer
+ * Handles all API requests to the backend
+ */
+
 import { buildApiUrl, API_CONFIG } from '../config/api';
 import { TestCase } from '../types';
 import { StudyPlanConfig, StudyPlanResponse } from '../types/studyPlan';
+import { APIAuthenticationError } from './api-errors';
 
 /**
- * Execute code with signed request
+ * Handle API response errors
+ */
+async function handleAPIResponse(response: Response) {
+  if (response.status === 401) {
+    throw new APIAuthenticationError('API request authentication failed. Please refresh the page.');
+  }
+
+  if (response.status === 429) {
+    throw new APIAuthenticationError('Too many requests. Please wait before trying again.');
+  }
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `API Error: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Execute code
  */
 export async function executeCode(
   code: string,
@@ -18,47 +43,48 @@ export async function executeCode(
     boilerplateCode,
     testCases,
   };
-  
-  const response = await signedFetch(buildApiUrl(API_CONFIG.ENDPOINTS.EXECUTE_CODE), {
+
+  const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.EXECUTE_CODE), {
     method: 'POST',
-    body: payload
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
   });
-  
+
   return handleAPIResponse(response);
 }
 
 /**
- * Check submission status with signed request
+ * Check submission status
  */
 export async function checkSubmissionStatus(submissionId: string) {
-  // For GET requests, use empty payload since no body
-  const headers = await createSignedHeaders({});
-  
   const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.EXECUTE_CODE_STATUS, submissionId), {
     method: 'GET',
-    headers
+    headers: {
+      'Content-Type': 'application/json',
+    }
   });
-  
+
   return handleAPIResponse(response);
 }
 
 /**
- * Fetch all companies with signed request
+ * Fetch all companies
  */
 export async function fetchCompanies() {
-  // For GET requests, use empty payload
-  const headers = await createSignedHeaders({});
-
   const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.COMPANIES_LIST), {
     method: 'GET',
-    headers
+    headers: {
+      'Content-Type': 'application/json',
+    }
   });
 
   return handleAPIResponse(response);
 }
 
 /**
- * Prepare problem with signed request
+ * Prepare problem
  */
 export async function prepareProblem(
   problemId?: string,
@@ -74,17 +100,20 @@ export async function prepareProblem(
     ...(isBlind75 !== undefined && { isBlind75 }),
     ...(roleFamily && { roleFamily })
   };
-  
-  const response = await signedFetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEM_PREPARE), {
+
+  const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEM_PREPARE), {
     method: 'POST',
-    body: payload
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
   });
-  
+
   return handleAPIResponse(response);
 }
 
 /**
- * Generate study plan with signed request
+ * Generate study plan
  */
 export async function generateStudyPlan(config: StudyPlanConfig): Promise<StudyPlanResponse> {
   const payload = {
@@ -96,9 +125,12 @@ export async function generateStudyPlan(config: StudyPlanConfig): Promise<StudyP
     ...(config.topicFocus && config.topicFocus.length > 0 && { topicFocus: config.topicFocus })
   };
 
-  const response = await signedFetch(buildApiUrl(API_CONFIG.ENDPOINTS.STUDY_PLAN_GENERATE), {
+  const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.STUDY_PLAN_GENERATE), {
     method: 'POST',
-    body: payload
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
   });
 
   return handleAPIResponse(response);

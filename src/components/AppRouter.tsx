@@ -1,5 +1,5 @@
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { IntroSection } from './pages/IntroSection';
 import { ProblemForm } from './pages/ProblemForm';
 import { LoadingSequence } from './LoadingSequence';
@@ -11,6 +11,7 @@ import { CompanyContextForm, CompanyContextFormData } from './pages/CompanyConte
 import { StudyPlanForm } from './pages/StudyPlanForm';
 import { StudyPlanView } from './pages/StudyPlanView';
 import { MyStudyPlansPage } from './pages/MyStudyPlansPage';
+import { PremiumGate } from './PremiumGate';
 import { DuplicateWarningModal } from './DuplicateWarningModal';
 import { DarkModeProvider } from './DarkModeContext';
 import { Navbar } from './Navbar';
@@ -18,7 +19,7 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { Problem, CodeDetails, TestCase, FormData, Company } from '../types';
 import { StudyPlanConfig, StudyPlanResponse, EnrichedProblem, CachedStudyPlan } from '../types/studyPlan';
 import { prepareProblem as prepareProblemAPI, generateStudyPlan as generateStudyPlanAPI } from '../utils/api-service';
-import { APIAuthenticationError } from '../utils/api-signing';
+import { APIAuthenticationError } from '../utils/api-errors';
 import {
  addProblemToCache,
  getCachedProblem,
@@ -29,17 +30,29 @@ import {
  buildProblemCacheKey,
  parseProblemCacheKey
 } from '../utils/cache';
+import { buildPlanProblemCacheKey } from '../utils/studyPlanCache';
 import {
- saveStudyPlan,
- generateStudyPlanId,
- findDuplicateStudyPlan,
- updateStudyPlan,
- getStudyPlan,
- updateStudyPlanProgress,
- toggleStudyPlanBookmark,
- setStudyPlanProblemInProgress,
- buildPlanProblemCacheKey
-} from '../utils/studyPlanCache';
+  saveStudyPlanToFirestore,
+  getStudyPlanFromFirestore,
+  getStudyPlansFromFirestore,
+  saveProblemCode,
+  setProblemStatus,
+  toggleProblemBookmark as toggleProblemBookmarkFirestore,
+  findDuplicateStudyPlanInFirestore,
+  getCompletionPercentageFromPlan,
+  saveProblemWithDetails,
+  getProblemDetailsFromFirestore
+} from '../services/studyPlanFirestoreService';
+import { useDebounceAutoSave } from '../hooks/useDebounceAutoSave';
+import { usePlanProgressState } from '../hooks/usePlanProgressState';
+import { useStudyPlanAutoSave } from '../hooks/useStudyPlanAutoSave';
+import {
+  getPlanFromCache,
+  getAllCachedPlans,
+  savePlanToCache,
+  getProblemFromCache,
+  migrateToCachedPlanData
+} from '../services/studyPlanCacheService';
 import { getCompanyDisplayName } from '../utils/companyDisplay';
 
 interface TestResultsFromParent {
@@ -90,10 +103,63 @@ export function AppRouter() {
  const [pendingStudyPlanConfig, setPendingStudyPlanConfig] = useState<StudyPlanConfig | null>(null);
  const [planProblems, setPlanProblems] = useState<EnrichedProblem[]>([]);
  const [planProblemMap, setPlanProblemMap] = useState<Record<string, { problem: EnrichedProblem; index: number; day: number }>>({});
- const [completedPlanProblems, setCompletedPlanProblems] = useState<Set<string>>(new Set());
- const [bookmarkedPlanProblems, setBookmarkedPlanProblems] = useState<Set<string>>(new Set());
- const [inProgressPlanProblems, setInProgressPlanProblems] = useState<Set<string>>(new Set());
  const [currentPlanProblemId, setCurrentPlanProblemId] = useState<string | null>(null);
+
+ // Use optimistic state management for plan progress
+ const {
+   completedProblems: completedPlanProblems,
+   bookmarkedProblems: bookmarkedPlanProblems,
+   inProgressProblems: inProgressPlanProblems,
+   initializeState: initializePlanProgressState,
+   toggleBookmark: toggleBookmarkOptimistic,
+   toggleCompletion: toggleCompletionOptimistic,
+   updateStatus: updateStatusOptimistic,
+   forceSync: forceSyncPlanProgress
+ } = usePlanProgressState({
+   planId: currentStudyPlanId,
+   onError: (error) => {
+     console.error('[Plan Progress] Error:', error);
+   }
+ });
+
+ // Auto-save state
+ const [lastSaveTime, setLastSaveTime] = useState<number>(Date.now());
+ const [currentCode, setCurrentCode] = useState<string>('');
+ const hasEditedCurrentProblem = useRef<boolean>(false);
+
+ // Setup study plan auto-save hook
+ const {
+   createPlan: createPlanOptimistic,
+   saveProgress: savePlanProgress,
+   saveProblem: savePlanProblem,
+   forceSync: forceSyncStudyPlan
+ } = useStudyPlanAutoSave({
+   onError: (error) => {
+     console.error('[Study Plan Auto-Save] Error:', error);
+   },
+   onSyncComplete: (planId) => {
+     console.log(`[Study Plan Auto-Save] Sync complete for plan ${planId}`);
+   }
+ });
+
+ // Setup hybrid auto-save hook for code editor
+ const { autoSave, forceSave } = useDebounceAutoSave({
+  localDebounceMs: 500,
+  cloudDebounceMs: 3000,
+  onLocalSave: (data: { planId: string; problemId: string; code: string }) => {
+    // Save to localStorage as backup
+    const key = `problem_${data.planId}_${data.problemId}`;
+    localStorage.setItem(key, data.code);
+  },
+  onCloudSave: async (data: { planId: string; problemId: string; code: string }) => {
+    // Save to Firestore
+    await saveProblemCode(data.planId, data.problemId, data.code);
+    setLastSaveTime(Date.now());
+  },
+  onError: (error) => {
+    console.error('[Auto-Save] Error:', error);
+  }
+ });
 
  const clearPlanSessionContext = useCallback(() => {
   setCurrentPlanProblemId(null);
@@ -126,22 +192,26 @@ export function AppRouter() {
   setPlanProblemMap(nextMap);
  }, [studyPlanResponse]);
 
- const syncPlanProgress = useCallback((planId?: string) => {
+ const syncPlanProgress = useCallback(async (planId?: string) => {
   const activePlanId = planId || currentStudyPlanId;
   if (!activePlanId) {
-   setCompletedPlanProblems(new Set());
-   setBookmarkedPlanProblems(new Set());
-   setInProgressPlanProblems(new Set());
+   initializePlanProgressState(new Set(), new Set(), new Set());
    return;
   }
 
-  const cachedPlan = getStudyPlan(activePlanId);
-  if (!cachedPlan) return;
+  try {
+   const cachedPlan = await getStudyPlanFromFirestore(activePlanId);
+   if (!cachedPlan) return;
 
-  setCompletedPlanProblems(new Set(cachedPlan.progress.completedProblems || []));
-  setBookmarkedPlanProblems(new Set(cachedPlan.progress.bookmarkedProblems || []));
-  setInProgressPlanProblems(new Set(cachedPlan.progress.inProgressProblems || []));
- }, [currentStudyPlanId]);
+   initializePlanProgressState(
+     new Set(cachedPlan.progress.completedProblems || []),
+     new Set(cachedPlan.progress.bookmarkedProblems || []),
+     new Set(cachedPlan.progress.inProgressProblems || [])
+   );
+  } catch (error) {
+   console.error('Failed to sync plan progress:', error);
+  }
+ }, [currentStudyPlanId, initializePlanProgressState]);
 
  useEffect(() => {
   syncPlanStructures();
@@ -166,20 +236,91 @@ export function AppRouter() {
   navigate('/study-plan-form');
  };
 
- const handleViewStudyPlan = (planId: string) => {
-  const plan = getStudyPlan(planId);
-  if (!plan) {
-   console.error('Study plan not found:', planId);
-   return;
-  }
+ const handleViewStudyPlan = async (planId: string) => {
+  try {
+   // Load from cache first for instant display
+   const cachedPlan = getPlanFromCache(planId);
 
-  setCurrentStudyPlanId(planId);
-  setStudyPlanConfig(plan.config);
-  setStudyPlanResponse(plan.response);
-  syncPlanStructures(plan.response);
-  syncPlanProgress(planId);
-  setCurrentPlanProblemId(null);
-  navigate('/study-plan-view');
+   if (cachedPlan) {
+     // Instant load from cache
+     console.log(`💾 [Cache] Loading plan ${planId} from cache`);
+     setCurrentStudyPlanId(planId);
+     setStudyPlanConfig(cachedPlan.config);
+     setStudyPlanResponse(cachedPlan.response);
+     syncPlanStructures(cachedPlan.response);
+
+     // Initialize progress from cache
+     initializePlanProgressState(
+       new Set(cachedPlan.progress.completedProblems),
+       new Set(cachedPlan.progress.bookmarkedProblems),
+       new Set(cachedPlan.progress.inProgressProblems)
+     );
+
+     setCurrentPlanProblemId(null);
+     navigate('/study-plan-view');
+
+     // Fetch from Firestore in background to check for updates
+     getStudyPlanFromFirestore(planId)
+       .then(firestorePlan => {
+         if (!firestorePlan) {
+           console.warn(`☁️ [Sync] Plan ${planId} not found in Firestore`);
+           return;
+         }
+
+         // Check if Firestore has newer data
+         const firestoreUpdated = firestorePlan.progress.lastUpdated || 0;
+         const cacheUpdated = cachedPlan.progress.lastUpdatedAt || 0;
+
+         if (firestoreUpdated > cacheUpdated) {
+           console.log(`☁️ [Sync] Updating plan ${planId} from Firestore (newer: ${new Date(firestoreUpdated).toISOString()})`);
+
+           // Update cache with complete Firestore data (not just progress!)
+           const updatedCache = migrateToCachedPlanData(firestorePlan);
+           savePlanToCache(updatedCache);
+
+           // Update ALL state if still on the same plan
+           if (currentStudyPlanId === planId) {
+             // Update config and response (in case plan structure changed)
+             setStudyPlanConfig(firestorePlan.config);
+             setStudyPlanResponse(firestorePlan.response);
+             syncPlanStructures(firestorePlan.response);
+
+             // Update progress
+             initializePlanProgressState(
+               new Set(firestorePlan.progress.completedProblems),
+               new Set(firestorePlan.progress.bookmarkedProblems),
+               new Set(firestorePlan.progress.inProgressProblems)
+             );
+           }
+         } else {
+           console.log(`💾 [Sync] Cache is up-to-date for plan ${planId}`);
+         }
+       })
+       .catch(err => console.error('❌ Background sync failed:', err));
+   } else {
+     // No cache, load from Firestore
+     console.log(`☁️ [Firestore] Loading plan ${planId} from Firestore (not cached)`);
+     const plan = await getStudyPlanFromFirestore(planId);
+     if (!plan) {
+       console.error('Study plan not found:', planId);
+       return;
+     }
+
+     // Save to cache for next time
+     const cachedData = migrateToCachedPlanData(plan);
+     savePlanToCache(cachedData);
+
+     setCurrentStudyPlanId(planId);
+     setStudyPlanConfig(plan.config);
+     setStudyPlanResponse(plan.response);
+     syncPlanStructures(plan.response);
+     await syncPlanProgress(planId);
+     setCurrentPlanProblemId(null);
+     navigate('/study-plan-view');
+   }
+  } catch (error) {
+   console.error('Failed to load study plan:', error);
+  }
  };
 
  // Handle practice with company context
@@ -487,51 +628,80 @@ export function AppRouter() {
   }
  };
 
- const handleCodeChange = (code: string) => {
-  if (problem?.problemId) {
+ const handleCodeChange = async (code: string) => {
+  setCurrentCode(code);
+
+  // For non-study-plan problems, keep using cache.ts
+  if (problem?.problemId && !currentStudyPlanId) {
    updateProblemSolution(problem.problemId, code);
   }
 
+  // For study plan problems, use hybrid auto-save
   if (currentStudyPlanId && currentPlanProblemId) {
-   if (!inProgressPlanProblems.has(currentPlanProblemId)) {
-    const updatedProgress = setStudyPlanProblemInProgress(currentStudyPlanId, currentPlanProblemId, true);
-    if (updatedProgress) {
-     setInProgressPlanProblems(new Set(updatedProgress.inProgressProblems || []));
-     setCompletedPlanProblems(new Set(updatedProgress.completedProblems || []));
+    // Check if this is the first edit on this problem
+    const isFirstEdit = !hasEditedCurrentProblem.current &&
+                        !inProgressPlanProblems.has(currentPlanProblemId) &&
+                        !completedPlanProblems.has(currentPlanProblemId);
+
+    if (isFirstEdit) {
+      // First edit: Force immediate sync to mark as in-progress
+      console.log('🎯 [First Edit] Force syncing in-progress status');
+      hasEditedCurrentProblem.current = true;
+
+      try {
+        // Update status optimistically
+        updateStatusOptimistic(currentPlanProblemId, 'in_progress');
+
+        // Force sync immediately (don't wait for debounce)
+        await forceSave({
+          planId: currentStudyPlanId,
+          problemId: currentPlanProblemId,
+          code
+        });
+        await forceSyncPlanProgress();
+
+        console.log('✅ [First Edit] In-progress status synced');
+      } catch (error) {
+        console.error('❌ [First Edit] Failed to sync in-progress status:', error);
+      }
     } else {
-     setInProgressPlanProblems(prev => new Set(prev).add(currentPlanProblemId));
+      // Subsequent edits: Use debounced auto-save
+      autoSave({
+        planId: currentStudyPlanId,
+        problemId: currentPlanProblemId,
+        code
+      });
     }
-   }
   }
  };
 
- const handleFinalSolutionSubmit = (code: string) => {
+ const handleFinalSolutionSubmit = async (code: string) => {
   setSolutionFromSolver(code);
 
   if (problem?.problemId) {
-   markProblemAsSolved(problem.problemId, code);
+   // Non-study-plan: keep using cache.ts
+   if (!currentStudyPlanId) {
+    markProblemAsSolved(problem.problemId, code);
+   }
 
-   // If we're working on a study plan problem, update progress
+   // Study plan: update Firestore
    if (currentStudyPlanId && currentPlanProblemId) {
-    const updatedProgress = updateStudyPlanProgress(currentStudyPlanId, currentPlanProblemId, true);
+    try {
+      // Force save code immediately
+      await forceSave({
+        planId: currentStudyPlanId,
+        problemId: currentPlanProblemId,
+        code
+      });
 
-    if (updatedProgress) {
-     setCompletedPlanProblems(new Set(updatedProgress.completedProblems || []));
-     setInProgressPlanProblems(new Set(updatedProgress.inProgressProblems || []));
-    } else {
-     setCompletedPlanProblems(prev => {
-      const next = new Set(prev);
-      next.add(currentPlanProblemId);
-      return next;
-     });
-     setInProgressPlanProblems(prev => {
-      const next = new Set(prev);
-      next.delete(currentPlanProblemId);
-      return next;
-     });
+      // Mark as solved (optimistic update)
+      updateStatusOptimistic(currentPlanProblemId, 'solved');
+
+      // Force sync to ensure it's persisted
+      await forceSyncPlanProgress();
+    } catch (error) {
+      console.error('Failed to mark problem as solved:', error);
     }
-
-    syncPlanProgress(currentStudyPlanId);
    }
   }
 
@@ -599,7 +769,7 @@ export function AppRouter() {
  const handleGenerateStudyPlan = async (config: StudyPlanConfig) => {
   try {
    // Check for duplicate first
-   const duplicate = findDuplicateStudyPlan(config);
+   const duplicate = await findDuplicateStudyPlanInFirestore(config);
    if (duplicate) {
     setDuplicateStudyPlan(duplicate);
     setPendingStudyPlanConfig(config);
@@ -626,21 +796,21 @@ export function AppRouter() {
 
    const response = await generateStudyPlanAPI(config);
 
-   let resultingPlanId = overwritePlanId;
+   // Use optimistic plan creation - plan available immediately in localStorage
+   // Syncs to Firestore in background
+   const planId = await createPlanOptimistic(config, response);
 
-   if (overwritePlanId) {
-    // Overwrite existing plan
-    updateStudyPlan(overwritePlanId, response, false);
-   } else {
-    // Create new plan
-    const planId = generateStudyPlanId(config);
-    saveStudyPlan(planId, config, response);
-    resultingPlanId = planId;
-   }
+   // Set plan ID and load from cache
+   setCurrentStudyPlanId(planId);
 
-   if (resultingPlanId) {
-    setCurrentStudyPlanId(resultingPlanId);
-    syncPlanProgress(resultingPlanId);
+   // Load progress from cache
+   const cachedPlan = getPlanFromCache(planId);
+   if (cachedPlan) {
+     initializePlanProgressState(
+       new Set(cachedPlan.progress.completedProblems),
+       new Set(cachedPlan.progress.bookmarkedProblems),
+       new Set(cachedPlan.progress.inProgressProblems)
+     );
    }
 
    setStudyPlanResponse(response);
@@ -711,7 +881,7 @@ export function AppRouter() {
    }
 
    if (!activeStudyPlanConfig) {
-    const cachedPlan = getStudyPlan(activePlanId);
+    const cachedPlan = await getStudyPlanFromFirestore(activePlanId);
     if (cachedPlan) {
      activeStudyPlanConfig = cachedPlan.config;
      setStudyPlanConfig(cachedPlan.config);
@@ -727,6 +897,7 @@ export function AppRouter() {
    }
 
    setCurrentPlanProblemId(targetProblemId);
+   hasEditedCurrentProblem.current = false; // Reset first edit flag for new problem
 
    navigate('/loading');
    setError(null);
@@ -786,43 +957,40 @@ export function AppRouter() {
     throw new Error("Invalid problem data received from API. Missing statement, test cases, or constraints.");
    }
 
-   setCachedProblemData(uniqueProblemId, formattedProblem, formattedCodeDetails);
-
-   addProblemToCache(
-    targetProblemId,
-    'in_progress',
-    formattedCodeDetails.defaultUserCode || '',
-    companyId,
-    companyName,
-    problem.difficulty,
-    formattedProblem.title,
-    activePlanId
-   );
-
-   const updatedProgress = setStudyPlanProblemInProgress(activePlanId, targetProblemId, true);
-   if (updatedProgress) {
-    setInProgressPlanProblems(new Set(updatedProgress.inProgressProblems || []));
-    setCompletedPlanProblems(new Set(updatedProgress.completedProblems || []));
-   } else {
-    setInProgressPlanProblems(prev => {
-     const next = new Set(prev);
-     next.add(targetProblemId);
-     return next;
-    });
-    setCompletedPlanProblems(prev => {
-     if (!prev.has(targetProblemId)) return prev;
-     const next = new Set(prev);
-     next.delete(targetProblemId);
-     return next;
-    });
+   // Save complete problem details to Firestore (replaces localStorage)
+   try {
+    await saveProblemWithDetails(
+      activePlanId,
+      targetProblemId,
+      formattedProblem,
+      formattedCodeDetails,
+      'in_progress'
+    );
+    // Update local state optimistically (no need to sync - debounced sync will handle it)
+    updateStatusOptimistic(targetProblemId, 'in_progress');
+   } catch (error) {
+    console.error('Failed to save problem to Firestore:', error);
+    // Fallback: save to localStorage for backwards compatibility
+    setCachedProblemData(uniqueProblemId, formattedProblem, formattedCodeDetails);
+    addProblemToCache(
+      targetProblemId,
+      'in_progress',
+      formattedCodeDetails.defaultUserCode || '',
+      companyId,
+      companyName,
+      problem.difficulty,
+      formattedProblem.title,
+      activePlanId
+    );
+    // Update local state optimistically
+    updateStatusOptimistic(targetProblemId, 'in_progress');
    }
-   syncPlanProgress(activePlanId);
 
    setApiResponseReceived(true);
    setProblem(formattedProblem);
    setCodeDetails(formattedCodeDetails);
    setCurrentCompanyId(companyId);
-   navigate('/problem', { replace: true });
+   navigate('/study-plan/problem', { replace: true });
 
   } catch (err) {
    console.error('Error preparing problem from study plan:', err);
@@ -856,7 +1024,7 @@ export function AppRouter() {
     }
 
     if (!activeStudyPlanConfig) {
-     const cachedPlan = getStudyPlan(activePlanId);
+     const cachedPlan = await getStudyPlanFromFirestore(activePlanId);
      if (cachedPlan) {
       activeStudyPlanConfig = cachedPlan.config;
       setStudyPlanConfig(cachedPlan.config);
@@ -868,18 +1036,50 @@ export function AppRouter() {
     }
 
     const companyId = activeStudyPlanConfig.companyId;
+
+    // Try to fetch from Firestore first (priority source of truth)
+    console.log(`☁️ [Resume] Checking Firestore for problem ${problem.problemId}`);
+    const firestoreData = await getProblemDetailsFromFirestore(activePlanId, problem.problemId);
+
+    if (firestoreData) {
+      // Load from Firestore - most up-to-date data
+      console.log(`✅ [Resume] Loaded from Firestore with ${firestoreData.code.length} chars of code`);
+      setCurrentStudyPlanId(activePlanId);
+      setCurrentPlanProblemId(problem.problemId);
+      setCurrentCompanyId(companyId);
+      setIsCompanyContextFlow(false);
+      hasEditedCurrentProblem.current = true; // Mark as already edited since we're resuming
+
+      // Set problem and code data directly
+      setProblem(firestoreData.problem);
+      setCodeDetails(firestoreData.codeDetails);
+      setSolutionFromSolver(firestoreData.code);
+      setCurrentCode(firestoreData.code);
+      setApiResponseReceived(true);
+      navigate('/study-plan/problem', { replace: true });
+      return;
+    }
+
+    // Fallback to localStorage if not in Firestore (legacy support)
+    console.log(`💾 [Resume] Firestore miss, checking localStorage`);
     const uniqueProblemId = buildPlanProblemCacheKey(activePlanId, problem.problemId, companyId);
     const cached = getCachedProblem(uniqueProblemId);
 
     if (!cached) {
+     // No cached data, start problem fresh from API
+     console.log(`🆕 [Resume] No cached data, starting fresh`);
      await handleStartProblemFromPlan(problem, activePlanId);
      return;
     }
+
+    console.log(`💾 [Resume] Loaded from localStorage (deprecated)`);
+    // Note: This localStorage fallback should eventually be removed once all users migrate to Firestore
 
     setCurrentStudyPlanId(activePlanId);
     setCurrentPlanProblemId(problem.problemId);
     setCurrentCompanyId(companyId);
     setIsCompanyContextFlow(false);
+    hasEditedCurrentProblem.current = true; // Mark as already edited since we're resuming
     handleResumeProblem(uniqueProblemId);
    } catch (resumeErr) {
     console.error('Error resuming study plan problem:', resumeErr);
@@ -892,7 +1092,7 @@ export function AppRouter() {
   [currentStudyPlanId, handleResumeProblem, handleStartProblemFromPlan, studyPlanConfig]
  );
 
- const handleNavigateStudyPlanProblem = useCallback((direction: 'next' | 'prev') => {
+ const handleNavigateStudyPlanProblem = useCallback(async (direction: 'next' | 'prev') => {
   if (!currentStudyPlanId || !currentPlanProblemId || planProblems.length === 0) {
    return;
   }
@@ -914,7 +1114,7 @@ export function AppRouter() {
    if (activePlanId) {
     let companyForPlan = studyPlanConfig?.companyId;
     if (!companyForPlan) {
-     const cachedPlan = getStudyPlan(activePlanId);
+     const cachedPlan = await getStudyPlanFromFirestore(activePlanId);
      companyForPlan = cachedPlan?.config.companyId;
     }
 
@@ -945,10 +1145,11 @@ export function AppRouter() {
  const handleToggleBookmarkForProblem = useCallback(
   (problemId: string) => {
    if (!currentStudyPlanId || !problemId) return;
-   toggleStudyPlanBookmark(currentStudyPlanId, problemId);
-   syncPlanProgress(currentStudyPlanId);
+
+   // Optimistic update - UI updates immediately, sync happens in background
+   toggleBookmarkOptimistic(problemId);
   },
-  [currentStudyPlanId, syncPlanProgress]
+  [currentStudyPlanId, toggleBookmarkOptimistic]
  );
 
  const handleToggleBookmarkForCurrentProblem = useCallback(() => {
@@ -956,60 +1157,114 @@ export function AppRouter() {
   handleToggleBookmarkForProblem(currentPlanProblemId);
  }, [currentPlanProblemId, currentStudyPlanId, handleToggleBookmarkForProblem]);
 
- const handleManualPlanCompletionToggle = useCallback(() => {
+ const handleManualPlanCompletionToggle = useCallback(async () => {
   if (!currentStudyPlanId || !currentPlanProblemId) return;
 
-  const isAlreadyCompleted = completedPlanProblems.has(currentPlanProblemId);
-  const nextCompletedState = !isAlreadyCompleted;
-
-  const progressAfterCompletionToggle = updateStudyPlanProgress(
-   currentStudyPlanId,
-   currentPlanProblemId,
-   nextCompletedState
-  );
-
-  const progressAfterInProgressUpdate = setStudyPlanProblemInProgress(
-   currentStudyPlanId,
-   currentPlanProblemId,
-   !nextCompletedState
-  );
-
-  const latestProgress = progressAfterInProgressUpdate || progressAfterCompletionToggle;
-
-  if (latestProgress) {
-   setCompletedPlanProblems(new Set(latestProgress.completedProblems || []));
-   setInProgressPlanProblems(new Set(latestProgress.inProgressProblems || []));
-  } else {
-   setCompletedPlanProblems(prev => {
-    const next = new Set(prev);
-    if (nextCompletedState) {
-     next.add(currentPlanProblemId);
-    } else {
-     next.delete(currentPlanProblemId);
+  try {
+    // Force save code first
+    if (currentCode) {
+      await forceSave({
+        planId: currentStudyPlanId,
+        problemId: currentPlanProblemId,
+        code: currentCode
+      });
     }
-    return next;
-   });
-   setInProgressPlanProblems(prev => {
-    const next = new Set(prev);
-    if (nextCompletedState) {
-     next.delete(currentPlanProblemId);
-    } else {
-     next.add(currentPlanProblemId);
-    }
-    return next;
-   });
+
+    // Optimistic update - UI updates immediately, sync happens in background
+    toggleCompletionOptimistic(currentPlanProblemId);
+  } catch (error) {
+    console.error('Failed to toggle completion:', error);
+  }
+ }, [
+  currentStudyPlanId,
+  currentPlanProblemId,
+  currentCode,
+  forceSave,
+  toggleCompletionOptimistic
+ ]);
+
+ // Consolidated force sync: saves code, progress, and all study plan changes in one go
+ const forceFullSync = useCallback(async () => {
+  if (!currentStudyPlanId || !currentPlanProblemId) {
+    return;
   }
 
-  syncPlanProgress(currentStudyPlanId);
- }, [completedPlanProblems, currentPlanProblemId, currentStudyPlanId, syncPlanProgress]);
+  try {
+    // Run all syncs in parallel for better performance
+    const syncPromises: Promise<void>[] = [];
 
- const handleReturnToPlanView = useCallback(() => {
+    // 1. Force save code if there's current code
+    if (currentCode) {
+      syncPromises.push(
+        forceSave({
+          planId: currentStudyPlanId,
+          problemId: currentPlanProblemId,
+          code: currentCode
+        })
+      );
+    }
+
+    // 2. Force sync plan progress (bookmarks, completion status)
+    syncPromises.push(forceSyncPlanProgress());
+
+    // 3. Force sync all study plan changes (problems, metadata)
+    syncPromises.push(forceSyncStudyPlan());
+
+    // Wait for all syncs to complete
+    await Promise.all(syncPromises);
+    console.log('✅ Full sync complete');
+  } catch (error) {
+    console.error('❌ Force full sync failed:', error);
+    throw error; // Re-throw so caller can handle
+  }
+ }, [currentCode, currentStudyPlanId, currentPlanProblemId, forceSave, forceSyncPlanProgress, forceSyncStudyPlan]);
+
+ const handleReturnToPlanView = useCallback(async () => {
+  // Force save before navigation using consolidated sync
+  if (currentStudyPlanId && currentPlanProblemId) {
+    try {
+      await forceFullSync();
+    } catch (error) {
+      console.error('Failed to save before navigation:', error);
+    }
+  }
+
   if (currentStudyPlanId) {
-   handleViewStudyPlan(currentStudyPlanId);
+    handleViewStudyPlan(currentStudyPlanId);
   } else {
-   navigate('/study-plan-view');
+    navigate('/study-plan-view');
   }
- }, [currentStudyPlanId, handleViewStudyPlan, navigate]);
+ }, [currentStudyPlanId, currentPlanProblemId, forceFullSync, handleViewStudyPlan, navigate]);
+
+ // Helper: Force save before any navigation
+ const saveBeforeAction = useCallback(async (action: () => void | Promise<void>) => {
+  if (currentStudyPlanId && currentPlanProblemId) {
+    try {
+      await forceFullSync();
+    } catch (error) {
+      console.error('Failed to save before action:', error);
+    }
+  }
+  await action();
+ }, [currentStudyPlanId, currentPlanProblemId, forceFullSync]);
+
+ // Force sync before sign-out to prevent data loss
+ const handleBeforeSignOut = useCallback(async () => {
+  console.log('🔄 [Sign-Out] Force syncing before sign-out...');
+
+  // Only sync if user is actively working on study plan
+  if (currentStudyPlanId && currentPlanProblemId && currentCode) {
+    try {
+      await forceFullSync();
+      console.log('✅ [Sign-Out] Sync complete');
+    } catch (error) {
+      console.error('❌ [Sign-Out] Sync failed:', error);
+      // Continue with sign-out even if sync fails (offline, network error, etc.)
+    }
+  } else {
+    console.log('ℹ️ [Sign-Out] No active study plan, skipping sync');
+  }
+ }, [currentStudyPlanId, currentPlanProblemId, currentCode, forceFullSync]);
 
  const studyPlanSolverContext = useMemo(() => {
   if (!currentStudyPlanId || !currentPlanProblemId) {
@@ -1032,13 +1287,13 @@ export function AppRouter() {
    isInProgress: inProgressPlanProblems.has(currentPlanProblemId),
    hasNext: info.index < total - 1,
    hasPrev: info.index > 0,
-   onNext: () => handleNavigateStudyPlanProblem('next'),
-   onPrev: () => handleNavigateStudyPlanProblem('prev'),
-   onRegenerate: handleRegenerateCurrentPlanProblem,
-   onToggleBookmark: handleToggleBookmarkForCurrentProblem,
-   onToggleCompletion: handleManualPlanCompletionToggle,
-   onReturnToPlan: handleReturnToPlanView,
-   onResume: () => handleResumeStudyPlanProblem(info.problem, currentStudyPlanId || undefined)
+   onNext: () => saveBeforeAction(() => handleNavigateStudyPlanProblem('next')),
+   onPrev: () => saveBeforeAction(() => handleNavigateStudyPlanProblem('prev')),
+   onRegenerate: () => saveBeforeAction(handleRegenerateCurrentPlanProblem),
+   onToggleBookmark: () => saveBeforeAction(handleToggleBookmarkForCurrentProblem),
+   onToggleCompletion: () => saveBeforeAction(handleManualPlanCompletionToggle),
+   onReturnToPlan: () => saveBeforeAction(handleReturnToPlanView),
+   onResume: () => saveBeforeAction(() => handleResumeStudyPlanProblem(info.problem, currentStudyPlanId || undefined))
   };
  }, [
   inProgressPlanProblems,
@@ -1046,13 +1301,15 @@ export function AppRouter() {
   completedPlanProblems,
   currentPlanProblemId,
   currentStudyPlanId,
+  saveBeforeAction,
   handleManualPlanCompletionToggle,
   handleNavigateStudyPlanProblem,
   handleRegenerateCurrentPlanProblem,
   handleReturnToPlanView,
   handleToggleBookmarkForCurrentProblem,
   planProblemMap,
-  planProblems.length
+  planProblems.length,
+  handleResumeStudyPlanProblem
  ]);
 
  return (
@@ -1064,6 +1321,7 @@ export function AppRouter() {
        onHomeClick={handleHomeClick}
        onBlind75Click={handleBlind75Click}
        onStudyPlansClick={handleStudyPlansClick}
+       onBeforeSignOut={handleBeforeSignOut}
       />
      )}
 
@@ -1082,10 +1340,12 @@ export function AppRouter() {
      <Route path="/" element={<IntroSection onStartClick={handleStartClick} />} />
 
      <Route path="/my-study-plans" element={
-      <MyStudyPlansPage
-       onCreateNew={handleCreateNewStudyPlan}
-       onViewPlan={handleViewStudyPlan}
-      />
+      <PremiumGate feature="My Study Plans">
+       <MyStudyPlansPage
+        onCreateNew={handleCreateNewStudyPlan}
+        onViewPlan={handleViewStudyPlan}
+       />
+      </PremiumGate>
      } />
 
      <Route path="/blind75" element={
@@ -1152,6 +1412,32 @@ export function AppRouter() {
       )
      } />
 
+     {/* NEW: Study plan problem route - WRAPPED in PremiumGate */}
+     <Route path="/study-plan/problem" element={
+      <PremiumGate feature="Study Plans" message="Please sign in to access My Study Plans.">
+       {problem && codeDetails ? (
+        <ProblemSolver
+         problem={problem}
+         solution={solutionFromSolver}
+         codeDetails={codeDetails}
+         onSubmit={handleFinalSolutionSubmit}
+         onCodeChange={handleCodeChange}
+         testResults={evaluationResults}
+         onSolveAnother={handleSolveAnother}
+         studyPlanContext={studyPlanSolverContext}
+        />
+       ) : (
+        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
+         <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mb-4"></div>
+          <h2 className="text-xl font-medium">Loading problem data...</h2>
+          <p className="text-sm text-content-subtle mt-2">If this persists, please try again.</p>
+         </div>
+        </div>
+       )}
+      </PremiumGate>
+     } />
+
      <Route path="/results" element={
       evaluationResults && problem ? (
        <ResultsView
@@ -1174,45 +1460,51 @@ export function AppRouter() {
 
      {/* Study Plan Routes */}
      <Route path="/study-plan-form" element={
-      <StudyPlanForm
-       onSubmit={handleGenerateStudyPlan}
-       onCancel={handleStudyPlanFormCancel}
-       isLoading={isGeneratingStudyPlan}
-       error={studyPlanError}
-      />
+      <PremiumGate feature="Study Plans" message="Please sign in to access My Study Plans.">
+       <StudyPlanForm
+        onSubmit={handleGenerateStudyPlan}
+        onCancel={handleStudyPlanFormCancel}
+        isLoading={isGeneratingStudyPlan}
+        error={studyPlanError}
+       />
+      </PremiumGate>
      } />
 
      <Route path="/study-plan-loading" element={
-      <LoadingSequence
-       company={studyPlanConfig ? getCompanyDisplayName(studyPlanConfig.companyId) : 'Company'}
-       maxTotalDuration={MAX_LOADING_DURATION_SECONDS}
-       forceComplete={!isGeneratingStudyPlan}
-      />
+      <PremiumGate feature="Study Plans" message="Please sign in to access My Study Plans.">
+       <LoadingSequence
+        company={studyPlanConfig ? getCompanyDisplayName(studyPlanConfig.companyId) : 'Company'}
+        maxTotalDuration={MAX_LOADING_DURATION_SECONDS}
+        forceComplete={!isGeneratingStudyPlan}
+       />
+      </PremiumGate>
      } />
 
      <Route path="/study-plan-view" element={
-      studyPlanResponse && studyPlanConfig ? (
-       <StudyPlanView
-        studyPlan={studyPlanResponse}
-        companyId={studyPlanConfig.companyId}
-        studyPlanId={currentStudyPlanId}
-        onBack={handleBackToStudyPlanForm}
-        onStartProblem={handleStartProblemFromPlan}
-        completedProblems={completedPlanProblems}
-        bookmarkedProblems={bookmarkedPlanProblems}
-        onToggleBookmark={handleToggleBookmarkForProblem}
-        inProgressProblems={inProgressPlanProblems}
-        onResumeProblem={handleResumeStudyPlanProblem}
-       />
-      ) : (
-       <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
-        <div className="text-center">
-         <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mb-4"></div>
-         <h2 className="text-xl font-medium">Loading study plan...</h2>
-         <p className="text-sm text-content-subtle mt-2">If this persists, please return to the form.</p>
+      <PremiumGate feature="Study Plans" message="Please sign in to access My Study Plans.">
+       {studyPlanResponse && studyPlanConfig ? (
+        <StudyPlanView
+         studyPlan={studyPlanResponse}
+         companyId={studyPlanConfig.companyId}
+         studyPlanId={currentStudyPlanId}
+         onBack={handleBackToStudyPlanForm}
+         onStartProblem={handleStartProblemFromPlan}
+         completedProblems={completedPlanProblems}
+         bookmarkedProblems={bookmarkedPlanProblems}
+         onToggleBookmark={handleToggleBookmarkForProblem}
+         inProgressProblems={inProgressPlanProblems}
+         onResumeProblem={handleResumeStudyPlanProblem}
+        />
+       ) : (
+        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
+         <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mb-4"></div>
+          <h2 className="text-xl font-medium">Loading study plan...</h2>
+          <p className="text-sm text-content-subtle mt-2">If this persists, please return to the form.</p>
+         </div>
         </div>
-       </div>
-      )
+       )}
+      </PremiumGate>
      } />
     </Routes>
     </div>
