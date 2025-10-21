@@ -90,6 +90,24 @@ export interface ProblemProgressItem {
   isBookmarked: boolean;
   lastWorkedAt: string;
   attempts?: number;
+  // Full problem details (stored when problem is first accessed)
+  problemDetails?: {
+    title: string;
+    background: string;
+    problemStatement: string;
+    testCases: any[];
+    constraints: string[];
+    requirements: string[];
+    leetcodeUrl: string;
+  };
+  // Code details (boilerplate, hints, etc.)
+  codeDetails?: {
+    boilerplateCode: string;
+    defaultUserCode: string;
+    functionName: string;
+    solutionStructureHint: string;
+    language: string;
+  };
 }
 
 export interface StudyPlanProgressRecord {

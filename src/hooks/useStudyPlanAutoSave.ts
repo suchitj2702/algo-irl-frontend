@@ -14,6 +14,7 @@ import {
 } from '../services/studyPlanFirestoreService';
 import { StudyPlanConfig, StudyPlanResponse } from '../types/studyPlan';
 import { Problem, CodeDetails } from '../types';
+import { deepEqual } from '../utils/stateComparison';
 
 interface PendingPlanUpdate {
   planId: string;
@@ -47,6 +48,8 @@ export function useStudyPlanAutoSave({
   const pendingUpdates = useRef<Map<string, PendingPlanUpdate>>(new Map());
   const isSyncingRef = useRef(false);
   const pendingPlanCreations = useRef<Set<string>>(new Set());
+  const lastSyncedUpdates = useRef<Map<string, PendingPlanUpdate>>(new Map());
+  const saveSkipCount = useRef<number>(0);
 
   // Debounced localStorage save
   const debouncedLocalSave = useDebouncedCallback(
@@ -69,22 +72,40 @@ export function useStudyPlanAutoSave({
     localDebounceMs
   );
 
-  // Debounced Firestore sync
+  // Debounced Firestore sync with state-aware comparison
   const debouncedCloudSync = useDebouncedCallback(
     async () => {
       if (isSyncingRef.current || pendingUpdates.current.size === 0) {
         return;
       }
 
+      // State-aware: Filter out updates that haven't changed since last sync
+      const updatesToSync: PendingPlanUpdate[] = [];
+      for (const [key, update] of pendingUpdates.current.entries()) {
+        const lastSynced = lastSyncedUpdates.current.get(key);
+
+        // If no previous sync or update differs from last sync, include it
+        if (!lastSynced || !deepEqual(update.data, lastSynced.data)) {
+          updatesToSync.push(update);
+        }
+      }
+
+      // If all updates are identical to last sync, skip
+      if (updatesToSync.length === 0) {
+        saveSkipCount.current++;
+        console.log(`☁️ [Auto-Save] No changes detected, skipping Firebase write (${saveSkipCount.current} saves skipped)`);
+        pendingUpdates.current.clear();
+        return;
+      }
+
       try {
         isSyncingRef.current = true;
-        const updates = Array.from(pendingUpdates.current.values());
-        console.log(`☁️ [Auto-Save] Syncing ${updates.length} updates to Firestore`);
+        console.log(`☁️ [Auto-Save] Syncing ${updatesToSync.length} updates to Firestore (${pendingUpdates.current.size - updatesToSync.length} skipped)`);
 
         // Group updates by plan ID and type
         const grouped = new Map<string, { progress?: any[], problems?: any[] }>();
 
-        for (const update of updates) {
+        for (const update of updatesToSync) {
           if (!grouped.has(update.planId)) {
             grouped.set(update.planId, {});
           }
@@ -123,6 +144,12 @@ export function useStudyPlanAutoSave({
           if (onSyncComplete) {
             onSyncComplete(planId);
           }
+        }
+
+        // Update last synced state for all successful updates
+        for (const update of updatesToSync) {
+          const key = `${update.planId}_${update.type}_${update.type === 'problem' ? update.data.problemId : 'progress'}`;
+          lastSyncedUpdates.current.set(key, structuredClone(update));
         }
 
         // Clear pending updates after successful sync
@@ -259,6 +286,7 @@ export function useStudyPlanAutoSave({
 
   /**
    * Force immediate sync of all pending changes
+   * Always syncs regardless of state comparison (for navigation edge case)
    */
   const forceSync = useCallback(async () => {
     if (pendingUpdates.current.size === 0 && pendingPlanCreations.current.size === 0) {
@@ -318,6 +346,12 @@ export function useStudyPlanAutoSave({
         if (onSyncComplete) {
           onSyncComplete(planId);
         }
+      }
+
+      // Update last synced state for all successful updates
+      for (const update of updates) {
+        const key = `${update.planId}_${update.type}_${update.type === 'problem' ? update.data.problemId : 'progress'}`;
+        lastSyncedUpdates.current.set(key, structuredClone(update));
       }
 
       // Clear pending updates

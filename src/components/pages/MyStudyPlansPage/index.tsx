@@ -32,61 +32,38 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
 
   async function loadPlans() {
    try {
-    // Load from cache first for instant display
+    setLoading(true);
+
+    // Firestore-first approach: Always fetch from server as source of truth
+    // This eliminates ghost deleted plans that may still be in localStorage
+    console.log('☁️ [Firestore] Loading plans from server (source of truth)');
+    const firestorePlans = await getStudyPlansFromFirestore();
+
+    console.log(`☁️ [Sync] Fetched ${firestorePlans.length} plans from Firestore`);
+
+    // Update cache with validated data from Firestore
+    // First, get existing cache to find plans that should be removed
     const cachedPlans = getAllCachedPlans();
+    const firestorePlanIds = new Set(firestorePlans.map(p => p.id));
 
-    if (cachedPlans.length > 0) {
-      // Convert to CachedStudyPlan format
-      const plans: CachedStudyPlan[] = cachedPlans.map(cached => ({
-        id: cached.planId,
-        config: cached.config,
-        response: cached.response,
-        progress: {
-          completedProblems: cached.progress.completedProblems,
-          bookmarkedProblems: cached.progress.bookmarkedProblems,
-          inProgressProblems: cached.progress.inProgressProblems,
-          currentDay: cached.progress.currentDay,
-          lastUpdated: cached.progress.lastUpdatedAt
-        },
-        createdAt: cached.cachedAt
-      }));
-
-      setStudyPlans(plans);
-      setLoading(false);
-      console.log(`💾 [Cache] Loaded ${plans.length} plans from cache`);
-
-      // Fetch from Firestore in background to check for updates
-      getStudyPlansFromFirestore()
-        .then(firestorePlans => {
-          console.log(`☁️ [Sync] Fetched ${firestorePlans.length} plans from Firestore`);
-
-          // Update cache and state with Firestore data
-          firestorePlans.forEach(plan => {
-            const cached = migrateToCachedPlanData(plan);
-            savePlanToCache(cached);
-          });
-
-          setStudyPlans(firestorePlans);
-        })
-        .catch(err => {
-          console.error('Background sync failed:', err);
-          // Keep showing cached plans
-        });
-    } else {
-      // No cache, load from Firestore
-      setLoading(true);
-      console.log('☁️ [Firestore] No cached plans, loading from Firestore');
-      const plans = await getStudyPlansFromFirestore();
-
-      // Save to cache
-      plans.forEach(plan => {
-        const cached = migrateToCachedPlanData(plan);
-        savePlanToCache(cached);
+    // Remove deleted plans from cache (ghosts)
+    const ghostPlans = cachedPlans.filter(cached => !firestorePlanIds.has(cached.planId));
+    if (ghostPlans.length > 0) {
+      console.log(`🗑️ [Cache] Removing ${ghostPlans.length} deleted plan(s) from cache`);
+      ghostPlans.forEach(ghost => {
+        removePlanFromCache(ghost.planId);
       });
-
-      setStudyPlans(plans);
-      setLoading(false);
     }
+
+    // Update cache with current Firestore data
+    firestorePlans.forEach(plan => {
+      const cached = migrateToCachedPlanData(plan);
+      savePlanToCache(cached);
+    });
+
+    // Show validated data (no ghosts)
+    setStudyPlans(firestorePlans);
+    setLoading(false);
    } catch (err) {
     console.error('Failed to load study plans:', err);
     setError('Failed to load study plans. Please try refreshing the page.');

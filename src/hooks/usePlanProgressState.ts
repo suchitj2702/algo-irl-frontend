@@ -5,6 +5,7 @@ import {
   setProblemStatus,
   toggleProblemBookmark
 } from '../services/studyPlanFirestoreService';
+import { deepEqual } from '../utils/stateComparison';
 
 interface PlanProgressState {
   completedProblems: Set<string>;
@@ -49,23 +50,42 @@ export function usePlanProgressState({
   // Track pending updates to sync
   const pendingUpdates = useRef<Map<string, PendingUpdate>>(new Map());
   const isSyncingRef = useRef(false);
+  const lastSyncedUpdates = useRef<Map<string, PendingUpdate>>(new Map());
+  const saveSkipCount = useRef<number>(0);
 
-  // Debounced Firestore sync
+  // Debounced Firestore sync with state-aware comparison
   const debouncedSync = useDebouncedCallback(
     async () => {
       if (!planId || isSyncingRef.current || pendingUpdates.current.size === 0) {
         return;
       }
 
+      // State-aware: Filter out updates that haven't changed since last sync
+      const updatesToSync: PendingUpdate[] = [];
+      for (const [key, update] of pendingUpdates.current.entries()) {
+        const lastSynced = lastSyncedUpdates.current.get(key);
+
+        // If no previous sync or update differs from last sync, include it
+        if (!lastSynced || !deepEqual(update, lastSynced)) {
+          updatesToSync.push(update);
+        }
+      }
+
+      // If all updates are identical to last sync, skip
+      if (updatesToSync.length === 0) {
+        saveSkipCount.current++;
+        console.log(`☁️ [Plan Progress] No changes detected, skipping Firebase write (${saveSkipCount.current} saves skipped)`);
+        pendingUpdates.current.clear();
+        return;
+      }
+
       try {
         isSyncingRef.current = true;
-        const updates = Array.from(pendingUpdates.current.values());
-
-        console.log(`☁️ [Plan Progress] Syncing ${updates.length} updates to Firestore`);
+        console.log(`☁️ [Plan Progress] Syncing ${updatesToSync.length} updates to Firestore (${pendingUpdates.current.size - updatesToSync.length} skipped)`);
 
         // Process all pending updates
         await Promise.all(
-          updates.map(async (update) => {
+          updatesToSync.map(async (update) => {
             const promises: Promise<void>[] = [];
 
             // Update bookmark status
@@ -83,6 +103,10 @@ export function usePlanProgressState({
             }
 
             await Promise.all(promises);
+
+            // Update last synced state for this problem
+            const key = update.problemId;
+            lastSyncedUpdates.current.set(key, structuredClone(update));
           })
         );
 
@@ -225,6 +249,7 @@ export function usePlanProgressState({
   }, [planId, debouncedSync]);
 
   // Force immediate sync (for navigation/critical actions)
+  // Always syncs regardless of state comparison
   const forceSync = useCallback(async () => {
     if (!planId || pendingUpdates.current.size === 0) {
       return;
@@ -239,7 +264,7 @@ export function usePlanProgressState({
 
       console.log(`☁️ [Plan Progress - Force] Syncing ${updates.length} updates to Firestore`);
 
-      // Process all pending updates
+      // Process all pending updates (skip state comparison for force sync)
       await Promise.all(
         updates.map(async (update) => {
           const promises: Promise<void>[] = [];
@@ -259,6 +284,10 @@ export function usePlanProgressState({
           }
 
           await Promise.all(promises);
+
+          // Update last synced state for this problem
+          const key = update.problemId;
+          lastSyncedUpdates.current.set(key, structuredClone(update));
         })
       );
 

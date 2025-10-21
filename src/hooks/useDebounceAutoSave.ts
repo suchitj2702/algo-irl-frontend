@@ -1,5 +1,6 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
+import { deepEqual } from '../utils/stateComparison';
 
 interface AutoSaveOptions {
   localDebounceMs?: number;
@@ -24,6 +25,8 @@ export function useDebounceAutoSave({
 }: AutoSaveOptions) {
   const lastCloudSaveTime = useRef<number>(Date.now());
   const isSavingRef = useRef(false);
+  const lastSyncedState = useRef<any>(null);
+  const saveSkipCount = useRef<number>(0);
 
   // Debounced local save
   const debouncedLocalSave = useDebouncedCallback(
@@ -43,11 +46,18 @@ export function useDebounceAutoSave({
     localDebounceMs
   );
 
-  // Debounced cloud save
+  // Debounced cloud save with state-aware comparison
   const debouncedCloudSave = useDebouncedCallback(
     async (data: any) => {
       if (isSavingRef.current) {
         console.log('☁️ [Auto-Save] Cloud save already in progress, skipping');
+        return;
+      }
+
+      // State-aware: Check if data has actually changed since last sync
+      if (lastSyncedState.current !== null && deepEqual(data, lastSyncedState.current)) {
+        saveSkipCount.current++;
+        console.log(`☁️ [Auto-Save] No changes detected, skipping Firebase write (${saveSkipCount.current} saves skipped)`);
         return;
       }
 
@@ -56,6 +66,7 @@ export function useDebounceAutoSave({
         if (onCloudSave) {
           await onCloudSave(data);
           lastCloudSaveTime.current = Date.now();
+          lastSyncedState.current = structuredClone(data); // Deep clone to prevent reference issues
           console.log('☁️ [Auto-Save] Saved to Firestore');
         }
       } catch (error) {
@@ -77,12 +88,13 @@ export function useDebounceAutoSave({
   }, [debouncedLocalSave, debouncedCloudSave]);
 
   // Force immediate save (cancel debounce, save now)
+  // Always saves regardless of state comparison (for navigation edge case)
   const forceSave = useCallback(async (data: any) => {
     // Cancel pending debounced calls
     debouncedLocalSave.cancel();
     debouncedCloudSave.cancel();
 
-    // Save immediately
+    // Save immediately (skip state comparison for force save)
     try {
       if (onLocalSave) {
         onLocalSave(data);
@@ -92,6 +104,7 @@ export function useDebounceAutoSave({
         isSavingRef.current = true;
         await onCloudSave(data);
         lastCloudSaveTime.current = Date.now();
+        lastSyncedState.current = structuredClone(data); // Update synced state
         console.log('☁️ [Force-Save] Saved to Firestore');
       }
     } catch (error) {

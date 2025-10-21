@@ -361,10 +361,7 @@ export async function getProblemDetailsFromFirestore(
   problemId: string
 ): Promise<{ problem: Problem; codeDetails: CodeDetails; code: string } | null> {
   try {
-    const plan = await getStudyPlanByIdFromFirestore(planId);
-    if (!plan) return null;
-
-    // Get the backend record to access problemProgress
+    // Single API call - get the backend record to access problemProgress
     const res = await authenticatedFetch(buildApiUrl(`/api/user/study-plans/${planId}`), {
       method: 'GET'
     });
@@ -402,7 +399,7 @@ export async function getProblemDetailsFromFirestore(
     };
 
     // Get the user's saved code (or fall back to default)
-    const code = problemProgress.code || codeDetails.defaultUserCode;
+    const code = problemProgress.code || codeDetails.defaultUserCode || '';
 
     return { problem, codeDetails, code };
   } catch (error) {

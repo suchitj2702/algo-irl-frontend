@@ -19,4 +19,20 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunks - separates large libraries
+          'monaco-editor': ['@monaco-editor/react', 'monaco-editor'],
+          'firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'framer-motion': ['framer-motion'],
+          'markdown': ['react-markdown'],
+        },
+      },
+    },
+    // Increase chunk size warning limit to 1000 kB (optional, to reduce warnings)
+    chunkSizeWarningLimit: 1000,
+  },
 })

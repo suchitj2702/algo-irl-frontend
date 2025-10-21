@@ -1,5 +1,5 @@
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { IntroSection } from './pages/IntroSection';
 import { ProblemForm } from './pages/ProblemForm';
 import { LoadingSequence } from './LoadingSequence';
@@ -51,6 +51,7 @@ import {
   getAllCachedPlans,
   savePlanToCache,
   getProblemFromCache,
+  updateProblemInCache,
   migrateToCachedPlanData
 } from '../services/studyPlanCacheService';
 import { getCompanyDisplayName } from '../utils/companyDisplay';
@@ -114,7 +115,8 @@ export function AppRouter() {
    toggleBookmark: toggleBookmarkOptimistic,
    toggleCompletion: toggleCompletionOptimistic,
    updateStatus: updateStatusOptimistic,
-   forceSync: forceSyncPlanProgress
+   forceSync: forceSyncPlanProgress,
+   hasPendingChanges: hasPendingProgressChanges
  } = usePlanProgressState({
    planId: currentStudyPlanId,
    onError: (error) => {
@@ -125,14 +127,14 @@ export function AppRouter() {
  // Auto-save state
  const [lastSaveTime, setLastSaveTime] = useState<number>(Date.now());
  const [currentCode, setCurrentCode] = useState<string>('');
- const hasEditedCurrentProblem = useRef<boolean>(false);
 
  // Setup study plan auto-save hook
  const {
    createPlan: createPlanOptimistic,
    saveProgress: savePlanProgress,
    saveProblem: savePlanProblem,
-   forceSync: forceSyncStudyPlan
+   forceSync: forceSyncStudyPlan,
+   hasPendingChanges: hasPendingPlanChanges
  } = useStudyPlanAutoSave({
    onError: (error) => {
      console.error('[Study Plan Auto-Save] Error:', error);
@@ -147,7 +149,12 @@ export function AppRouter() {
   localDebounceMs: 500,
   cloudDebounceMs: 3000,
   onLocalSave: (data: { planId: string; problemId: string; code: string }) => {
-    // Save to localStorage as backup
+    // Save to unified cache (instant, accessible via getProblemFromCache)
+    updateProblemInCache(data.planId, data.problemId, {
+      userCode: data.code
+    });
+
+    // Also save to old format for backward compatibility (migration path)
     const key = `problem_${data.planId}_${data.problemId}`;
     localStorage.setItem(key, data.code);
   },
@@ -200,13 +207,27 @@ export function AppRouter() {
   }
 
   try {
-   const cachedPlan = await getStudyPlanFromFirestore(activePlanId);
-   if (!cachedPlan) return;
+   // Check cache first for instant load
+   const cachedPlan = getPlanFromCache(activePlanId);
+   if (cachedPlan) {
+     console.log(`💾 [Progress Sync] Loading from cache for plan ${activePlanId}`);
+     initializePlanProgressState(
+       new Set(cachedPlan.progress.completedProblems || []),
+       new Set(cachedPlan.progress.bookmarkedProblems || []),
+       new Set(cachedPlan.progress.inProgressProblems || [])
+     );
+     return;
+   }
+
+   // Fallback to Firestore only if not cached
+   console.log(`☁️ [Progress Sync] Loading from Firestore for plan ${activePlanId}`);
+   const firestorePlan = await getStudyPlanFromFirestore(activePlanId);
+   if (!firestorePlan) return;
 
    initializePlanProgressState(
-     new Set(cachedPlan.progress.completedProblems || []),
-     new Set(cachedPlan.progress.bookmarkedProblems || []),
-     new Set(cachedPlan.progress.inProgressProblems || [])
+     new Set(firestorePlan.progress.completedProblems || []),
+     new Set(firestorePlan.progress.bookmarkedProblems || []),
+     new Set(firestorePlan.progress.inProgressProblems || [])
    );
   } catch (error) {
    console.error('Failed to sync plan progress:', error);
@@ -216,10 +237,6 @@ export function AppRouter() {
  useEffect(() => {
   syncPlanStructures();
  }, [studyPlanResponse, syncPlanStructures]);
-
- useEffect(() => {
-  syncPlanProgress();
- }, [currentStudyPlanId, syncPlanProgress]);
 
  // Navigation handlers
  const handleStartClick = () => {
@@ -259,48 +276,14 @@ export function AppRouter() {
      setCurrentPlanProblemId(null);
      navigate('/study-plan-view');
 
-     // Fetch from Firestore in background to check for updates
-     getStudyPlanFromFirestore(planId)
-       .then(firestorePlan => {
-         if (!firestorePlan) {
-           console.warn(`☁️ [Sync] Plan ${planId} not found in Firestore`);
-           return;
-         }
-
-         // Check if Firestore has newer data
-         const firestoreUpdated = firestorePlan.progress.lastUpdated || 0;
-         const cacheUpdated = cachedPlan.progress.lastUpdatedAt || 0;
-
-         if (firestoreUpdated > cacheUpdated) {
-           console.log(`☁️ [Sync] Updating plan ${planId} from Firestore (newer: ${new Date(firestoreUpdated).toISOString()})`);
-
-           // Update cache with complete Firestore data (not just progress!)
-           const updatedCache = migrateToCachedPlanData(firestorePlan);
-           savePlanToCache(updatedCache);
-
-           // Update ALL state if still on the same plan
-           if (currentStudyPlanId === planId) {
-             // Update config and response (in case plan structure changed)
-             setStudyPlanConfig(firestorePlan.config);
-             setStudyPlanResponse(firestorePlan.response);
-             syncPlanStructures(firestorePlan.response);
-
-             // Update progress
-             initializePlanProgressState(
-               new Set(firestorePlan.progress.completedProblems),
-               new Set(firestorePlan.progress.bookmarkedProblems),
-               new Set(firestorePlan.progress.inProgressProblems)
-             );
-           }
-         } else {
-           console.log(`💾 [Sync] Cache is up-to-date for plan ${planId}`);
-         }
-       })
-       .catch(err => console.error('❌ Background sync failed:', err));
+     // Note: Background Firestore sync removed to eliminate unnecessary API calls
+     // Cache is the source of truth during active session
+     // Cross-device sync happens on page load via MyStudyPlansPage
    } else {
      // No cache, load from Firestore
      console.log(`☁️ [Firestore] Loading plan ${planId} from Firestore (not cached)`);
      const plan = await getStudyPlanFromFirestore(planId);
+
      if (!plan) {
        console.error('Study plan not found:', planId);
        return;
@@ -314,7 +297,14 @@ export function AppRouter() {
      setStudyPlanConfig(plan.config);
      setStudyPlanResponse(plan.response);
      syncPlanStructures(plan.response);
-     await syncPlanProgress(planId);
+
+     // Initialize progress from Firestore data (already fetched, no need for blocking call)
+     initializePlanProgressState(
+       new Set(plan.progress.completedProblems || []),
+       new Set(plan.progress.bookmarkedProblems || []),
+       new Set(plan.progress.inProgressProblems || [])
+     );
+
      setCurrentPlanProblemId(null);
      navigate('/study-plan-view');
    }
@@ -636,42 +626,13 @@ export function AppRouter() {
    updateProblemSolution(problem.problemId, code);
   }
 
-  // For study plan problems, use hybrid auto-save
+  // For study plan problems, use hybrid auto-save (all edits debounced)
   if (currentStudyPlanId && currentPlanProblemId) {
-    // Check if this is the first edit on this problem
-    const isFirstEdit = !hasEditedCurrentProblem.current &&
-                        !inProgressPlanProblems.has(currentPlanProblemId) &&
-                        !completedPlanProblems.has(currentPlanProblemId);
-
-    if (isFirstEdit) {
-      // First edit: Force immediate sync to mark as in-progress
-      console.log('🎯 [First Edit] Force syncing in-progress status');
-      hasEditedCurrentProblem.current = true;
-
-      try {
-        // Update status optimistically
-        updateStatusOptimistic(currentPlanProblemId, 'in_progress');
-
-        // Force sync immediately (don't wait for debounce)
-        await forceSave({
-          planId: currentStudyPlanId,
-          problemId: currentPlanProblemId,
-          code
-        });
-        await forceSyncPlanProgress();
-
-        console.log('✅ [First Edit] In-progress status synced');
-      } catch (error) {
-        console.error('❌ [First Edit] Failed to sync in-progress status:', error);
-      }
-    } else {
-      // Subsequent edits: Use debounced auto-save
-      autoSave({
-        planId: currentStudyPlanId,
-        problemId: currentPlanProblemId,
-        code
-      });
-    }
+    autoSave({
+      planId: currentStudyPlanId,
+      problemId: currentPlanProblemId,
+      code
+    });
   }
  };
 
@@ -881,7 +842,7 @@ export function AppRouter() {
    }
 
    if (!activeStudyPlanConfig) {
-    const cachedPlan = await getStudyPlanFromFirestore(activePlanId);
+    const cachedPlan = getPlanFromCache(activePlanId);
     if (cachedPlan) {
      activeStudyPlanConfig = cachedPlan.config;
      setStudyPlanConfig(cachedPlan.config);
@@ -897,7 +858,6 @@ export function AppRouter() {
    }
 
    setCurrentPlanProblemId(targetProblemId);
-   hasEditedCurrentProblem.current = false; // Reset first edit flag for new problem
 
    navigate('/loading');
    setError(null);
@@ -957,7 +917,7 @@ export function AppRouter() {
     throw new Error("Invalid problem data received from API. Missing statement, test cases, or constraints.");
    }
 
-   // Save complete problem details to Firestore (replaces localStorage)
+   // Save complete problem details to Firestore (with status)
    try {
     await saveProblemWithDetails(
       activePlanId,
@@ -966,10 +926,20 @@ export function AppRouter() {
       formattedCodeDetails,
       'in_progress'
     );
-    // Update local state optimistically (no need to sync - debounced sync will handle it)
-    updateStatusOptimistic(targetProblemId, 'in_progress');
+
+    // Update local state to match what was saved to Firestore
+    const updatedInProgress = new Set(inProgressPlanProblems);
+    updatedInProgress.add(targetProblemId);
+    initializePlanProgressState(
+      completedPlanProblems,
+      bookmarkedPlanProblems,
+      updatedInProgress
+    );
+
+    console.log('✅ Problem details and status saved to Firestore');
    } catch (error) {
     console.error('Failed to save problem to Firestore:', error);
+
     // Fallback: save to localStorage for backwards compatibility
     setCachedProblemData(uniqueProblemId, formattedProblem, formattedCodeDetails);
     addProblemToCache(
@@ -982,8 +952,17 @@ export function AppRouter() {
       formattedProblem.title,
       activePlanId
     );
-    // Update local state optimistically
-    updateStatusOptimistic(targetProblemId, 'in_progress');
+
+    // Update local state for localStorage fallback
+    const updatedInProgress = new Set(inProgressPlanProblems);
+    updatedInProgress.add(targetProblemId);
+    initializePlanProgressState(
+      completedPlanProblems,
+      bookmarkedPlanProblems,
+      updatedInProgress
+    );
+
+    console.warn('⚠️ Using localStorage fallback');
    }
 
    setApiResponseReceived(true);
@@ -1023,8 +1002,9 @@ export function AppRouter() {
      throw new Error('Study plan ID not found for resume');
     }
 
+    // Get config from cache first (instant, no network call)
     if (!activeStudyPlanConfig) {
-     const cachedPlan = await getStudyPlanFromFirestore(activePlanId);
+     const cachedPlan = getPlanFromCache(activePlanId);
      if (cachedPlan) {
       activeStudyPlanConfig = cachedPlan.config;
       setStudyPlanConfig(cachedPlan.config);
@@ -1037,20 +1017,79 @@ export function AppRouter() {
 
     const companyId = activeStudyPlanConfig.companyId;
 
-    // Try to fetch from Firestore first (priority source of truth)
-    console.log(`☁️ [Resume] Checking Firestore for problem ${problem.problemId}`);
+    // 1. Check unified cache first (instant - has latest code from auto-save)
+    console.log(`💾 [Resume] Checking cache for problem ${problem.problemId}`);
+    const cachedProblem = getProblemFromCache(activePlanId, problem.problemId);
+
+    if (cachedProblem) {
+      // Load from cache - this has the latest code from auto-save!
+      console.log(`✅ [Resume] Loaded from cache with ${cachedProblem.userCode.length} chars of code`);
+      setCurrentStudyPlanId(activePlanId);
+      setCurrentPlanProblemId(problem.problemId);
+      setCurrentCompanyId(companyId);
+      setIsCompanyContextFlow(false);
+
+      // Set problem and code data directly from cache
+      setProblem(cachedProblem.problem);
+      setCodeDetails(cachedProblem.codeDetails);
+      setSolutionFromSolver(cachedProblem.userCode);
+      setCurrentCode(cachedProblem.userCode);
+      setApiResponseReceived(true);
+      navigate('/study-plan/problem', { replace: true });
+      return;
+    }
+
+    // 2. Check old localStorage format (migration path)
+    console.log(`💾 [Resume] Checking old localStorage format`);
+    const oldKey = `problem_${activePlanId}_${problem.problemId}`;
+    const oldCachedCode = localStorage.getItem(oldKey);
+
+    if (oldCachedCode) {
+      console.log(`💾 [Resume] Found old format cache with ${oldCachedCode.length} chars of code`);
+      // Instead of calling handleResumeProblem (which can redirect to Blind75 on error),
+      // fetch problem details from Firestore and migrate the code
+      const firestoreData = await getProblemDetailsFromFirestore(activePlanId, problem.problemId);
+
+      if (firestoreData) {
+        console.log(`✅ [Resume] Migrated old code to new format`);
+        setCurrentStudyPlanId(activePlanId);
+        setCurrentPlanProblemId(problem.problemId);
+        setCurrentCompanyId(companyId);
+        setIsCompanyContextFlow(false);
+
+        setProblem(firestoreData.problem);
+        setCodeDetails(firestoreData.codeDetails);
+        // Use the old cached code (it might be newer than Firestore)
+        setSolutionFromSolver(oldCachedCode);
+        setCurrentCode(oldCachedCode);
+        setApiResponseReceived(true);
+
+        // Migrate to new cache format
+        updateProblemInCache(activePlanId, problem.problemId, {
+          problem: firestoreData.problem,
+          codeDetails: firestoreData.codeDetails,
+          userCode: oldCachedCode
+        });
+
+        navigate('/study-plan/problem', { replace: true });
+        return;
+      } else {
+        // Firestore doesn't have the problem - fall through to fresh API call
+        console.log(`⚠️ [Resume] Old code found but no Firestore data, starting fresh`);
+      }
+    }
+
+    // 3. Try Firestore as fallback (first access, not in cache yet)
+    console.log(`☁️ [Resume] Not in cache, checking Firestore for first access`);
     const firestoreData = await getProblemDetailsFromFirestore(activePlanId, problem.problemId);
 
     if (firestoreData) {
-      // Load from Firestore - most up-to-date data
       console.log(`✅ [Resume] Loaded from Firestore with ${firestoreData.code.length} chars of code`);
       setCurrentStudyPlanId(activePlanId);
       setCurrentPlanProblemId(problem.problemId);
       setCurrentCompanyId(companyId);
       setIsCompanyContextFlow(false);
-      hasEditedCurrentProblem.current = true; // Mark as already edited since we're resuming
 
-      // Set problem and code data directly
       setProblem(firestoreData.problem);
       setCodeDetails(firestoreData.codeDetails);
       setSolutionFromSolver(firestoreData.code);
@@ -1060,36 +1099,27 @@ export function AppRouter() {
       return;
     }
 
-    // Fallback to localStorage if not in Firestore (legacy support)
-    console.log(`💾 [Resume] Firestore miss, checking localStorage`);
-    const uniqueProblemId = buildPlanProblemCacheKey(activePlanId, problem.problemId, companyId);
-    const cached = getCachedProblem(uniqueProblemId);
-
-    if (!cached) {
-     // No cached data, start problem fresh from API
-     console.log(`🆕 [Resume] No cached data, starting fresh`);
-     await handleStartProblemFromPlan(problem, activePlanId);
-     return;
-    }
-
-    console.log(`💾 [Resume] Loaded from localStorage (deprecated)`);
-    // Note: This localStorage fallback should eventually be removed once all users migrate to Firestore
-
-    setCurrentStudyPlanId(activePlanId);
-    setCurrentPlanProblemId(problem.problemId);
-    setCurrentCompanyId(companyId);
-    setIsCompanyContextFlow(false);
-    hasEditedCurrentProblem.current = true; // Mark as already edited since we're resuming
-    handleResumeProblem(uniqueProblemId);
+    // 4. No cached data anywhere, start problem fresh from API
+    console.log(`🆕 [Resume] No cached data found, starting fresh from API`);
+    await handleStartProblemFromPlan(problem, activePlanId);
    } catch (resumeErr) {
     console.error('Error resuming study plan problem:', resumeErr);
+    // Try to start fresh as fallback, but don't redirect to Blind75
     const fallbackPlanId = planId || currentStudyPlanId;
     if (fallbackPlanId) {
-     await handleStartProblemFromPlan(problem, fallbackPlanId);
+     try {
+      await handleStartProblemFromPlan(problem, fallbackPlanId);
+     } catch (fallbackErr) {
+      console.error('Failed to start problem as fallback:', fallbackErr);
+      // Navigate back to study plan view instead of Blind75
+      if (fallbackPlanId) {
+        navigate('/study-plan-view');
+      }
+     }
     }
    }
   },
-  [currentStudyPlanId, handleResumeProblem, handleStartProblemFromPlan, studyPlanConfig]
+  [currentStudyPlanId, handleStartProblemFromPlan, studyPlanConfig, navigate]
  );
 
  const handleNavigateStudyPlanProblem = useCallback(async (direction: 'next' | 'prev') => {
@@ -1114,7 +1144,7 @@ export function AppRouter() {
    if (activePlanId) {
     let companyForPlan = studyPlanConfig?.companyId;
     if (!companyForPlan) {
-     const cachedPlan = await getStudyPlanFromFirestore(activePlanId);
+     const cachedPlan = getPlanFromCache(activePlanId);
      companyForPlan = cachedPlan?.config.companyId;
     }
 
@@ -1157,29 +1187,16 @@ export function AppRouter() {
   handleToggleBookmarkForProblem(currentPlanProblemId);
  }, [currentPlanProblemId, currentStudyPlanId, handleToggleBookmarkForProblem]);
 
- const handleManualPlanCompletionToggle = useCallback(async () => {
+ const handleManualPlanCompletionToggle = useCallback(() => {
   if (!currentStudyPlanId || !currentPlanProblemId) return;
 
-  try {
-    // Force save code first
-    if (currentCode) {
-      await forceSave({
-        planId: currentStudyPlanId,
-        problemId: currentPlanProblemId,
-        code: currentCode
-      });
-    }
-
-    // Optimistic update - UI updates immediately, sync happens in background
-    toggleCompletionOptimistic(currentPlanProblemId);
-  } catch (error) {
-    console.error('Failed to toggle completion:', error);
-  }
+  // Optimistic update - UI updates immediately, sync happens in background
+  // Code is already being auto-saved via handleCodeChange with debounce
+  // No need to force save here - this is just a status toggle
+  toggleCompletionOptimistic(currentPlanProblemId);
  }, [
   currentStudyPlanId,
   currentPlanProblemId,
-  currentCode,
-  forceSave,
   toggleCompletionOptimistic
  ]);
 
@@ -1219,22 +1236,42 @@ export function AppRouter() {
   }
  }, [currentCode, currentStudyPlanId, currentPlanProblemId, forceSave, forceSyncPlanProgress, forceSyncStudyPlan]);
 
- const handleReturnToPlanView = useCallback(async () => {
-  // Force save before navigation using consolidated sync
+ // Direct navigation to plan view - no loading screen needed!
+ const handleReturnToPlanViewImmediate = useCallback(() => {
+  console.log('⚡ [Return to Plan] Navigating instantly without loading screen');
+
+  // Save in background (non-blocking) if needed
   if (currentStudyPlanId && currentPlanProblemId) {
-    try {
-      await forceFullSync();
-    } catch (error) {
-      console.error('Failed to save before navigation:', error);
+    const hasAnyPendingChanges = hasPendingProgressChanges || hasPendingPlanChanges;
+    if (hasAnyPendingChanges) {
+      console.log('💾 [View Plan] Starting background save...');
+      forceFullSync()
+        .then(() => console.log('✅ [Background Save] Completed'))
+        .catch(error => console.error('❌ [Background Save] Failed:', error));
     }
   }
 
-  if (currentStudyPlanId) {
+  // Navigate IMMEDIATELY - no loading screen, no delays!
+  if (studyPlanResponse && currentStudyPlanId) {
+    // State already exists - instant navigation!
+    navigate('/study-plan-view');
+  } else if (currentStudyPlanId) {
+    // Need to reload from cache - still instant, handleViewStudyPlan loads from cache
     handleViewStudyPlan(currentStudyPlanId);
   } else {
+    // Fallback: just navigate
     navigate('/study-plan-view');
   }
- }, [currentStudyPlanId, currentPlanProblemId, forceFullSync, handleViewStudyPlan, navigate]);
+ }, [
+  currentStudyPlanId,
+  currentPlanProblemId,
+  studyPlanResponse,
+  forceFullSync,
+  handleViewStudyPlan,
+  navigate,
+  hasPendingProgressChanges,
+  hasPendingPlanChanges
+ ]);
 
  // Helper: Force save before any navigation
  const saveBeforeAction = useCallback(async (action: () => void | Promise<void>) => {
@@ -1290,9 +1327,9 @@ export function AppRouter() {
    onNext: () => saveBeforeAction(() => handleNavigateStudyPlanProblem('next')),
    onPrev: () => saveBeforeAction(() => handleNavigateStudyPlanProblem('prev')),
    onRegenerate: () => saveBeforeAction(handleRegenerateCurrentPlanProblem),
-   onToggleBookmark: () => saveBeforeAction(handleToggleBookmarkForCurrentProblem),
-   onToggleCompletion: () => saveBeforeAction(handleManualPlanCompletionToggle),
-   onReturnToPlan: () => saveBeforeAction(handleReturnToPlanView),
+   onToggleBookmark: handleToggleBookmarkForCurrentProblem,
+   onToggleCompletion: handleManualPlanCompletionToggle,
+   onReturnToPlan: handleReturnToPlanViewImmediate, // Use immediate version - no blocking saves!
    onResume: () => saveBeforeAction(() => handleResumeStudyPlanProblem(info.problem, currentStudyPlanId || undefined))
   };
  }, [
@@ -1305,7 +1342,7 @@ export function AppRouter() {
   handleManualPlanCompletionToggle,
   handleNavigateStudyPlanProblem,
   handleRegenerateCurrentPlanProblem,
-  handleReturnToPlanView,
+  handleReturnToPlanViewImmediate, // Changed to use immediate version
   handleToggleBookmarkForCurrentProblem,
   planProblemMap,
   planProblems.length,
