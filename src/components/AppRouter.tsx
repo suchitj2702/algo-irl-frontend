@@ -1,5 +1,5 @@
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { IntroSection } from './pages/IntroSection';
 import { ProblemForm } from './pages/ProblemForm';
 import { LoadingSequence } from './LoadingSequence';
@@ -55,11 +55,11 @@ import {
   migrateToCachedPlanData
 } from '../services/studyPlanCacheService';
 import { getCompanyDisplayName } from '../utils/companyDisplay';
+import { extractCleanProblemTitle } from '../utils/problemTitleExtractor';
 
 interface TestResultsFromParent {
  passed: boolean;
  executionTime: string;
- memoryUsed: string;
  testCases: Array<{
   input: string;
   output: string;
@@ -141,6 +141,10 @@ export function AppRouter() {
  const [lastSaveTime, setLastSaveTime] = useState<number>(Date.now());
  const [currentCode, setCurrentCode] = useState<string>('');
 
+ // Track active problem ID with ref for race condition prevention
+ // This ensures debounced saves don't fire for wrong problem after navigation
+ const activeProblemIdRef = useRef<string | null>(null);
+
  // Setup study plan auto-save hook
  const {
    createPlan: createPlanOptimistic,
@@ -172,6 +176,13 @@ export function AppRouter() {
     localStorage.setItem(key, data.code);
   },
   onCloudSave: async (data: { planId: string; problemId: string; code: string }) => {
+    // CRITICAL: Safety check - only save if we're still on this problem
+    // This prevents race conditions when navigating during debounce period
+    if (activeProblemIdRef.current !== data.problemId) {
+      console.log(`⚠️ [Auto-Save] Skipping stale save - problem changed (${data.problemId} → ${activeProblemIdRef.current})`);
+      return;
+    }
+
     // Save to Firestore
     await saveProblemCode(data.planId, data.problemId, data.code);
     setLastSaveTime(Date.now());
@@ -182,7 +193,10 @@ export function AppRouter() {
  });
 
  const clearPlanSessionContext = useCallback(() => {
+  // CRITICAL FIX: Clear BOTH study plan context variables
+  // This prevents study plan toolbar from appearing in Blind75 mode
   setCurrentPlanProblemId(null);
+  setCurrentStudyPlanId(null);
  }, []);
 
  const syncPlanStructures = useCallback((response?: StudyPlanResponse | null) => {
@@ -341,6 +355,15 @@ export function AppRouter() {
 
  // Handle practice with company context
  const handlePracticeWithContext = (problemSlug: string) => {
+  // Clear ref when leaving study plan context
+  activeProblemIdRef.current = null;
+
+  // Clear visual state
+  setProblem(null);
+  setCodeDetails(null);
+  setSolutionFromSolver(null);
+  setEvaluationResults(null);
+
   clearPlanSessionContext();
   setSelectedProblemSlug(problemSlug);
   setIsCompanyContextFlow(true);
@@ -350,14 +373,18 @@ export function AppRouter() {
  // Company context form submission
  const handleCompanyContextSubmit = async (data: CompanyContextFormData) => {
   try {
+   // CRITICAL FIX: Clear study plan context first (prevents toolbar in Blind75)
    clearPlanSessionContext();
+
+   // CRITICAL FIX: Update ref immediately (for Blind75 context)
+   // Use selectedProblemSlug which is the actual problem being requested
+   activeProblemIdRef.current = selectedProblemSlug || null;
+
    setCompanyContextFormData(data);
    setCurrentCompanyId(data.company);
-   if (!planProblemMap[problem.problemId]) {
-    syncPlanStructures();
-   }
 
-   setCurrentPlanProblemId(problem.problemId);
+   // Note: Removed planProblemMap sync and setCurrentPlanProblemId here
+   // Those were accidentally setting plan context for Blind75 problems
 
    navigate('/loading');
    setError(null);
@@ -402,7 +429,10 @@ export function AppRouter() {
    const uniqueProblemId = buildProblemCacheKey(baseProblemId, companyId);
 
    const formattedProblem: Problem = {
-    title: responseData.problem?.title || "Algorithm Challenge",
+    title: extractCleanProblemTitle(
+      responseData.problem?.title || "Algorithm Challenge",
+      companyId
+    ),
     background: responseData.problem?.background || "",
     problemStatement: responseData.problem?.problemStatement || "",
     testCases: formattedTestCases,
@@ -463,6 +493,15 @@ export function AppRouter() {
 
  const handleResumeProblem = async (problemId: string) => {
   try {
+   // CRITICAL FIX: Update ref immediately (for Blind75 resume)
+   activeProblemIdRef.current = problemId;
+
+   // Clear visual state
+   setProblem(null);
+   setCodeDetails(null);
+   setSolutionFromSolver(null);
+   setEvaluationResults(null);
+
    setIsResuming(true);
    setResumeProblemId(problemId);
    setResumeDataLoaded(false);
@@ -513,7 +552,10 @@ export function AppRouter() {
    }));
 
    const formattedProblem: Problem = {
-    title: responseData.problem?.title || "Algorithm Challenge",
+    title: extractCleanProblemTitle(
+      responseData.problem?.title || "Algorithm Challenge",
+      companyId
+    ),
     background: responseData.problem?.background || "",
     problemStatement: responseData.problem?.problemStatement || "",
     testCases: formattedTestCases,
@@ -600,7 +642,10 @@ export function AppRouter() {
    const uniqueProblemId = buildProblemCacheKey(baseProblemId, companyId);
 
    const formattedProblem: Problem = {
-    title: responseData.problem?.title || "Algorithm Challenge",
+    title: extractCleanProblemTitle(
+      responseData.problem?.title || "Algorithm Challenge",
+      companyId
+    ),
     background: responseData.problem?.background || "",
     problemStatement: responseData.problem?.problemStatement || "",
     testCases: formattedTestCases,
@@ -662,7 +707,7 @@ export function AppRouter() {
   }
  };
 
- const handleFinalSolutionSubmit = async (code: string) => {
+ const handleFinalSolutionSubmit = (code: string, executionResults: any) => {
   setSolutionFromSolver(code);
 
   if (problem?.problemId) {
@@ -673,58 +718,34 @@ export function AppRouter() {
 
    // Study plan: update Firestore
    if (currentStudyPlanId && currentPlanProblemId) {
-    try {
-      // Force save code immediately
-      await forceSave({
-        planId: currentStudyPlanId,
-        problemId: currentPlanProblemId,
-        code
-      });
+    // Trigger final code save via debounced auto-save
+    autoSave({
+      planId: currentStudyPlanId,
+      problemId: currentPlanProblemId,
+      code
+    });
 
-      // Mark as solved (optimistic update)
-      updateStatusOptimistic(currentPlanProblemId, 'solved');
+    // Mark as solved (optimistic update + queues debounced sync)
+    updateStatusOptimistic(currentPlanProblemId, 'solved');
 
-      // Force sync to ensure it's persisted
-      await forceSyncPlanProgress();
-    } catch (error) {
-      console.error('Failed to mark problem as solved:', error);
-    }
+    // Both sync in background - no await, no latency!
    }
   }
 
-  // Limit test cases to match what was actually executed (default 20 from ProblemSolver)
-  const maxTestCasesExecuted = 20;
-  const executedTestCases = problem?.testCases.slice(0, maxTestCasesExecuted) || [];
-
-  const mockFinalResults: TestResultsFromParent = {
-    passed: true,
-    executionTime: executedTestCases.length > 0 ? Math.floor(Math.random() * 100) + 'ms' : 'N/A',
-    memoryUsed: executedTestCases.length > 0 ? Math.floor(Math.random() * 10) + 'MB' : 'N/A',
-    testCases: executedTestCases.map(tc => ({
-      input: typeof tc.stdin === 'object' ? JSON.stringify(tc.stdin) : String(tc.stdin),
-      output: typeof tc.expectedStdout === 'object' ? JSON.stringify(tc.expectedStdout) : String(tc.expectedStdout),
-      passed: true
+  // Convert real execution results to the format expected by ResultsView
+  const formattedResults: TestResultsFromParent = {
+    passed: executionResults.passed,
+    executionTime: executionResults.executionTime ? `${executionResults.executionTime.toFixed(1)}ms` : 'N/A',
+    testCases: executionResults.testCaseResults.map((tcResult: any) => ({
+      input: typeof tcResult.testCase.stdin === 'object' ? JSON.stringify(tcResult.testCase.stdin) : String(tcResult.testCase.stdin),
+      output: typeof tcResult.testCase.expectedStdout === 'object' ? JSON.stringify(tcResult.testCase.expectedStdout) : String(tcResult.testCase.expectedStdout),
+      passed: tcResult.passed
     })),
   };
-  setEvaluationResults(mockFinalResults);
+  setEvaluationResults(formattedResults);
   setShowSaveProgress(true);
   navigate('/results');
- };
-
- const handleTryAgain = () => {
-  navigate('/form');
-  setIsCompanyContextFlow(false);
-  setSolutionFromSolver(null);
-  setEvaluationResults(null);
-  setProblem(null);
-  setCodeDetails(null);
-  setError(null);
-  setApiResponseReceived(false);
-  setIsResuming(false);
-  setResumeProblemId(null);
-  setResumeDataLoaded(false);
-  clearPlanSessionContext();
- };
+};
 
  const handleGoBackToProblem = () => {
   navigate('/problem');
@@ -852,7 +873,7 @@ export function AppRouter() {
   navigate('/study-plan-form');
  };
 
- const handleStartProblemFromPlan = async (problem: EnrichedProblem, planId?: string) => {
+ const handleStartProblemFromPlan = async (problem: EnrichedProblem, planId?: string, forceRefresh?: boolean, skipNavigation?: boolean) => {
   try {
    const activePlanId = planId || currentStudyPlanId;
    let activeStudyPlanConfig = studyPlanConfig;
@@ -866,6 +887,9 @@ export function AppRouter() {
     console.warn('Study plan problem is missing problemId');
     return;
    }
+
+   // CRITICAL FIX: Update ref immediately to prevent race conditions
+   activeProblemIdRef.current = targetProblemId;
 
    // 🎯 CAPTURE VIEW STATE BEFORE NAVIGATION
    const currentDayForProblem = findDayForProblem(targetProblemId);
@@ -929,14 +953,15 @@ export function AppRouter() {
 
    const companyId = activeStudyPlanConfig.companyId;
 
-   // 🚀 MAJOR FIX: Check cache BEFORE making API call!
+   // 🚀 Check cache BEFORE making API call (unless forcing refresh for regenerate)
    // This prevents unnecessary API calls when problem data already exists
-   console.log(`💾 [Start] Checking cache for problem ${targetProblemId}`);
-   const cachedProblem = getProblemFromCache(activePlanId, targetProblemId);
+   if (!forceRefresh) {
+    console.log(`💾 [Start] Checking cache for problem ${targetProblemId}`);
+    const cachedProblem = getProblemFromCache(activePlanId, targetProblemId);
 
-   if (cachedProblem && cachedProblem.problem && cachedProblem.codeDetails) {
-    // Problem exists in cache, use it directly!
-    console.log(`✅ [Start] Found problem in cache, skipping API call`);
+    if (cachedProblem && cachedProblem.problem && cachedProblem.codeDetails) {
+     // Problem exists in cache, use it directly!
+     console.log(`✅ [Start] Found problem in cache, skipping API call`);
 
     // Navigate to problem page
     navigate('/loading');
@@ -968,16 +993,23 @@ export function AppRouter() {
      );
     }
 
-    // Navigate to problem page
-    navigate('/study-plan/problem', { replace: true });
-    return;
+     // Navigate to problem page
+     navigate('/study-plan/problem', { replace: true });
+     return;
+    }
+   } else {
+    console.log(`🔄 [Start] Force refresh requested, bypassing cache and calling API`);
    }
 
-   // No cache found, proceed with API call
-   console.log(`🌐 [Start] No cache found for problem ${targetProblemId}, calling API`);
+   // No cache found (or force refresh), proceed with API call
+   if (!forceRefresh) {
+    console.log(`🌐 [Start] No cache found for problem ${targetProblemId}, calling API`);
+   }
 
-   // Now safe to navigate - state is clean
-   navigate('/loading');
+   // Now safe to navigate - state is clean (unless caller already navigated)
+   if (!skipNavigation) {
+    navigate('/loading');
+   }
    const companyName = getCompanyDisplayName(companyId);
 
    // Call prepareProblem API with the specific problem ID
@@ -1001,7 +1033,10 @@ export function AppRouter() {
    const uniqueProblemId = buildPlanProblemCacheKey(activePlanId, targetProblemId, companyId);
 
    const formattedProblem: Problem = {
-    title: responseData.problem?.title || problem.title,
+    title: extractCleanProblemTitle(
+      responseData.problem?.title || problem.title,
+      companyId
+    ),
     background: responseData.problem?.background || "",
     problemStatement: responseData.problem?.problemStatement || "",
     testCases: formattedTestCases,
@@ -1099,17 +1134,52 @@ export function AppRouter() {
   }
  };
 
- const handleRegenerateCurrentPlanProblem = useCallback(() => {
+ const handleRegenerateCurrentPlanProblem = useCallback(async () => {
   if (!currentStudyPlanId || !currentPlanProblemId) return;
+
   const info = planProblemMap[currentPlanProblemId];
-  if (info) {
-   handleStartProblemFromPlan(info.problem, currentStudyPlanId);
+  if (!info) return;
+
+  try {
+   // 1. Navigate to loading IMMEDIATELY for instant feedback
+   navigate('/loading');
+
+   // 2. Clear local UI state for clean render
+   setProblem(null);
+   setCodeDetails(null);
+   setSolutionFromSolver(null);
+   setCurrentCode('');
+   setEvaluationResults(null);
+   setApiResponseReceived(false);
+
+   // 3. Call with forceRefresh=true to bypass cache and hit API
+   // This will:
+   //   - Fetch fresh problem from prepareProblemAPI
+   //   - Call saveProblemWithDetails() with status='in_progress'
+   //   - Update cache via updateProblemInCache()
+   //   - Set problem status to 'in_progress' (removes from completed)
+   //   - Debouncing syncs to Firestore automatically
+   await handleStartProblemFromPlan(info.problem, currentStudyPlanId, true, true);
+
+   // Bookmark is preserved automatically (separate Set)
+  } catch (error) {
+   console.error('Failed to regenerate:', error);
+   setError('Failed to regenerate problem');
   }
  }, [currentPlanProblemId, currentStudyPlanId, planProblemMap, handleStartProblemFromPlan]);
 
  const handleResumeStudyPlanProblem = useCallback(
   async (problem: EnrichedProblem, planId?: string) => {
    try {
+    // CRITICAL FIX: Update ref immediately to prevent race conditions
+    activeProblemIdRef.current = problem.problemId;
+
+    // Clear visual state immediately (non-blocking)
+    setProblem(null);
+    setCodeDetails(null);
+    setSolutionFromSolver(null);
+    setEvaluationResults(null);
+
     const activePlanId = planId || currentStudyPlanId;
     let activeStudyPlanConfig = studyPlanConfig;
 
@@ -1229,6 +1299,15 @@ export function AppRouter() {
 
   setIsNavigating(true);
   try {
+   // CRITICAL FIX: Update ref immediately to prevent race conditions
+   // This ensures debounced saves don't fire for the wrong problem
+   activeProblemIdRef.current = targetProblem.problemId;
+
+   // Clear visual state immediately (non-blocking)
+   setProblem(null);
+   setCodeDetails(null);
+   setSolutionFromSolver(null);
+   setEvaluationResults(null);
    const activePlanId = currentStudyPlanId;
 
    // 🔍 CRITICAL FIX: ALWAYS check unified cache FIRST - it's the source of truth
@@ -1416,6 +1495,13 @@ export function AppRouter() {
  }, [currentStudyPlanId, currentPlanProblemId, currentCode, forceFullSync]);
 
  const studyPlanSolverContext = useMemo(() => {
+  // CRITICAL FIX: Only provide context on study plan routes
+  // This prevents study plan toolbar from appearing on Blind75 routes
+  const isStudyPlanRoute = location.pathname.includes('study-plan');
+  if (!isStudyPlanRoute) {
+   return undefined;
+  }
+
   if (!currentStudyPlanId || !currentPlanProblemId) {
    return undefined;
   }
@@ -1438,13 +1524,14 @@ export function AppRouter() {
    hasPrev: info.index > 0,
    onNext: () => navigateWithBackgroundSave(() => handleNavigateStudyPlanProblem('next')),
    onPrev: () => navigateWithBackgroundSave(() => handleNavigateStudyPlanProblem('prev')),
-   onRegenerate: () => saveBeforeAction(handleRegenerateCurrentPlanProblem),
+   onRegenerate: () => navigateWithBackgroundSave(handleRegenerateCurrentPlanProblem),
    onToggleBookmark: handleToggleBookmarkForCurrentProblem,
    onToggleCompletion: handleManualPlanCompletionToggle,
    onReturnToPlan: handleReturnToPlanViewImmediate, // Use immediate version - no blocking saves!
    onResume: () => saveBeforeAction(() => handleResumeStudyPlanProblem(info.problem, currentStudyPlanId || undefined))
   };
  }, [
+  location.pathname, // Added for route-based guard
   inProgressPlanProblems,
   bookmarkedPlanProblems,
   completedPlanProblems,
@@ -1542,6 +1629,7 @@ export function AppRouter() {
      <Route path="/problem" element={
       problem && codeDetails ? (
        <ProblemSolver
+        key={problem?.problemId || 'default'}
         problem={problem}
         solution={solutionFromSolver}
         codeDetails={codeDetails}
@@ -1567,13 +1655,13 @@ export function AppRouter() {
       <PremiumGate feature="Study Plans" message="Please sign in to access My Study Plans.">
        {problem && codeDetails ? (
         <ProblemSolver
+         key={problem?.problemId || 'default'}
          problem={problem}
          solution={solutionFromSolver}
          codeDetails={codeDetails}
          onSubmit={handleFinalSolutionSubmit}
          onCodeChange={handleCodeChange}
          testResults={evaluationResults}
-         onSolveAnother={handleSolveAnother}
          studyPlanContext={studyPlanSolverContext}
         />
        ) : (
@@ -1593,7 +1681,6 @@ export function AppRouter() {
        <ResultsView
         results={evaluationResults}
         problem={problem}
-        onTryAgain={handleTryAgain}
         onGoBackToProblem={handleGoBackToProblem}
         totalTestCases={problem.testCases.length}
         executedTestCases={Math.min(20, problem.testCases.length)}

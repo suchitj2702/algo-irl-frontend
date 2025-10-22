@@ -3,9 +3,8 @@ import { ArrowLeft } from 'iconoir-react';
 import { StudyPlanResponse, EnrichedProblem, ROLE_OPTIONS, StudyPlanViewState } from '../../../types/studyPlan';
 import { StudyPlanOverviewCard } from '../../StudyPlanOverviewCard';
 import { DayScheduleCard } from '../../DayScheduleCard';
-import { getAllCachedProblems, parseProblemCacheKey } from '../../../utils/cache';
 import { getCompanyDisplayName } from '../../../utils/companyDisplay';
-import { warmUpCacheForPlan } from '../../../services/studyPlanCacheService';
+import { warmUpCacheForPlan, getPlanFromCache } from '../../../services/studyPlanCacheService';
 
 interface StudyPlanViewProps {
  studyPlan: StudyPlanResponse;
@@ -94,40 +93,36 @@ export function StudyPlanView({
  const inProgressProblemCount = progressInfo.inProgressProblemsSet?.size ?? 0;
 
  const cachedPlanProblemTitles = useMemo(() => {
-  if (typeof window === 'undefined' || !studyPlanId) {
+  if (!studyPlanId) {
    return {} as Record<string, string>;
   }
 
   try {
-   const problems = getAllCachedProblems({ includePlanScoped: true });
+   // Read from UNIFIED cache (single source of truth for lazy-loaded problem data)
+   // Titles are already clean - extraction happens at the source when processing API responses
+   const plan = getPlanFromCache(studyPlanId);
+   if (!plan || !plan.problemDetails) {
+    return {} as Record<string, string>;
+   }
+
    const titleMap: Record<string, string> = {};
 
-   problems.forEach(entry => {
-    const parsed = parseProblemCacheKey(entry.problemId);
-    const planForEntry = entry.planId ?? parsed.planId;
-
-    if (planForEntry !== studyPlanId) {
-     return;
-    }
-
-    const baseProblemId = parsed.baseProblemId;
-    if (!baseProblemId) {
-     return;
-    }
-
-    if (entry.title && entry.title.trim().length > 0) {
-     titleMap[baseProblemId] = entry.title.trim();
+   // Extract already-clean titles from cached problem details
+   Object.entries(plan.problemDetails).forEach(([problemId, details]) => {
+    if (details.problem && details.problem.title) {
+     titleMap[problemId] = details.problem.title;
     }
    });
 
+   console.log(`📚 [StudyPlanView] Loaded ${Object.keys(titleMap).length} problem titles from unified cache`);
    return titleMap;
   } catch (error) {
    if (import.meta.env.DEV) {
-    console.error('Error reading study plan problem titles from cache:', error);
+    console.error('Error reading problem titles from unified cache:', error);
    }
    return {} as Record<string, string>;
   }
- }, [companyId, completedProblemCount, inProgressProblemCount, studyPlanId]);
+ }, [studyPlanId, companyId, completedProblemCount, inProgressProblemCount]);
 
  // Get role display name
  const roleOption = ROLE_OPTIONS.find(r => r.id === metadata.role);

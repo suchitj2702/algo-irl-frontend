@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
  PlayIcon,
@@ -57,14 +57,13 @@ interface ProblemSolverProps {
  problem: Problem;
  solution: string | null;
  codeDetails: CodeDetails;
- onSubmit: (code: string) => void;
+ onSubmit: (code: string, results: ExecutionResults) => void;
  onCodeChange?: (code: string) => void;
  onSolveAnother?: () => void;
  maxSubmitTestCases?: number; // Maximum number of test cases to use for submission (default: 20)
  testResults: {
   passed: boolean;
   executionTime: string;
-  memoryUsed: string;
   testCases: Array<{
    input: string;
    output: string;
@@ -113,13 +112,17 @@ export function ProblemSolver({
  studyPlanContext
 }: ProblemSolverProps) {
  const processedProblem = useRef<Problem>(problem);
- 
- if (!problem || !problem.title || !problem.testCases) {
+
+ // Early return for invalid or null props (prevents UI bugs during navigation)
+ if (!problem || !problem.title || !problem.testCases || !codeDetails) {
   return (
    <div className="min-h-[calc(100vh-3.5rem)] bg-surface dark:bg-surface flex flex-col">
     <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
      <div className="text-center">
-      <div className="bg-red-100 text-red-700 p-4 rounded-md mb-4">
+      <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mb-4"></div>
+      <h2 className="text-xl font-medium">Loading problem...</h2>
+      {/* Show error state only if we've been loading too long */}
+      <div className="bg-red-100 text-red-700 p-4 rounded-md mb-4 mt-4" style={{display: 'none'}}>
        <p className="font-medium">Error: Invalid problem data</p>
        <p className="text-sm mt-2">The problem data is incomplete. Please ensure test cases are provided.</p>
       </div>
@@ -327,25 +330,33 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
  };
 
  const handleSubmit = () => {
-  if (!problem || !problem.testCases || !codeDetails) { 
+  if (!problem || !problem.testCases || !codeDetails) {
    commonErrorHandler("Missing critical data to submit.", undefined, problem.testCases?.length || 0);
    setIsLoadingSubmit(false);
-   return; 
+   return;
   }
   setLastActionType('submit');
   setExecutionResults(null);
-  
+
   // Limit test cases for submission to improve performance
   const submitTestCases = problem.testCases.slice(0, maxSubmitTestCases);
-  
-  executeCodeAndPoll({ 
-   code, 
-   language: codeDetails.language, 
-   boilerplateCode: codeDetails.boilerplateCode, 
+
+  executeCodeAndPoll({
+   code,
+   language: codeDetails.language,
+   boilerplateCode: codeDetails.boilerplateCode,
    testCases: submitTestCases,
-   onResults: r => { commonExecutionHandler(r); if (r.passed) onSubmit(code); }, 
+   onResults: r => {
+     // Don't show results in editor on submit - navigate directly to results page
+     if (r.passed) {
+       onSubmit(code, r);
+     } else {
+       // Only show results in editor if submission failed
+       commonExecutionHandler(r);
+     }
+   },
    onError: (errorMsg, submissionId) => commonErrorHandler(errorMsg, submissionId, submitTestCases.length),
-   onLoadingChange: setIsLoadingSubmit 
+   onLoadingChange: setIsLoadingSubmit
   });
  };
  
@@ -424,12 +435,25 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   });
  };
 
- const resultsToShow = executionResults?.testCaseResults.filter(tc => {
-  if (lastActionType === 'run') return true;
-  if (lastActionType === 'submit' && executionResults?.passed) return false;
-  if (lastActionType === 'submit') return !tc.passed;
-  return false;
- }) || [];
+ const resultsToShow = useMemo(() => {
+  if (!executionResults?.testCaseResults) return [];
+
+  if (lastActionType === 'run') {
+    return executionResults.testCaseResults;
+  }
+
+  if (lastActionType === 'submit' && executionResults?.passed) {
+    return [];
+  }
+
+  if (lastActionType === 'submit') {
+    // Show ONLY the first failed test case
+    const firstFailed = executionResults.testCaseResults.find(tc => !tc.passed);
+    return firstFailed ? [firstFailed] : [];
+  }
+
+  return [];
+ }, [executionResults, lastActionType]);
 
  const showResultsPanel = executionResults && (isLoadingRun || isLoadingSubmit || resultsToShow.length > 0 || !!executionResults.error || (lastActionType === 'submit' && executionResults.passed));
 
@@ -576,6 +600,9 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
           <h4 className="text-sm font-medium text-button-foreground mb-1">
            Results: <span className={`ml-1 ${executionResults.passed ? 'text-mint' : 'text-red-400'}`}>{executionResults.testCasesPassed}/{executionResults.testCasesTotal} Passed</span>
            {lastActionType === 'submit' && executionResults.passed && <span className="ml-2 text-mint">- All tests passed!</span>}
+           {lastActionType === 'submit' && !executionResults.passed && resultsToShow.length === 1 &&
+            <span className="ml-2 text-xs text-content-muted/60">(showing first failure)</span>
+           }
           </h4>
           {executionResults.error && <p className="text-xs text-red-400 bg-red-900/30 p-1 rounded my-1">Error: {executionResults.error}</p>}
           {(executionResults.testCaseResults.length > 0 || !executionResults.error) && (
@@ -591,7 +618,14 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
               const originalIndex = originalTestInput ? problem.testCases.findIndex(ptc => ptc.stdin === originalTestInput.stdin && ptc.expectedStdout === originalTestInput.expectedStdout) : -1;
               return (
                 <div key={`tc-${originalIndex}-${tcResult.status}-${tcResult.testCase.stdin}`} className={`p-1.5 rounded text-xs ${tcResult.passed ? 'bg-mint-dark/20' : 'bg-red-900/25'} text-neutral-200`}>
-                <p className="font-mono font-medium">Test Case #{originalIndex !== -1 ? originalIndex + 1 : 'Custom'}: <span className={tcResult.passed ? 'text-mint' : 'text-red-300'}>{tcResult.passed ? "Passed" : "Failed"}</span> ({tcResult.status})</p>
+                <p className="font-mono font-medium">
+                  Test Case #{originalIndex !== -1 ? originalIndex + 1 : 'Custom'}:
+                  <span className={tcResult.passed ? 'text-mint' : 'text-red-300'}>{tcResult.passed ? "Passed" : "Failed"}</span>
+                  ({tcResult.status})
+                  {lastActionType === 'submit' && !tcResult.passed &&
+                    <span className="ml-2 text-xs text-amber-400">(first failure)</span>
+                  }
+                </p>
                 <p className="font-mono mt-0.5">Input: <span className="text-content-subtle">{typeof tcResult.testCase.stdin === 'object' ? JSON.stringify(tcResult.testCase.stdin) : String(tcResult.testCase.stdin)}</span></p>
                 <p className="font-mono">Expected: <span className="text-content-subtle">{typeof tcResult.testCase.expectedStdout === 'object' ? JSON.stringify(tcResult.testCase.expectedStdout) : String(tcResult.testCase.expectedStdout)}</span></p>
 

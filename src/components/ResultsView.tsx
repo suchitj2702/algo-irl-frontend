@@ -7,7 +7,6 @@ interface ResultsViewProps {
  results: {
   passed: boolean;
   executionTime: string;
-  memoryUsed: string;
   testCases: Array<{
    input: string;
    output: string;
@@ -15,7 +14,6 @@ interface ResultsViewProps {
   }>;
  };
  problem: Problem;
- onTryAgain: () => void;
  onGoBackToProblem?: () => void; // New optional prop
  totalTestCases?: number; // Total number of test cases in the problem (for display purposes)
  executedTestCases?: number; // Number of test cases actually executed (for submission limit)
@@ -24,7 +22,6 @@ interface ResultsViewProps {
 export function ResultsView({
  results,
  problem, // problem prop is available but not directly used in this snippet for brevity
- onTryAgain,
  onGoBackToProblem, // Destructure the new prop
  totalTestCases,
  executedTestCases
@@ -70,10 +67,6 @@ export function ResultsView({
       <span className="text-content-muted dark:text-content-subtle">Execution Time:</span>
       <span className="font-mono text-content-muted dark:text-content-subtle">{results.executionTime}</span>
      </div>
-     <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
-      <span className="text-content-muted dark:text-content-subtle">Memory Used:</span>
-      <span className="font-mono text-content-muted dark:text-content-subtle">{results.memoryUsed}</span>
-     </div>
 
      {/* Only show detailed test cases if results did not pass overall */}
      {!results.passed && results.testCases && results.testCases.length > 0 && (
@@ -105,12 +98,6 @@ export function ResultsView({
        Review Solution
       </button>
      )}
-    <button 
-      onClick={onTryAgain} 
-      className="flex items-center justify-center w-full sm:w-auto px-4 py-2 bg-button-600 hover:bg-button-500 text-button-foreground border border-button-700 rounded-md transition-colors"
-    >
-      Try Another Problem
-     </button>
     </div>
    </div>
   </div>

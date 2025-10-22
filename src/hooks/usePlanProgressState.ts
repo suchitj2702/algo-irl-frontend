@@ -31,13 +31,13 @@ interface UsePlanProgressStateOptions {
  *
  * Features:
  * - Optimistic updates: UI updates immediately
- * - Debounced sync: Batches changes to Firestore (default 3000ms)
+ * - Debounced sync: Batches changes to Firestore (default 500ms)
  * - Force save: Immediate sync before navigation/critical actions
  * - Batch processing: Multiple rapid changes result in single API call
  */
 export function usePlanProgressState({
   planId,
-  debounceMs = 3000,
+  debounceMs = 500,
   onError
 }: UsePlanProgressStateOptions) {
   // Local state (optimistic updates)
