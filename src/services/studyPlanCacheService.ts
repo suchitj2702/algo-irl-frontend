@@ -301,8 +301,52 @@ export function clearAllCachedPlans(): void {
 
 /**
  * Convert CachedStudyPlan (old format) to CachedPlanData (new format)
+ * Also accepts optional problemProgress from Firestore to populate problemDetails
  */
-export function migrateToCachedPlanData(plan: CachedStudyPlan): CachedPlanData {
+export function migrateToCachedPlanData(
+  plan: CachedStudyPlan,
+  problemProgress?: Record<string, any>
+): CachedPlanData {
+  // Initialize problemDetails - this will be populated if we have problemProgress data
+  const problemDetails: Record<string, {
+    problem: Problem;
+    codeDetails: CodeDetails;
+    userCode: string;
+    lastWorkedAt: number;
+  }> = {};
+
+  // If problemProgress is provided (from Firestore), populate problemDetails
+  if (problemProgress) {
+    Object.entries(problemProgress).forEach(([problemId, progress]) => {
+      // Check if this problem has been accessed (has problemDetails and codeDetails)
+      if (progress.problemDetails && progress.codeDetails) {
+        problemDetails[problemId] = {
+          problem: {
+            title: progress.problemDetails.title,
+            background: progress.problemDetails.background,
+            problemStatement: progress.problemDetails.problemStatement,
+            testCases: progress.problemDetails.testCases,
+            constraints: progress.problemDetails.constraints,
+            requirements: progress.problemDetails.requirements,
+            leetcodeUrl: progress.problemDetails.leetcodeUrl,
+            problemId: problemId
+          },
+          codeDetails: {
+            boilerplateCode: progress.codeDetails.boilerplateCode,
+            defaultUserCode: progress.codeDetails.defaultUserCode,
+            functionName: progress.codeDetails.functionName,
+            solutionStructureHint: progress.codeDetails.solutionStructureHint,
+            language: progress.codeDetails.language
+          },
+          userCode: progress.code || progress.codeDetails?.defaultUserCode || '',
+          lastWorkedAt: progress.lastWorkedAt ? new Date(progress.lastWorkedAt).getTime() : Date.now()
+        };
+      }
+    });
+
+    console.log(`💾 [Migration] Populated ${Object.keys(problemDetails).length} problem details from Firestore`);
+  }
+
   return {
     planId: plan.id,
     config: plan.config,
@@ -314,11 +358,91 @@ export function migrateToCachedPlanData(plan: CachedStudyPlan): CachedPlanData {
       currentDay: plan.progress.currentDay || 1,
       lastUpdatedAt: plan.progress.lastUpdated || Date.now()
     },
-    problemDetails: {},
+    problemDetails, // Now properly populated from Firestore data if available
     cachedAt: plan.createdAt || Date.now(),
     version: CACHE_VERSION,
     syncedToFirestore: true // Assume old plans are synced
   };
+}
+
+/**
+ * Load problem details from Firestore into cache
+ * This is called when loading a study plan to pre-populate problem details
+ */
+export async function loadProblemDetailsIntoCache(
+  planId: string,
+  problemProgress: Record<string, any>
+): Promise<void> {
+  const plan = getPlanFromCache(planId);
+  if (!plan) {
+    console.warn(`[Cache] Cannot load problem details - plan ${planId} not in cache`);
+    return;
+  }
+
+  let loadedCount = 0;
+  Object.entries(problemProgress).forEach(([problemId, progress]) => {
+    // Only load if we have both problem and code details
+    if (progress.problemDetails && progress.codeDetails) {
+      // Check if already in cache to avoid overwriting recent changes
+      if (!plan.problemDetails[problemId]) {
+        plan.problemDetails[problemId] = {
+          problem: {
+            title: progress.problemDetails.title,
+            background: progress.problemDetails.background,
+            problemStatement: progress.problemDetails.problemStatement,
+            testCases: progress.problemDetails.testCases,
+            constraints: progress.problemDetails.constraints,
+            requirements: progress.problemDetails.requirements,
+            leetcodeUrl: progress.problemDetails.leetcodeUrl,
+            problemId: problemId
+          },
+          codeDetails: {
+            boilerplateCode: progress.codeDetails.boilerplateCode,
+            defaultUserCode: progress.codeDetails.defaultUserCode,
+            functionName: progress.codeDetails.functionName,
+            solutionStructureHint: progress.codeDetails.solutionStructureHint,
+            language: progress.codeDetails.language
+          },
+          userCode: progress.code || progress.codeDetails?.defaultUserCode || '',
+          lastWorkedAt: progress.lastWorkedAt ? new Date(progress.lastWorkedAt).getTime() : Date.now()
+        };
+        loadedCount++;
+      }
+    }
+  });
+
+  if (loadedCount > 0) {
+    savePlanToCache(plan);
+    console.log(`💾 [Cache] Loaded ${loadedCount} problem details into cache for plan ${planId}`);
+  }
+}
+
+/**
+ * Warm up cache with problem details for likely navigation
+ * This pre-fetches problem details for in-progress and recently worked problems
+ */
+export async function warmUpCacheForPlan(planId: string): Promise<void> {
+  const plan = getPlanFromCache(planId);
+  if (!plan) return;
+
+  // Get list of problems to warm up (in-progress and recent)
+  const problemsToWarmUp = new Set<string>();
+
+  // Add in-progress problems
+  plan.progress.inProgressProblems.forEach(id => problemsToWarmUp.add(id));
+
+  // Add recently worked problems (last 5)
+  const recentProblems = Object.entries(plan.problemDetails)
+    .sort((a, b) => b[1].lastWorkedAt - a[1].lastWorkedAt)
+    .slice(0, 5)
+    .map(([id]) => id);
+  recentProblems.forEach(id => problemsToWarmUp.add(id));
+
+  console.log(`🔥 [Cache] Warming up cache for ${problemsToWarmUp.size} problems`);
+
+  // Note: Actual fetching would require async operations
+  // This is a placeholder for the warm-up logic
+  // In practice, you'd fetch from Firestore here if needed
 }
 
 /**
@@ -329,16 +453,22 @@ export function getCacheStats(): {
   totalSize: number;
   oldestCache: number;
   newestCache: number;
+  problemsCached: number;
 } {
   const plans = getAllCachedPlans();
   const totalSize = plans.reduce((sum, plan) => {
     return sum + JSON.stringify(plan).length;
   }, 0);
 
+  const problemsCached = plans.reduce((sum, plan) => {
+    return sum + Object.keys(plan.problemDetails || {}).length;
+  }, 0);
+
   return {
     totalPlans: plans.length,
     totalSize,
     oldestCache: Math.min(...plans.map(p => p.cachedAt)),
-    newestCache: Math.max(...plans.map(p => p.cachedAt))
+    newestCache: Math.max(...plans.map(p => p.cachedAt)),
+    problemsCached
   };
 }

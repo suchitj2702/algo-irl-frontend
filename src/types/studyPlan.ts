@@ -140,8 +140,22 @@ export interface CachedStudyPlan {
     inProgressProblems: string[];
     currentDay: number;
     lastUpdated: number; // timestamp
+    problemProgress?: Record<string, ProblemProgressItem>; // Include the raw problem progress data
   };
   createdAt: number; // timestamp
+}
+
+// For preserving study plan view state across navigation
+export interface StudyPlanViewState {
+  scrollY: number;
+  expandedDays: number[];
+  showTopics: boolean;
+  showDifficulty: boolean;
+  showSavedOnly: boolean;
+  showGuidance: boolean;
+  currentProblemId?: string;  // For highlight
+  currentProblemDay?: number; // For auto-expand
+  lastUpdated: number;        // Timestamp for staleness check
 }
 
 // For displaying role options in the form
@@ -237,7 +251,8 @@ export function adaptStudyPlanFromBackend(record: StudyPlanRecord): CachedStudyP
       inProgressProblems,
       bookmarkedProblems,
       currentDay: record.progress?.currentDay || 1,
-      lastUpdated: record.updatedAt ? new Date(record.updatedAt).getTime() : Date.now()
+      lastUpdated: record.updatedAt ? new Date(record.updatedAt).getTime() : Date.now(),
+      problemProgress // Include the raw problem progress data for cache migration
     },
     createdAt: record.createdAt ? new Date(record.createdAt).getTime() : Date.now()
   };

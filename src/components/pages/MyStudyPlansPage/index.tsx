@@ -57,7 +57,8 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
 
     // Update cache with current Firestore data
     firestorePlans.forEach(plan => {
-      const cached = migrateToCachedPlanData(plan);
+      // Pass problemProgress to migration to preserve problem details
+      const cached = migrateToCachedPlanData(plan, plan.progress.problemProgress);
       savePlanToCache(cached);
     });
 

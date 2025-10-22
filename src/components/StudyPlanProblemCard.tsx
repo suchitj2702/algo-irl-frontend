@@ -1,8 +1,8 @@
 // Study Plan Problem Card Component
 // Horizontal card layout for problems within a day schedule
 
-import { useState } from 'react';
-import { Clock, PlayIcon, CheckCircle2, Circle, Bookmark, BookmarkCheck } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Bookmark, BookmarkSolid, CheckCircle, Circle, Clock, Play } from 'iconoir-react';
 import { EnrichedProblem } from '../types/studyPlan';
 import { HotnessBadge } from './HotnessBadge';
 import { HotnessScoreModal } from './HotnessScoreModal';
@@ -21,7 +21,10 @@ interface StudyPlanProblemCardProps {
  displayTitle: string;
  showDifficulty?: boolean;
  onResumeProblem?: () => void;
+ isHighlighted?: boolean;
 }
+
+const ICON_STROKE_WIDTH = 1.75;
 
 export function StudyPlanProblemCard({
  problem,
@@ -35,10 +38,25 @@ export function StudyPlanProblemCard({
  showTopics = true,
  displayTitle,
  showDifficulty = true,
- onResumeProblem
+ onResumeProblem,
+ isHighlighted = false
 }: StudyPlanProblemCardProps) {
  const companyName = getCompanyDisplayName(companyId);
  const [showHotnessModal, setShowHotnessModal] = useState(false);
+ const cardRef = useRef<HTMLDivElement>(null);
+
+ // Auto-scroll to highlighted problem
+ useEffect(() => {
+  if (isHighlighted && cardRef.current) {
+   setTimeout(() => {
+    cardRef.current?.scrollIntoView({
+     behavior: 'smooth',
+     block: 'center',
+     inline: 'nearest'
+    });
+   }, 300); // Delay to allow day expansion animation
+  }
+ }, [isHighlighted]);
 
  const getDifficultyColor = () => {
   switch (problem.difficulty) {
@@ -73,7 +91,14 @@ export function StudyPlanProblemCard({
 
  return (
   <>
-   <div className="bg-panel-muted dark:bg-panel-300 border border-panel-200 dark:border-panel-300 rounded-lg p-4 hover:shadow-md transition-all duration-200">
+   <div
+    ref={cardRef}
+    className={`bg-panel-muted dark:bg-panel-300 border rounded-lg p-4 hover:shadow-md transition-all duration-200 ${
+     isHighlighted
+      ? 'border-indigo-500 dark:border-indigo-400 ring-4 ring-indigo-500/20 dark:ring-indigo-400/20 animate-pulse-subtle shadow-lg shadow-indigo-500/10 dark:shadow-indigo-400/10'
+      : 'border-panel-200 dark:border-panel-300'
+    }`}
+   >
     <div className="flex items-start gap-4">
      {/* Left: Problem Info */}
      <div className="flex-1 min-w-0">
@@ -87,9 +112,9 @@ export function StudyPlanProblemCard({
         }`}
        >
         {isCompleted ? (
-         <CheckCircle2 className="w-3.5 h-3.5" />
+         <CheckCircle className="w-3.5 h-3.5" strokeWidth={ICON_STROKE_WIDTH} />
         ) : (
-         <Circle className="w-3.5 h-3.5" />
+         <Circle className="w-3.5 h-3.5" strokeWidth={ICON_STROKE_WIDTH} />
         )}
        </div>
        <h4 className="text-base font-semibold text-content flex-1 truncate">
@@ -114,7 +139,11 @@ export function StudyPlanProblemCard({
          }`}
          aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark problem'}
         >
-         {isBookmarked ? <BookmarkCheck className="w-3.5 h-3.5 mr-1" /> : <Bookmark className="w-3.5 h-3.5 mr-1" />}
+         {isBookmarked ? (
+          <BookmarkSolid className="w-3.5 h-3.5 mr-1" strokeWidth={ICON_STROKE_WIDTH} />
+         ) : (
+          <Bookmark className="w-3.5 h-3.5 mr-1" strokeWidth={ICON_STROKE_WIDTH} />
+         )}
          <span className="hidden sm:inline">{isBookmarked ? 'Saved' : 'Save'}</span>
         </button>
        )}
@@ -138,7 +167,7 @@ export function StudyPlanProblemCard({
       <div className={`flex items-center gap-3 flex-wrap ${showTopics ? '' : 'mt-2'}`}>
        {/* Estimated Time */}
        <div className="flex items-center gap-1 text-xs text-content-muted dark:text-content-subtle">
-        <Clock className="w-3 h-3" />
+        <Clock className="w-3 h-3" strokeWidth={ICON_STROKE_WIDTH} />
         <span>~{problem.estimatedTimeMinutes} min</span>
        </div>
 
@@ -164,7 +193,7 @@ export function StudyPlanProblemCard({
 
        {isInProgress && !isCompleted && (
         <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 text-[11px] font-medium text-indigo-700 dark:text-indigo-300">
-         <Clock className="w-3 h-3" />
+         <Clock className="w-3 h-3" strokeWidth={ICON_STROKE_WIDTH} />
          In progress
         </span>
        )}
@@ -176,7 +205,7 @@ export function StudyPlanProblemCard({
       onClick={handleActionClick}
       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-[12px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_1px_20px_rgba(0,0,0,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.15),0_2px_30px_rgba(0,0,0,0.4)_inset] active:scale-[0.98] transition-all duration-200 flex-shrink-0"
      >
-      <PlayIcon className="w-3.5 h-3.5" />
+      <Play className="w-3.5 h-3.5" strokeWidth={ICON_STROKE_WIDTH} />
       <span>{actionLabel}</span>
      </button>
     </div>

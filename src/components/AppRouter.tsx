@@ -17,9 +17,10 @@ import { DarkModeProvider } from './DarkModeContext';
 import { Navbar } from './Navbar';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Problem, CodeDetails, TestCase, FormData, Company } from '../types';
-import { StudyPlanConfig, StudyPlanResponse, EnrichedProblem, CachedStudyPlan } from '../types/studyPlan';
+import { StudyPlanConfig, StudyPlanResponse, EnrichedProblem, CachedStudyPlan, StudyPlanViewState } from '../types/studyPlan';
 import { prepareProblem as prepareProblemAPI, generateStudyPlan as generateStudyPlanAPI } from '../utils/api-service';
 import { APIAuthenticationError } from '../utils/api-errors';
+import { saveViewStateToSession, loadViewStateFromSession, createDefaultViewState } from '../utils/viewStateStorage';
 import {
  addProblemToCache,
  getCachedProblem,
@@ -40,8 +41,7 @@ import {
   toggleProblemBookmark as toggleProblemBookmarkFirestore,
   findDuplicateStudyPlanInFirestore,
   getCompletionPercentageFromPlan,
-  saveProblemWithDetails,
-  getProblemDetailsFromFirestore
+  saveProblemWithDetails
 } from '../services/studyPlanFirestoreService';
 import { useDebounceAutoSave } from '../hooks/useDebounceAutoSave';
 import { usePlanProgressState } from '../hooks/usePlanProgressState';
@@ -85,6 +85,9 @@ export function AppRouter() {
  const [resumeProblemId, setResumeProblemId] = useState<string | null>(null);
  const [resumeDataLoaded, setResumeDataLoaded] = useState(false);
 
+ // Navigation state to prevent double-clicks
+ const [isNavigating, setIsNavigating] = useState(false);
+
  // Form state
  const [companyContextFormData, setCompanyContextFormData] = useState<CompanyContextFormData>({
   company: 'meta'
@@ -105,6 +108,16 @@ export function AppRouter() {
  const [planProblems, setPlanProblems] = useState<EnrichedProblem[]>([]);
  const [planProblemMap, setPlanProblemMap] = useState<Record<string, { problem: EnrichedProblem; index: number; day: number }>>({});
  const [currentPlanProblemId, setCurrentPlanProblemId] = useState<string | null>(null);
+ const [studyPlanViewState, setStudyPlanViewState] = useState<StudyPlanViewState>(createDefaultViewState());
+
+ // Track expanded days and filter states from StudyPlanView
+ const [expandedDaysInView, setExpandedDaysInView] = useState<number[]>([]);
+ const [filterStatesInView, setFilterStatesInView] = useState({
+  showTopics: false,
+  showDifficulty: false,
+  showSavedOnly: false,
+  showGuidance: false
+ });
 
  // Use optimistic state management for plan progress
  const {
@@ -234,6 +247,18 @@ export function AppRouter() {
   }
  }, [currentStudyPlanId, initializePlanProgressState]);
 
+ // Helper: Find which day a problem belongs to
+ const findDayForProblem = useCallback((problemId: string): number | undefined => {
+  if (!studyPlanResponse) return undefined;
+
+  for (const day of studyPlanResponse.studyPlan.dailySchedule) {
+   if (day.problems.some(p => p.problemId === problemId)) {
+    return day.day;
+   }
+  }
+  return undefined;
+ }, [studyPlanResponse]);
+
  useEffect(() => {
   syncPlanStructures();
  }, [studyPlanResponse, syncPlanStructures]);
@@ -289,8 +314,9 @@ export function AppRouter() {
        return;
      }
 
-     // Save to cache for next time
-     const cachedData = migrateToCachedPlanData(plan);
+     // Save to cache for next time - PASS problemProgress to migration
+     // This ensures problemDetails are populated from Firestore data
+     const cachedData = migrateToCachedPlanData(plan, plan.progress.problemProgress);
      savePlanToCache(cachedData);
 
      setCurrentStudyPlanId(planId);
@@ -841,6 +867,35 @@ export function AppRouter() {
     return;
    }
 
+   // 🎯 CAPTURE VIEW STATE BEFORE NAVIGATION
+   const currentDayForProblem = findDayForProblem(targetProblemId);
+   const capturedViewState: StudyPlanViewState = {
+    scrollY: window.scrollY,
+    expandedDays: [...expandedDaysInView],
+    showTopics: filterStatesInView.showTopics,
+    showDifficulty: filterStatesInView.showDifficulty,
+    showSavedOnly: filterStatesInView.showSavedOnly,
+    showGuidance: filterStatesInView.showGuidance,
+    currentProblemId: targetProblemId,
+    currentProblemDay: currentDayForProblem,
+    lastUpdated: Date.now()
+   };
+
+   // Save to React state (primary)
+   setStudyPlanViewState(capturedViewState);
+
+   // Save to sessionStorage (backup for page reloads)
+   if (activePlanId) {
+    saveViewStateToSession(activePlanId, capturedViewState);
+   }
+
+   console.log('📸 Captured view state:', {
+    scrollY: capturedViewState.scrollY,
+    expandedDays: capturedViewState.expandedDays,
+    currentProblemId: capturedViewState.currentProblemId,
+    currentProblemDay: capturedViewState.currentProblemDay
+   });
+
    if (!activeStudyPlanConfig) {
     const cachedPlan = getPlanFromCache(activePlanId);
     if (cachedPlan) {
@@ -859,8 +914,8 @@ export function AppRouter() {
 
    setCurrentPlanProblemId(targetProblemId);
 
-   navigate('/loading');
-   setError(null);
+   // CRITICAL FIX: Clear state FIRST to prevent race condition
+   // This ensures we don't briefly render with stale data
    setProblem(null);
    setCodeDetails(null);
    setEvaluationResults(null);
@@ -868,10 +923,61 @@ export function AppRouter() {
    setApiResponseReceived(false);
    setIsResuming(false);
    setResumeProblemId(null);
+   setError(null);
 
    setCurrentStudyPlanId(activePlanId);
 
    const companyId = activeStudyPlanConfig.companyId;
+
+   // 🚀 MAJOR FIX: Check cache BEFORE making API call!
+   // This prevents unnecessary API calls when problem data already exists
+   console.log(`💾 [Start] Checking cache for problem ${targetProblemId}`);
+   const cachedProblem = getProblemFromCache(activePlanId, targetProblemId);
+
+   if (cachedProblem && cachedProblem.problem && cachedProblem.codeDetails) {
+    // Problem exists in cache, use it directly!
+    console.log(`✅ [Start] Found problem in cache, skipping API call`);
+
+    // Navigate to problem page
+    navigate('/loading');
+
+    // Set all the necessary state from cache
+    const uniqueProblemId = buildPlanProblemCacheKey(activePlanId, targetProblemId, companyId);
+
+    // Update problem ID to include the unique cache key
+    const cachedProblemWithUniqueId = {
+     ...cachedProblem.problem,
+     problemId: uniqueProblemId
+    };
+
+    setProblem(cachedProblemWithUniqueId);
+    setCodeDetails(cachedProblem.codeDetails);
+    setSolutionFromSolver(cachedProblem.userCode || cachedProblem.codeDetails.defaultUserCode || '');
+    setCurrentCode(cachedProblem.userCode || cachedProblem.codeDetails.defaultUserCode || '');
+    setCurrentCompanyId(companyId);
+    setApiResponseReceived(true);
+
+    // Mark as in-progress if not already
+    if (!inProgressPlanProblems.has(targetProblemId) && !completedPlanProblems.has(targetProblemId)) {
+     const updatedInProgress = new Set(inProgressPlanProblems);
+     updatedInProgress.add(targetProblemId);
+     initializePlanProgressState(
+       completedPlanProblems,
+       bookmarkedPlanProblems,
+       updatedInProgress
+     );
+    }
+
+    // Navigate to problem page
+    navigate('/study-plan/problem', { replace: true });
+    return;
+   }
+
+   // No cache found, proceed with API call
+   console.log(`🌐 [Start] No cache found for problem ${targetProblemId}, calling API`);
+
+   // Now safe to navigate - state is clean
+   navigate('/loading');
    const companyName = getCompanyDisplayName(companyId);
 
    // Call prepareProblem API with the specific problem ID
@@ -965,6 +1071,15 @@ export function AppRouter() {
     console.warn('⚠️ Using localStorage fallback');
    }
 
+   // 💾 CRITICAL: Save to unified cache for instant future access (Next/Prev navigation)
+   // This prevents re-fetching from API on subsequent navigation
+   updateProblemInCache(activePlanId, targetProblemId, {
+     problem: formattedProblem,
+     codeDetails: formattedCodeDetails,
+     userCode: formattedCodeDetails.defaultUserCode || ''
+   });
+   console.log('💾 Problem saved to unified cache for instant future access');
+
    setApiResponseReceived(true);
    setProblem(formattedProblem);
    setCodeDetails(formattedCodeDetails);
@@ -1017,8 +1132,37 @@ export function AppRouter() {
 
     const companyId = activeStudyPlanConfig.companyId;
 
-    // 1. Check unified cache first (instant - has latest code from auto-save)
-    console.log(`💾 [Resume] Checking cache for problem ${problem.problemId}`);
+    // 🎯 CAPTURE VIEW STATE BEFORE NAVIGATION (Resume/Review flow)
+    const currentDayForProblem = findDayForProblem(problem.problemId);
+    const capturedViewState: StudyPlanViewState = {
+     scrollY: window.scrollY,
+     expandedDays: [...expandedDaysInView],
+     showTopics: filterStatesInView.showTopics,
+     showDifficulty: filterStatesInView.showDifficulty,
+     showSavedOnly: filterStatesInView.showSavedOnly,
+     showGuidance: filterStatesInView.showGuidance,
+     currentProblemId: problem.problemId,
+     currentProblemDay: currentDayForProblem,
+     lastUpdated: Date.now()
+    };
+
+    // Save to React state (primary)
+    setStudyPlanViewState(capturedViewState);
+
+    // Save to sessionStorage (backup for page reloads)
+    if (activePlanId) {
+     saveViewStateToSession(activePlanId, capturedViewState);
+    }
+
+    console.log('📸 Captured view state (Resume/Review):', {
+     scrollY: capturedViewState.scrollY,
+     expandedDays: capturedViewState.expandedDays,
+     currentProblemId: capturedViewState.currentProblemId,
+     currentProblemDay: capturedViewState.currentProblemDay
+    });
+
+    // SIMPLIFIED LOGIC: Check unified cache ONLY (single source of truth)
+    console.log(`💾 [Resume] Checking unified cache for problem ${problem.problemId}`);
     const cachedProblem = getProblemFromCache(activePlanId, problem.problemId);
 
     if (cachedProblem) {
@@ -1039,67 +1183,7 @@ export function AppRouter() {
       return;
     }
 
-    // 2. Check old localStorage format (migration path)
-    console.log(`💾 [Resume] Checking old localStorage format`);
-    const oldKey = `problem_${activePlanId}_${problem.problemId}`;
-    const oldCachedCode = localStorage.getItem(oldKey);
-
-    if (oldCachedCode) {
-      console.log(`💾 [Resume] Found old format cache with ${oldCachedCode.length} chars of code`);
-      // Instead of calling handleResumeProblem (which can redirect to Blind75 on error),
-      // fetch problem details from Firestore and migrate the code
-      const firestoreData = await getProblemDetailsFromFirestore(activePlanId, problem.problemId);
-
-      if (firestoreData) {
-        console.log(`✅ [Resume] Migrated old code to new format`);
-        setCurrentStudyPlanId(activePlanId);
-        setCurrentPlanProblemId(problem.problemId);
-        setCurrentCompanyId(companyId);
-        setIsCompanyContextFlow(false);
-
-        setProblem(firestoreData.problem);
-        setCodeDetails(firestoreData.codeDetails);
-        // Use the old cached code (it might be newer than Firestore)
-        setSolutionFromSolver(oldCachedCode);
-        setCurrentCode(oldCachedCode);
-        setApiResponseReceived(true);
-
-        // Migrate to new cache format
-        updateProblemInCache(activePlanId, problem.problemId, {
-          problem: firestoreData.problem,
-          codeDetails: firestoreData.codeDetails,
-          userCode: oldCachedCode
-        });
-
-        navigate('/study-plan/problem', { replace: true });
-        return;
-      } else {
-        // Firestore doesn't have the problem - fall through to fresh API call
-        console.log(`⚠️ [Resume] Old code found but no Firestore data, starting fresh`);
-      }
-    }
-
-    // 3. Try Firestore as fallback (first access, not in cache yet)
-    console.log(`☁️ [Resume] Not in cache, checking Firestore for first access`);
-    const firestoreData = await getProblemDetailsFromFirestore(activePlanId, problem.problemId);
-
-    if (firestoreData) {
-      console.log(`✅ [Resume] Loaded from Firestore with ${firestoreData.code.length} chars of code`);
-      setCurrentStudyPlanId(activePlanId);
-      setCurrentPlanProblemId(problem.problemId);
-      setCurrentCompanyId(companyId);
-      setIsCompanyContextFlow(false);
-
-      setProblem(firestoreData.problem);
-      setCodeDetails(firestoreData.codeDetails);
-      setSolutionFromSolver(firestoreData.code);
-      setCurrentCode(firestoreData.code);
-      setApiResponseReceived(true);
-      navigate('/study-plan/problem', { replace: true });
-      return;
-    }
-
-    // 4. No cached data anywhere, start problem fresh from API
+    // No cache - fetch fresh from API (same as starting new)
     console.log(`🆕 [Resume] No cached data found, starting fresh from API`);
     await handleStartProblemFromPlan(problem, activePlanId);
    } catch (resumeErr) {
@@ -1119,10 +1203,16 @@ export function AppRouter() {
     }
    }
   },
-  [currentStudyPlanId, handleStartProblemFromPlan, studyPlanConfig, navigate]
+  [currentStudyPlanId, handleStartProblemFromPlan, studyPlanConfig, navigate, findDayForProblem, expandedDaysInView, filterStatesInView, saveViewStateToSession]
  );
 
  const handleNavigateStudyPlanProblem = useCallback(async (direction: 'next' | 'prev') => {
+  // Prevent double navigation
+  if (isNavigating) {
+   console.log('[Navigation] Already navigating, ignoring request');
+   return;
+  }
+
   if (!currentStudyPlanId || !currentPlanProblemId || planProblems.length === 0) {
    return;
   }
@@ -1137,36 +1227,41 @@ export function AppRouter() {
   const targetProblem = planProblems[targetIndex];
   if (!targetProblem) return;
 
-  let shouldResume = inProgressPlanProblems.has(targetProblem.problemId);
-
-  if (!shouldResume) {
+  setIsNavigating(true);
+  try {
    const activePlanId = currentStudyPlanId;
-   if (activePlanId) {
-    let companyForPlan = studyPlanConfig?.companyId;
-    if (!companyForPlan) {
-     const cachedPlan = getPlanFromCache(activePlanId);
-     companyForPlan = cachedPlan?.config.companyId;
-    }
 
-    if (companyForPlan) {
-     const cacheKey = buildPlanProblemCacheKey(activePlanId, targetProblem.problemId, companyForPlan);
-     const cachedEntry = getCachedProblem(cacheKey);
-     shouldResume = Boolean(cachedEntry);
-    }
+   // 🔍 CRITICAL FIX: ALWAYS check unified cache FIRST - it's the source of truth
+   const cachedProblem = getProblemFromCache(activePlanId, targetProblem.problemId);
+
+   // If we have ANY cached data (including completed problems), use resume flow (faster, no API call)
+   const shouldResume = Boolean(cachedProblem) ||
+                        inProgressPlanProblems.has(targetProblem.problemId) ||
+                        completedPlanProblems.has(targetProblem.problemId);
+
+   console.log(`[Navigation] ${direction} to ${targetProblem.title}:`, {
+    hasCachedData: Boolean(cachedProblem),
+    isInProgress: inProgressPlanProblems.has(targetProblem.problemId),
+    isCompleted: completedPlanProblems.has(targetProblem.problemId),
+    shouldResume
+   });
+
+   if (shouldResume) {
+    await handleResumeStudyPlanProblem(targetProblem, currentStudyPlanId);
+   } else {
+    await handleStartProblemFromPlan(targetProblem, currentStudyPlanId);
    }
-  }
-
-  if (shouldResume) {
-   handleResumeStudyPlanProblem(targetProblem, currentStudyPlanId);
-  } else {
-   handleStartProblemFromPlan(targetProblem, currentStudyPlanId);
+  } finally {
+   setIsNavigating(false);
   }
  }, [
+  isNavigating,
   currentPlanProblemId,
   currentStudyPlanId,
   handleResumeStudyPlanProblem,
   handleStartProblemFromPlan,
   inProgressPlanProblems,
+  completedPlanProblems,
   planProblemMap,
   planProblems,
   studyPlanConfig
@@ -1285,6 +1380,23 @@ export function AppRouter() {
   await action();
  }, [currentStudyPlanId, currentPlanProblemId, forceFullSync]);
 
+ // Non-blocking navigation with background save (like View Plan button)
+ const navigateWithBackgroundSave = useCallback((action: () => void | Promise<void>) => {
+  // Save in background (non-blocking) if needed
+  if (currentStudyPlanId && currentPlanProblemId) {
+    const hasAnyPendingChanges = hasPendingProgressChanges || hasPendingPlanChanges;
+    if (hasAnyPendingChanges) {
+      console.log('💾 [Navigation] Starting background save...');
+      forceFullSync()
+        .then(() => console.log('✅ [Background Save] Completed'))
+        .catch(error => console.error('❌ [Background Save] Failed:', error));
+    }
+  }
+
+  // Execute action IMMEDIATELY - don't wait for save
+  action();
+ }, [currentStudyPlanId, currentPlanProblemId, forceFullSync, hasPendingProgressChanges, hasPendingPlanChanges]);
+
  // Force sync before sign-out to prevent data loss
  const handleBeforeSignOut = useCallback(async () => {
   console.log('🔄 [Sign-Out] Force syncing before sign-out...');
@@ -1324,8 +1436,8 @@ export function AppRouter() {
    isInProgress: inProgressPlanProblems.has(currentPlanProblemId),
    hasNext: info.index < total - 1,
    hasPrev: info.index > 0,
-   onNext: () => saveBeforeAction(() => handleNavigateStudyPlanProblem('next')),
-   onPrev: () => saveBeforeAction(() => handleNavigateStudyPlanProblem('prev')),
+   onNext: () => navigateWithBackgroundSave(() => handleNavigateStudyPlanProblem('next')),
+   onPrev: () => navigateWithBackgroundSave(() => handleNavigateStudyPlanProblem('prev')),
    onRegenerate: () => saveBeforeAction(handleRegenerateCurrentPlanProblem),
    onToggleBookmark: handleToggleBookmarkForCurrentProblem,
    onToggleCompletion: handleManualPlanCompletionToggle,
@@ -1339,6 +1451,7 @@ export function AppRouter() {
   currentPlanProblemId,
   currentStudyPlanId,
   saveBeforeAction,
+  navigateWithBackgroundSave,
   handleManualPlanCompletionToggle,
   handleNavigateStudyPlanProblem,
   handleRegenerateCurrentPlanProblem,
@@ -1531,6 +1644,9 @@ export function AppRouter() {
          onToggleBookmark={handleToggleBookmarkForProblem}
          inProgressProblems={inProgressPlanProblems}
          onResumeProblem={handleResumeStudyPlanProblem}
+         viewState={studyPlanViewState}
+         onExpandedDaysChange={setExpandedDaysInView}
+         onFilterStatesChange={setFilterStatesInView}
         />
        ) : (
         <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">

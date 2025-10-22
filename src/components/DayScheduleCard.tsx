@@ -1,8 +1,7 @@
 // Day Schedule Card Component
 // Accordion-style card for each day in the study plan
 
-import { useState } from 'react';
-import { ChevronDown, Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, NavArrowDown } from 'iconoir-react';
 import { DaySchedule, EnrichedProblem } from '../types/studyPlan';
 import { StudyPlanProblemCard } from './StudyPlanProblemCard';
 import { getCompanyDisplayName } from '../utils/companyDisplay';
@@ -19,12 +18,16 @@ interface DayScheduleCardProps {
  inProgressProblems?: Set<string>;
  onResumeProblem?: (problem: EnrichedProblem, planId?: string) => void;
  isExpanded?: boolean;
+ onToggleExpand?: () => void;
  showTopics: boolean;
  showDifficulty: boolean;
  showSavedOnly: boolean;
  problemOrderMap: Record<string, number>;
  cachedProblemTitles: Record<string, string>;
+ highlightedProblemId?: string;
 }
+
+const ICON_STROKE_WIDTH = 1.75;
 
 export function DayScheduleCard({
  day,
@@ -37,15 +40,16 @@ export function DayScheduleCard({
  onToggleBookmark,
  inProgressProblems,
  onResumeProblem,
- isExpanded: initialExpanded = false,
+ isExpanded = false,
+ onToggleExpand,
  showTopics,
  showDifficulty,
  showSavedOnly,
  problemOrderMap,
- cachedProblemTitles
+ cachedProblemTitles,
+ highlightedProblemId
 }: DayScheduleCardProps) {
  const companyName = getCompanyDisplayName(companyId);
- const [isExpanded, setIsExpanded] = useState(initialExpanded);
 
  const formattedDate = new Date(day.date).toLocaleDateString('en-US', {
   weekday: 'long',
@@ -60,7 +64,7 @@ export function DayScheduleCard({
   <div className="bg-panel-100 dark:bg-panel-300 rounded-lg shadow-md border border-panel-200 dark:border-panel-300 overflow-hidden transition-all duration-200 hover:shadow-lg">
    {/* Card Header - Always Visible */}
    <button
-    onClick={() => setIsExpanded(!isExpanded)}
+    onClick={onToggleExpand}
     className="w-full px-6 py-4 flex items-center justify-between hover:bg-panel-accent dark:hover:bg-panel-300 transition-colors"
    >
     <div className="flex items-center gap-4">
@@ -78,11 +82,11 @@ export function DayScheduleCard({
       </h3>
       <div className="flex items-center gap-3 mt-1">
        <div className="flex items-center gap-1 text-xs text-content-muted dark:text-content-subtle">
-        <Calendar className="w-3 h-3" />
+        <Calendar className="w-3 h-3" strokeWidth={ICON_STROKE_WIDTH} />
         <span>{formattedDate}</span>
        </div>
        <div className="flex items-center gap-1 text-xs text-content-muted dark:text-content-subtle">
-        <Clock className="w-3 h-3" />
+        <Clock className="w-3 h-3" strokeWidth={ICON_STROKE_WIDTH} />
         <span>{day.estimatedHours.toFixed(1)}h</span>
        </div>
       </div>
@@ -102,10 +106,11 @@ export function DayScheduleCard({
      </div>
 
      {/* Expand/Collapse Icon */}
-     <ChevronDown
+     <NavArrowDown
       className={`w-5 h-5 text-content-subtle transition-transform duration-200 ${
        isExpanded ? 'rotate-180' : ''
       }`}
+      strokeWidth={ICON_STROKE_WIDTH}
      />
     </div>
    </button>
@@ -153,6 +158,7 @@ export function DayScheduleCard({
         onStartProblem={() => onStartProblem(problem, studyPlanId)}
         showTopics={showTopics}
         onResumeProblem={resumeHandler}
+        isHighlighted={highlightedProblemId === problem.problemId}
        />
       );
      })}

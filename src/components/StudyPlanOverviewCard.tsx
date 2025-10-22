@@ -2,7 +2,16 @@
 // Displays high-level statistics, momentum, and quality metrics for the study plan
 
 import { useState } from 'react';
-import { Clock, Calendar, BookOpen, CheckCircle, Info, TrendingUp, Flag, X } from 'lucide-react';
+import {
+ Calendar,
+ Clock,
+ InfoCircle,
+ StatsUpSquare,
+ TriangleFlag,
+ Xmark,
+ OpenBook,
+ CheckCircle
+} from 'iconoir-react';
 import { StudyPlanResponse, ROLE_OPTIONS } from '../types/studyPlan';
 import { getCompanyDisplayName } from '../utils/companyDisplay';
 
@@ -14,9 +23,11 @@ interface StudyPlanOverviewCardProps {
   completedCount: number;
   totalProblems: number;
   bookmarkedCount?: number;
-  inProgressCount?: number;
+ inProgressCount?: number;
  };
 }
+
+const ICON_STROKE_WIDTH = 1.75;
 
 export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyPlanOverviewCardProps) {
  const companyName = getCompanyDisplayName(companyId);
@@ -129,7 +140,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
      <div>
       <div className="flex items-center gap-1.5">
        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
-        <TrendingUp className="h-3.5 w-3.5" />
+        <StatsUpSquare className="h-3.5 w-3.5" strokeWidth={ICON_STROKE_WIDTH} />
         Completion Likelihood
        </span>
        <button
@@ -138,7 +149,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
         aria-label="About completion likelihood"
         title="How this metric works"
        >
-        <Info className="w-3 h-3" />
+        <InfoCircle className="w-3 h-3" strokeWidth={ICON_STROKE_WIDTH} />
        </button>
       </div>
       <div className={`mt-3 text-3xl font-extrabold ${probabilityTextClass}`}>
@@ -154,7 +165,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
      <div className="flex items-start justify-between gap-4">
       <div>
        <span className="inline-flex items-center gap-1 rounded-full bg-teal-500/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300">
-        <Flag className="h-3.5 w-3.5" />
+        <TriangleFlag className="h-3.5 w-3.5" strokeWidth={ICON_STROKE_WIDTH} />
         Timeline Status
        </span>
        <div className="mt-3 text-2xl font-bold text-teal-800 dark:text-teal-200">
@@ -197,21 +208,21 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
     <div className="flex flex-nowrap items-center divide-x divide-emerald-400/50 dark:divide-emerald-500/40">
      <div className="flex items-center gap-2 pr-3">
       <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-       <BookOpen className="h-4 w-4" />
+       <OpenBook className="h-4 w-4" strokeWidth={ICON_STROKE_WIDTH} />
       </span>
       <div>
        <div className="text-sm font-semibold text-emerald-800 dark:text-emerald-200 leading-tight">
-         {totalProblems}
-        </div>
-        <div className="text-[11px] uppercase tracking-wide text-emerald-700/70 dark:text-emerald-400/80">
-         Problems
-        </div>
+        {totalProblems}
+       </div>
+       <div className="text-[11px] uppercase tracking-wide text-emerald-700/70 dark:text-emerald-400/80">
+        Problems
        </div>
       </div>
+     </div>
 
      <div className="flex items-center gap-2 px-3">
       <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-       <Calendar className="h-4 w-4" />
+       <Calendar className="h-4 w-4" strokeWidth={ICON_STROKE_WIDTH} />
       </span>
       <div>
        <div className="text-sm font-semibold text-emerald-800 dark:text-emerald-200 leading-tight">
@@ -225,7 +236,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
 
      <div className="flex items-center gap-2 pl-3">
       <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-       <Clock className="h-4 w-4" />
+       <Clock className="h-4 w-4" strokeWidth={ICON_STROKE_WIDTH} />
       </span>
       <div>
        <div className="text-sm font-semibold text-emerald-800 dark:text-emerald-200 leading-tight">
@@ -242,7 +253,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
    {/* Quality Metrics */}
    <div className="grid gap-3 sm:grid-cols-2">
     <div className="flex items-start gap-2 rounded-lg border border-emerald-200/70 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-900/20 px-3 py-2.5">
-     <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+     <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" strokeWidth={ICON_STROKE_WIDTH} />
      <div>
       <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100 leading-tight">
        {quality.actualCompanyProblems} actually asked at {companyName}
@@ -255,7 +266,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
 
     {quality.extrapolatedProblems > 0 && (
      <div className="flex items-start gap-2 rounded-lg border border-teal-200/70 dark:border-teal-800 bg-teal-50/70 dark:bg-teal-900/20 px-3 py-2.5">
-      <Info className="h-5 w-5 text-teal-600 dark:text-teal-400 flex-shrink-0 mt-0.5" />
+      <InfoCircle className="h-5 w-5 text-teal-600 dark:text-teal-400 flex-shrink-0 mt-0.5" strokeWidth={ICON_STROKE_WIDTH} />
       <div>
        <p className="text-sm font-semibold text-teal-900 dark:text-teal-100 leading-tight">
         {quality.extrapolatedProblems} recommended for {roleArticle} {roleDisplayName} role at {companyName}
@@ -297,12 +308,12 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
        className="absolute top-4 right-4 text-content-muted dark:text-content-subtle hover:text-content dark:hover:text-button-foreground transition-colors"
        aria-label="Close"
       >
-       <X className="w-5 h-5" />
+       <Xmark className="w-5 h-5" strokeWidth={ICON_STROKE_WIDTH} />
       </button>
 
       {/* Title */}
       <h2 className="text-2xl font-bold text-content mb-4 pr-8 flex items-center gap-2">
-       <TrendingUp className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+       <StatsUpSquare className="w-6 h-6 text-emerald-600 dark:text-emerald-400" strokeWidth={ICON_STROKE_WIDTH} />
        Completion Likelihood
       </h2>
 

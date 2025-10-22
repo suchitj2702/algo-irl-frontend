@@ -1,10 +1,11 @@
-import { useMemo, useState, useEffect } from 'react';
-import { ArrowLeft, Info, X } from 'lucide-react';
-import { StudyPlanResponse, EnrichedProblem, ROLE_OPTIONS } from '../../../types/studyPlan';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import { ArrowLeft } from 'iconoir-react';
+import { StudyPlanResponse, EnrichedProblem, ROLE_OPTIONS, StudyPlanViewState } from '../../../types/studyPlan';
 import { StudyPlanOverviewCard } from '../../StudyPlanOverviewCard';
 import { DayScheduleCard } from '../../DayScheduleCard';
 import { getAllCachedProblems, parseProblemCacheKey } from '../../../utils/cache';
 import { getCompanyDisplayName } from '../../../utils/companyDisplay';
+import { warmUpCacheForPlan } from '../../../services/studyPlanCacheService';
 
 interface StudyPlanViewProps {
  studyPlan: StudyPlanResponse;
@@ -17,6 +18,9 @@ interface StudyPlanViewProps {
  onToggleBookmark?: (problemId: string) => void;
  inProgressProblems?: Set<string>;
  onResumeProblem?: (problem: EnrichedProblem, planId?: string) => void;
+ viewState?: StudyPlanViewState | null;
+ onExpandedDaysChange?: (days: number[]) => void;
+ onFilterStatesChange?: (filters: { showTopics: boolean; showDifficulty: boolean; showSavedOnly: boolean; showGuidance: boolean }) => void;
 }
 
 export function StudyPlanView({
@@ -29,14 +33,29 @@ export function StudyPlanView({
  bookmarkedProblems,
  onToggleBookmark,
  inProgressProblems,
- onResumeProblem
+ onResumeProblem,
+ viewState,
+ onExpandedDaysChange,
+ onFilterStatesChange
 }: StudyPlanViewProps) {
  const { studyPlan: plan } = studyPlan;
  const { metadata, dailySchedule } = plan;
- const [showTopics, setShowTopics] = useState(false);
- const [showDifficulty, setShowDifficulty] = useState(false);
- const [showSavedOnly, setShowSavedOnly] = useState(false);
- const [showGuidance, setShowGuidance] = useState(false);
+
+ // Initialize filter states from viewState if provided, otherwise defaults
+ const [showTopics, setShowTopics] = useState(viewState?.showTopics ?? false);
+ const [showDifficulty, setShowDifficulty] = useState(viewState?.showDifficulty ?? false);
+ const [showSavedOnly, setShowSavedOnly] = useState(viewState?.showSavedOnly ?? false);
+ const [showGuidance, setShowGuidance] = useState(viewState?.showGuidance ?? false);
+
+ // Track which days are expanded (controlled state)
+ const [expandedDays, setExpandedDays] = useState<number[]>(viewState?.expandedDays ?? []);
+
+ // Track highlighted problem for visual feedback
+ const [highlightedProblemId, setHighlightedProblemId] = useState<string | undefined>(viewState?.currentProblemId);
+
+ // Ref to track if we've restored scroll position already
+ const hasRestoredScroll = useRef(false);
+
  const companyName = getCompanyDisplayName(companyId);
  const problemOrderMap = useMemo(() => {
   const orderMap: Record<string, number> = {};
@@ -114,8 +133,79 @@ export function StudyPlanView({
  const roleOption = ROLE_OPTIONS.find(r => r.id === metadata.role);
  const roleName = roleOption?.name || metadata.role;
 
+ // 🔥 Warm up cache on mount for better performance
+ useEffect(() => {
+  if (studyPlanId) {
+   // Warm up cache in background - non-blocking
+   warmUpCacheForPlan(studyPlanId).catch(err => {
+    console.warn('[Cache] Failed to warm up cache:', err);
+   });
+  }
+ }, [studyPlanId]);
+
+ // 🔄 Notify parent when filter states change
+ useEffect(() => {
+  onFilterStatesChange?.({
+   showTopics,
+   showDifficulty,
+   showSavedOnly,
+   showGuidance
+  });
+ }, [showTopics, showDifficulty, showSavedOnly, showGuidance, onFilterStatesChange]);
+
+ // 🔄 Notify parent when expanded days change
+ useEffect(() => {
+  onExpandedDaysChange?.(expandedDays);
+ }, [expandedDays, onExpandedDaysChange]);
+
+ // 🎯 Restore scroll position and highlight problem on mount
+ useEffect(() => {
+  if (!viewState || hasRestoredScroll.current) return;
+
+  // Auto-expand the day containing the current problem if needed
+  if (viewState.currentProblemDay !== undefined && !expandedDays.includes(viewState.currentProblemDay)) {
+   setExpandedDays(prev => [...prev, viewState.currentProblemDay!]);
+  }
+
+  // Restore scroll position after a brief delay to allow DOM to render
+  requestAnimationFrame(() => {
+   requestAnimationFrame(() => {
+    window.scrollTo({
+     top: viewState.scrollY,
+     behavior: 'smooth'
+    });
+    hasRestoredScroll.current = true;
+
+    console.log('📜 Restored view state:', {
+     scrollY: viewState.scrollY,
+     expandedDays: viewState.expandedDays,
+     highlightedProblem: viewState.currentProblemId
+    });
+   });
+  });
+
+  // Clear highlight after 3 seconds
+  if (highlightedProblemId) {
+   const timer = setTimeout(() => {
+    setHighlightedProblemId(undefined);
+   }, 3000);
+   return () => clearTimeout(timer);
+  }
+ }, [viewState, expandedDays, highlightedProblemId]);
+
+ // Handler for toggling day expansion
+ const handleToggleDayExpansion = (dayNumber: number) => {
+  setExpandedDays(prev => {
+   if (prev.includes(dayNumber)) {
+    return prev.filter(d => d !== dayNumber);
+   } else {
+    return [...prev, dayNumber];
+   }
+  });
+ };
+
  return (
-  <div className="min-h-[calc(100vh-3.5rem)] bg-surface dark:bg-surface py-8 px-4">
+  <div className="min-h-[calc(100vh-3.5rem)] bg-surface dark:bg-surface py-8 px-4 font-sans">
    <div className="max-w-6xl mx-auto">
     {/* Header */}
     <div className="mb-8">
@@ -123,12 +213,12 @@ export function StudyPlanView({
       onClick={onBack}
       className="flex items-center gap-2 text-content-muted dark:text-content-subtle hover:text-content dark:hover:text-button-foreground transition-colors mb-4"
      >
-      <ArrowLeft className="w-4 h-4" />
+      <ArrowLeft className="w-4 h-4" strokeWidth={1.75} />
       <span className="text-sm font-medium">Back to Form</span>
      </button>
 
      <div className="flex flex-wrap items-center gap-3 mb-2">
-      <h1 className="text-3xl font-bold text-content">
+      <h1 className="text-3xl font-bold text-content font-playfair">
        Your Study Plan
       </h1>
       <div className="flex items-center gap-2">
@@ -164,7 +254,7 @@ export function StudyPlanView({
     {/* Daily Schedule */}
     <div className="space-y-4">
      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-      <h2 className="text-2xl font-bold text-content">
+      <h2 className="text-2xl font-bold text-content font-playfair">
        Daily Schedule
       </h2>
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -249,14 +339,16 @@ export function StudyPlanView({
        showSavedOnly={showSavedOnly}
        problemOrderMap={problemOrderMap}
        cachedProblemTitles={cachedPlanProblemTitles}
-       isExpanded={index === 0} // Expand first day by default
+       isExpanded={expandedDays.includes(day.day)}
+       onToggleExpand={() => handleToggleDayExpansion(day.day)}
+       highlightedProblemId={highlightedProblemId}
       />
      ))}
     </div>
 
     {/* Footer Info */}
     <div className="mt-12 p-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-     <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+     <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2 font-playfair">
       💡 How to Use This Study Plan
      </h3>
      <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
