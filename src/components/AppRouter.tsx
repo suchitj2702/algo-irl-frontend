@@ -56,6 +56,7 @@ import {
 } from '../services/studyPlanCacheService';
 import { getCompanyDisplayName } from '../utils/companyDisplay';
 import { extractCleanProblemTitle } from '../utils/problemTitleExtractor';
+import { saveBlind75ViewState, loadBlind75ViewState, Blind75ViewState, createDefaultBlind75ViewState } from '../utils/blind75ViewState';
 
 interface TestResultsFromParent {
  passed: boolean;
@@ -87,6 +88,10 @@ export function AppRouter() {
 
  // Navigation state to prevent double-clicks
  const [isNavigating, setIsNavigating] = useState(false);
+
+ // Blind75 view state tracking
+ const [blind75ViewState, setBlind75ViewState] = useState<Blind75ViewState>(createDefaultBlind75ViewState());
+ const [returnToBlind75, setReturnToBlind75] = useState(false);
 
  // Form state
  const [companyContextFormData, setCompanyContextFormData] = useState<CompanyContextFormData>({
@@ -355,6 +360,27 @@ export function AppRouter() {
 
  // Handle practice with company context
  const handlePracticeWithContext = (problemSlug: string) => {
+  // 🎯 CAPTURE VIEW STATE BEFORE NAVIGATION (for Blind75 back button)
+  const capturedViewState: Blind75ViewState = {
+    scrollY: window.scrollY,
+    lastViewedProblemSlug: problemSlug,
+    lastUpdated: Date.now()
+  };
+
+  // Save to React state (primary)
+  setBlind75ViewState(capturedViewState);
+
+  // Save to sessionStorage (backup for page reloads)
+  saveBlind75ViewState(capturedViewState);
+
+  // Set flag to show back button in ProblemSolver
+  setReturnToBlind75(true);
+
+  console.log('📸 Captured Blind75 view state:', {
+    scrollY: capturedViewState.scrollY,
+    problemSlug: capturedViewState.lastViewedProblemSlug
+  });
+
   // Clear ref when leaving study plan context
   activeProblemIdRef.current = null;
 
@@ -493,6 +519,30 @@ export function AppRouter() {
 
  const handleResumeProblem = async (problemId: string) => {
   try {
+   // 🎯 CAPTURE VIEW STATE BEFORE NAVIGATION (for Blind75 back button)
+   // Extract problem slug from problemId (format: "slug_companyId")
+   const problemSlug = problemId.split('_')[0];
+
+   const capturedViewState: Blind75ViewState = {
+     scrollY: window.scrollY,
+     lastViewedProblemSlug: problemSlug,
+     lastUpdated: Date.now()
+   };
+
+   // Save to React state (primary)
+   setBlind75ViewState(capturedViewState);
+
+   // Save to sessionStorage (backup for page reloads)
+   saveBlind75ViewState(capturedViewState);
+
+   // Set flag to show back button in ProblemSolver
+   setReturnToBlind75(true);
+
+   console.log('📸 Captured Blind75 view state (Resume):', {
+     scrollY: capturedViewState.scrollY,
+     problemSlug: capturedViewState.lastViewedProblemSlug
+   });
+
    // CRITICAL FIX: Update ref immediately (for Blind75 resume)
    activeProblemIdRef.current = problemId;
 
@@ -1494,6 +1544,31 @@ export function AppRouter() {
   }
  }, [currentStudyPlanId, currentPlanProblemId, currentCode, forceFullSync]);
 
+ // Handle return to Blind75 with view state restoration
+ const handleReturnToBlind75 = useCallback(() => {
+  console.log('⚡ [Return to Blind75] Navigating with view state');
+
+  // Load view state from sessionStorage as backup (in case React state lost)
+  const sessionViewState = loadBlind75ViewState();
+  const viewStateToUse = sessionViewState || blind75ViewState;
+
+  console.log('📜 Restoring Blind75 view state:', {
+    scrollY: viewStateToUse.scrollY,
+    problemSlug: viewStateToUse.lastViewedProblemSlug
+  });
+
+  // Navigate to Blind75 with state
+  navigate('/blind75', {
+    state: {
+      viewState: viewStateToUse,
+      highlightedProblemSlug: viewStateToUse.lastViewedProblemSlug
+    }
+  });
+
+  // Reset flag
+  setReturnToBlind75(false);
+ }, [navigate, blind75ViewState]);
+
  const studyPlanSolverContext = useMemo(() => {
   // CRITICAL FIX: Only provide context on study plan routes
   // This prevents study plan toolbar from appearing on Blind75 routes
@@ -1589,6 +1664,8 @@ export function AppRouter() {
       <Blind75
        onPracticeWithContext={handlePracticeWithContext}
        onResumeProblem={handleResumeProblem}
+       highlightedProblemSlug={location.state?.highlightedProblemSlug}
+       viewState={location.state?.viewState}
       />
      } />
 
@@ -1638,6 +1715,7 @@ export function AppRouter() {
         testResults={evaluationResults}
         onSolveAnother={handleSolveAnother}
         studyPlanContext={studyPlanSolverContext}
+        onReturnToBlind75={returnToBlind75 ? handleReturnToBlind75 : undefined}
        />
       ) : (
        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">

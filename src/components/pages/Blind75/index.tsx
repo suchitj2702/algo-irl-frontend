@@ -1,21 +1,72 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { PlayIcon, CheckCircleIcon, ClockIcon, TrashIcon, AlertTriangleIcon, XIcon } from 'lucide-react';
 import { getAllCachedProblems, CachedProblem, clearCache } from '../../../utils/cache';
 import { blind75Data } from '../../../constants/blind75';
+import { Blind75ViewState } from '../../../utils/blind75ViewState';
 
 interface Blind75Props {
  onPracticeWithContext: (problemSlug: string) => void;
  onResumeProblem: (problemId: string) => void;
+ highlightedProblemSlug?: string;
+ viewState?: Blind75ViewState | null;
 }
 
-export function Blind75({ onPracticeWithContext, onResumeProblem }: Blind75Props) {
+export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedProblemSlug, viewState }: Blind75Props) {
  const [cachedProblems, setCachedProblems] = useState<CachedProblem[]>([]);
  const [showResetConfirmation, setShowResetConfirmation] = useState(false);
+ const [highlightedProblem, setHighlightedProblem] = useState<string | undefined>(highlightedProblemSlug);
+ const problemRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
  useEffect(() => {
   const problems = getAllCachedProblems();
   setCachedProblems(problems);
  }, []);
+
+ // 🎯 Restore scroll position and highlight problem on mount
+ useEffect(() => {
+  if (!viewState) return;
+
+  // Restore scroll position after DOM renders
+  requestAnimationFrame(() => {
+   requestAnimationFrame(() => {
+    window.scrollTo({
+     top: viewState.scrollY,
+     behavior: 'smooth'
+    });
+
+    // Scroll highlighted problem into view
+    if (viewState.lastViewedProblemSlug && problemRefs.current[viewState.lastViewedProblemSlug]) {
+     setTimeout(() => {
+      problemRefs.current[viewState.lastViewedProblemSlug!]?.scrollIntoView({
+       behavior: 'smooth',
+       block: 'center',
+       inline: 'nearest'
+      });
+     }, 300);
+    }
+
+    // Set highlighted problem from viewState
+    if (viewState.lastViewedProblemSlug) {
+     setHighlightedProblem(viewState.lastViewedProblemSlug);
+    }
+
+    console.log('📜 Restored Blind75 view state:', {
+     scrollY: viewState.scrollY,
+     highlightedProblem: viewState.lastViewedProblemSlug
+    });
+   });
+  });
+ }, [viewState]);
+
+ // Clear highlight after 3 seconds (separate effect)
+ useEffect(() => {
+  if (highlightedProblem) {
+   const timer = setTimeout(() => {
+    setHighlightedProblem(undefined);
+   }, 3000);
+   return () => clearTimeout(timer);
+  }
+ }, [highlightedProblem]);
 
  // Helper function to convert slug to title
  const slugToTitle = (slug: string): string => {
@@ -377,12 +428,23 @@ export function Blind75({ onPracticeWithContext, onResumeProblem }: Blind75Props
          return (
           <div
            key={problem.slug}
-           className={`flex items-center justify-between p-3 rounded-md border transition-colors duration-200 ${
-            status === 'solved'
+           ref={(el) => { problemRefs.current[problem.slug] = el; }}
+           className={`flex items-center justify-between p-3 rounded-md border transition-all duration-200 ${
+            highlightedProblem === problem.slug
+             ? 'border-indigo-500 dark:border-indigo-400 ring-4 ring-indigo-500/20 dark:ring-indigo-400/20 shadow-lg shadow-indigo-500/10 dark:shadow-indigo-400/10'
+             : status === 'solved'
              ? 'bg-mint-light/40 dark:bg-green-900/10 border-sage/30 dark:border-green-800/30'
              : status === 'in_progress'
              ? 'bg-mint-light/30 dark:bg-yellow-900/10 border-mint/30 dark:border-yellow-800/30'
              : 'bg-panel-muted dark:bg-panel-300 border-panel-200 dark:border-panel-300'
+           } ${
+            highlightedProblem === problem.slug && status === 'solved'
+             ? 'bg-mint-light/40 dark:bg-green-900/10'
+             : highlightedProblem === problem.slug && status === 'in_progress'
+             ? 'bg-mint-light/30 dark:bg-yellow-900/10'
+             : highlightedProblem === problem.slug
+             ? 'bg-panel-muted dark:bg-panel-300'
+             : ''
            }`}
           >
            <div className="flex-1 min-w-0">
