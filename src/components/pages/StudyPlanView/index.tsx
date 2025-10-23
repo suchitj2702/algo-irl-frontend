@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef, useReducer, useCallback } from 'react';
 import { ArrowLeft } from 'iconoir-react';
 import { Sparkles } from 'lucide-react';
 import { StudyPlanResponse, EnrichedProblem, ROLE_OPTIONS, StudyPlanViewState } from '../../../types/studyPlan';
@@ -7,6 +7,43 @@ import { DayScheduleCard } from '../../DayScheduleCard';
 import { getCompanyDisplayName } from '../../../utils/companyDisplay';
 import { warmUpCacheForPlan, getPlanFromCache } from '../../../services/studyPlanCacheService';
 import { isBlind75StudyPlan } from '../../../utils/studyPlanDataset';
+
+// Filter state reducer for batched updates
+type FilterAction =
+ | { type: 'TOGGLE_TOPICS' }
+ | { type: 'TOGGLE_DIFFICULTY' }
+ | { type: 'TOGGLE_SAVED_ONLY' }
+ | { type: 'TOGGLE_GUIDANCE' }
+ | { type: 'INIT_FROM_VIEW_STATE'; payload: StudyPlanViewState };
+
+interface FilterState {
+ showTopics: boolean;
+ showDifficulty: boolean;
+ showSavedOnly: boolean;
+ showGuidance: boolean;
+}
+
+const filterReducer = (state: FilterState, action: FilterAction): FilterState => {
+ switch (action.type) {
+  case 'TOGGLE_TOPICS':
+   return { ...state, showTopics: !state.showTopics };
+  case 'TOGGLE_DIFFICULTY':
+   return { ...state, showDifficulty: !state.showDifficulty };
+  case 'TOGGLE_SAVED_ONLY':
+   return { ...state, showSavedOnly: !state.showSavedOnly };
+  case 'TOGGLE_GUIDANCE':
+   return { ...state, showGuidance: !state.showGuidance };
+  case 'INIT_FROM_VIEW_STATE':
+   return {
+    showTopics: action.payload.showTopics ?? false,
+    showDifficulty: action.payload.showDifficulty ?? false,
+    showSavedOnly: action.payload.showSavedOnly ?? false,
+    showGuidance: action.payload.showGuidance ?? false
+   };
+  default:
+   return state;
+ }
+};
 
 interface StudyPlanViewProps {
  studyPlan: StudyPlanResponse;
@@ -45,11 +82,13 @@ export function StudyPlanView({
  const { metadata, dailySchedule } = plan;
  const isBlind75Plan = isBlind75StudyPlan(datasetType, dailySchedule);
 
- // Initialize filter states from viewState if provided, otherwise defaults
- const [showTopics, setShowTopics] = useState(viewState?.showTopics ?? false);
- const [showDifficulty, setShowDifficulty] = useState(viewState?.showDifficulty ?? false);
- const [showSavedOnly, setShowSavedOnly] = useState(viewState?.showSavedOnly ?? false);
- const [showGuidance, setShowGuidance] = useState(viewState?.showGuidance ?? false);
+ // Use reducer for batched filter state updates
+ const [filterState, dispatchFilter] = useReducer(filterReducer, {
+  showTopics: viewState?.showTopics ?? false,
+  showDifficulty: viewState?.showDifficulty ?? false,
+  showSavedOnly: viewState?.showSavedOnly ?? false,
+  showGuidance: viewState?.showGuidance ?? false
+ });
 
  // Track which days are expanded (controlled state)
  const [expandedDays, setExpandedDays] = useState<number[]>(viewState?.expandedDays ?? []);
@@ -75,6 +114,11 @@ export function StudyPlanView({
   return orderMap;
  }, [dailySchedule]);
 
+ // Use primitive values (size) instead of Set objects for stable dependencies
+ const completedSize = completedProblems?.size ?? 0;
+ const bookmarkedSize = bookmarkedProblems?.size ?? 0;
+ const inProgressSize = inProgressProblems?.size ?? 0;
+
  const progressInfo = useMemo(() => {
   // Use only passed props (already synced from Firestore in AppRouter)
   const completedSet = completedProblems || new Set<string>();
@@ -92,7 +136,7 @@ export function StudyPlanView({
    totalProblems,
    percentage
   };
- }, [bookmarkedProblems, completedProblems, inProgressProblems, plan.totalProblems]);
+ }, [completedSize, bookmarkedSize, inProgressSize, plan.totalProblems]);
 
  const completedProblemCount = progressInfo.completedCount;
  const inProgressProblemCount = progressInfo.inProgressProblemsSet?.size ?? 0;
@@ -145,13 +189,8 @@ export function StudyPlanView({
 
  // 🔄 Notify parent when filter states change
  useEffect(() => {
-  onFilterStatesChange?.({
-   showTopics,
-   showDifficulty,
-   showSavedOnly,
-   showGuidance
-  });
- }, [showTopics, showDifficulty, showSavedOnly, showGuidance, onFilterStatesChange]);
+  onFilterStatesChange?.(filterState);
+ }, [filterState, onFilterStatesChange]);
 
  // 🔄 Notify parent when expanded days change
  useEffect(() => {
@@ -182,20 +221,18 @@ export function StudyPlanView({
    setExpandedDays(prev => [...prev, viewState.currentProblemDay!]);
   }
 
-  // Restore scroll position after a brief delay to allow DOM to render
+  // Restore scroll position with instant scroll (single RAF is enough)
   requestAnimationFrame(() => {
-   requestAnimationFrame(() => {
-    window.scrollTo({
-     top: viewState.scrollY,
-     behavior: 'smooth'
-    });
-    hasRestoredScroll.current = true;
+   window.scrollTo({
+    top: viewState.scrollY,
+    behavior: 'instant'
+   });
+   hasRestoredScroll.current = true;
 
-    console.log('📜 Restored view state:', {
-     scrollY: viewState.scrollY,
-     expandedDays: viewState.expandedDays,
-     highlightedProblem: viewState.currentProblemId
-    });
+   console.log('📜 Restored view state:', {
+    scrollY: viewState.scrollY,
+    expandedDays: viewState.expandedDays,
+    highlightedProblem: viewState.currentProblemId
    });
   });
 
@@ -208,8 +245,8 @@ export function StudyPlanView({
   }
  }, [viewState, expandedDays, highlightedProblemId, dailySchedule]);
 
- // Handler for toggling day expansion
- const handleToggleDayExpansion = (dayNumber: number) => {
+ // Handler for toggling day expansion - memoized
+ const handleToggleDayExpansion = useCallback((dayNumber: number) => {
   setExpandedDays(prev => {
    if (prev.includes(dayNumber)) {
     return prev.filter(d => d !== dayNumber);
@@ -217,7 +254,7 @@ export function StudyPlanView({
     return [...prev, dayNumber];
    }
   });
- };
+ }, []);
 
  return (
   <div className="min-h-[calc(100vh-3.5rem)] bg-surface dark:bg-surface py-8 px-4 font-sans">
@@ -300,57 +337,57 @@ export function StudyPlanView({
        </div>
        <button
         type="button"
-        onClick={() => setShowTopics(prev => !prev)}
+        onClick={() => dispatchFilter({ type: 'TOGGLE_TOPICS' })}
         className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white/90 dark:bg-gray-800/80 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content-subtle shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-        aria-pressed={showTopics}
+        aria-pressed={filterState.showTopics}
        >
-        <span>{showTopics ? 'Hide topics' : 'Show topics'}</span>
+        <span>{filterState.showTopics ? 'Hide topics' : 'Show topics'}</span>
         <span
          className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-          showTopics ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-gray-600'
+          filterState.showTopics ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-gray-600'
          }`}
         >
          <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-           showTopics ? 'translate-x-4' : 'translate-x-1'
+          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow will-change-transform ${
+           filterState.showTopics ? 'translate-x-4' : 'translate-x-1'
           }`}
          />
         </span>
        </button>
        <button
         type="button"
-        onClick={() => setShowDifficulty(prev => !prev)}
+        onClick={() => dispatchFilter({ type: 'TOGGLE_DIFFICULTY' })}
         className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white/90 dark:bg-gray-800/80 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content-subtle shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-        aria-pressed={showDifficulty}
+        aria-pressed={filterState.showDifficulty}
        >
-        <span>{showDifficulty ? 'Hide difficulty' : 'Show difficulty'}</span>
+        <span>{filterState.showDifficulty ? 'Hide difficulty' : 'Show difficulty'}</span>
         <span
          className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-          showDifficulty ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-gray-600'
+          filterState.showDifficulty ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-gray-600'
          }`}
         >
          <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-           showDifficulty ? 'translate-x-4' : 'translate-x-1'
+          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow will-change-transform ${
+           filterState.showDifficulty ? 'translate-x-4' : 'translate-x-1'
           }`}
          />
         </span>
        </button>
        <button
         type="button"
-        onClick={() => setShowSavedOnly(prev => !prev)}
+        onClick={() => dispatchFilter({ type: 'TOGGLE_SAVED_ONLY' })}
         className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white/90 dark:bg-gray-800/80 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content-subtle shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-        aria-pressed={showSavedOnly}
+        aria-pressed={filterState.showSavedOnly}
        >
-        <span>{showSavedOnly ? 'Show all problems' : 'Saved problems only'}</span>
+        <span>{filterState.showSavedOnly ? 'Show all problems' : 'Saved problems only'}</span>
         <span
          className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-          showSavedOnly ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-gray-600'
+          filterState.showSavedOnly ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-gray-600'
          }`}
         >
          <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-           showSavedOnly ? 'translate-x-4' : 'translate-x-1'
+          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow will-change-transform ${
+           filterState.showSavedOnly ? 'translate-x-4' : 'translate-x-1'
           }`}
          />
         </span>
@@ -371,9 +408,9 @@ export function StudyPlanView({
        onResumeProblem={onResumeProblem}
        onStartProblem={onStartProblem}
        onToggleBookmark={onToggleBookmark}
-       showTopics={showTopics}
-       showDifficulty={showDifficulty}
-       showSavedOnly={showSavedOnly}
+       showTopics={filterState.showTopics}
+       showDifficulty={filterState.showDifficulty}
+       showSavedOnly={filterState.showSavedOnly}
        problemOrderMap={problemOrderMap}
        cachedProblemTitles={cachedPlanProblemTitles}
        isExpanded={expandedDays.includes(day.day)}

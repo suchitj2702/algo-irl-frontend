@@ -1,7 +1,7 @@
 // Study Plan Problem Card Component
 // Horizontal card layout for problems within a day schedule
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { Bookmark, BookmarkSolid, CheckCircle, Circle, Clock, Play } from 'iconoir-react';
 import { EnrichedProblem } from '../types/studyPlan';
 import { HotnessBadge } from './HotnessBadge';
@@ -26,7 +26,7 @@ interface StudyPlanProblemCardProps {
 
 const ICON_STROKE_WIDTH = 1.75;
 
-export function StudyPlanProblemCard({
+const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
  problem,
  companyId,
  roleName,
@@ -40,17 +40,17 @@ export function StudyPlanProblemCard({
  showDifficulty = true,
  onResumeProblem,
  isHighlighted = false
-}: StudyPlanProblemCardProps) {
+}) => {
  const companyName = getCompanyDisplayName(companyId);
  const [showHotnessModal, setShowHotnessModal] = useState(false);
  const cardRef = useRef<HTMLDivElement>(null);
 
- // Auto-scroll to highlighted problem
+ // Auto-scroll to highlighted problem with instant scroll
  useEffect(() => {
   if (isHighlighted && cardRef.current) {
    setTimeout(() => {
     cardRef.current?.scrollIntoView({
-     behavior: 'smooth',
+     behavior: 'instant',
      block: 'center',
      inline: 'nearest'
     });
@@ -95,7 +95,7 @@ export function StudyPlanProblemCard({
     ref={cardRef}
     className={`bg-panel-muted dark:bg-panel-300 border rounded-lg p-4 hover:shadow-md transition-all duration-200 ${
      isHighlighted
-      ? 'border-indigo-500 dark:border-indigo-400 ring-4 ring-indigo-500/20 dark:ring-indigo-400/20 animate-pulse-subtle shadow-lg shadow-indigo-500/10 dark:shadow-indigo-400/10'
+      ? 'border-indigo-500 dark:border-indigo-400 ring-4 ring-indigo-500/20 dark:ring-indigo-400/20 shadow-lg shadow-indigo-500/10 dark:shadow-indigo-400/10'
       : 'border-panel-200 dark:border-panel-300'
     }`}
    >
@@ -222,4 +222,22 @@ export function StudyPlanProblemCard({
    )}
   </>
  );
-}
+};
+
+// Export memoized version with custom comparison function
+// Return true if props are equal (skip re-render), false if different (re-render)
+export const StudyPlanProblemCard = memo(StudyPlanProblemCardComponent, (prevProps, nextProps) => {
+ return (
+  prevProps.problem.problemId === nextProps.problem.problemId &&
+  prevProps.isCompleted === nextProps.isCompleted &&
+  prevProps.isBookmarked === nextProps.isBookmarked &&
+  prevProps.isInProgress === nextProps.isInProgress &&
+  prevProps.showTopics === nextProps.showTopics &&
+  prevProps.showDifficulty === nextProps.showDifficulty &&
+  prevProps.displayTitle === nextProps.displayTitle &&
+  prevProps.isHighlighted === nextProps.isHighlighted
+ );
+});
+
+// Add display name for debugging
+StudyPlanProblemCard.displayName = 'StudyPlanProblemCard';
