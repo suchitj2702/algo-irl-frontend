@@ -18,6 +18,7 @@ export interface StudyPlanConfig {
   hoursPerDay: number; // 0.5-8
   difficultyPreference?: DifficultyPreference;
   topicFocus?: string[]; // max 5 topics
+  datasetType?: 'blind75' | 'full'; // dataset selection: Blind75 or full dataset
 }
 
 export interface HotnessBreakdown {

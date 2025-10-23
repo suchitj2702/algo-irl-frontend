@@ -29,6 +29,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
   hard: true
  });
  const [topicFocus, setTopicFocus] = useState<string[]>([]);
+ const [datasetType, setDatasetType] = useState<'blind75' | 'full'>('full');
 
  // Company loading state
  const [companies, setCompanies] = useState<Company[]>([]);
@@ -109,7 +110,8 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
    timeline,
    hoursPerDay,
    difficultyPreference,
-   topicFocus: topicFocus.length > 0 ? topicFocus : undefined
+   topicFocus: topicFocus.length > 0 ? topicFocus : undefined,
+   datasetType
   };
 
   onSubmit(config);
@@ -228,6 +230,57 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
           <ChevronDownIcon className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-content-muted dark:text-content-subtle pointer-events-none" />
          </div>
         )}
+       </div>
+      </div>
+
+      {/* Dataset Selection */}
+      <div className="space-y-2">
+       <label className="block text-xs font-medium text-content">
+        Problem Dataset
+       </label>
+       <p className="text-xs text-content-muted dark:text-content-subtle mb-1.5">
+        Choose your practice problem set
+       </p>
+       <div className="grid grid-cols-2 gap-1.5">
+        <button
+         type="button"
+         onClick={() => setDatasetType('blind75')}
+         className={`py-2.5 px-3 text-xs font-medium transition-all duration-200 rounded-[8px] text-left ${
+          datasetType === 'blind75'
+           ? 'bg-mint-400 text-content border border-mint-500 shadow-[0_1px_2px_rgba(0,0,0,0.12),0_1px_20px_rgba(0,0,0,0.06)_inset] dark:bg-mint-600 dark:text-cream-50 dark:border-mint-700'
+           : 'bg-cream-100/90 text-content border border-cream-200 shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(0,0,0,0.04)_inset] hover:bg-cream-200/80 dark:bg-panel-500/80 dark:text-cream-50 dark:border-panel-600 dark:shadow-[0_1px_2px_rgba(0,0,0,0.35),0_1px_20px_rgba(0,0,0,0.25)_inset] dark:hover:bg-panel-400/70'
+         } backdrop-blur-xl active:scale-[0.98]`}
+         disabled={isLoading}
+        >
+         <div className="font-semibold text-xs mb-1">Blind 75</div>
+         <div className={`text-[10px] leading-tight ${
+          datasetType === 'blind75'
+           ? 'text-content-muted dark:text-cream-200'
+           : 'text-content-muted dark:text-content-subtle'
+         }`}>
+          75 essential LeetCode problems covering all major data structures and algorithms patterns
+         </div>
+        </button>
+
+        <button
+         type="button"
+         onClick={() => setDatasetType('full')}
+         className={`py-2.5 px-3 text-xs font-medium transition-all duration-200 rounded-[8px] text-left ${
+          datasetType === 'full'
+           ? 'bg-button-500 text-button-foreground border border-button-600 shadow-[0_1px_2px_rgba(0,0,0,0.12),0_1px_20px_rgba(0,0,0,0.06)_inset]'
+           : 'bg-cream-100/90 text-content border border-cream-200 shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(0,0,0,0.04)_inset] hover:bg-cream-200/80 dark:bg-panel-500/80 dark:text-cream-50 dark:border-panel-600 dark:shadow-[0_1px_2px_rgba(0,0,0,0.35),0_1px_20px_rgba(0,0,0,0.25)_inset] dark:hover:bg-panel-400/70'
+         } backdrop-blur-xl active:scale-[0.98]`}
+         disabled={isLoading}
+        >
+         <div className="font-semibold text-xs mb-1">Full Dataset</div>
+         <div className={`text-[10px] leading-tight ${
+          datasetType === 'full'
+           ? 'text-content-subtle dark:text-cream-200'
+           : 'text-content-muted dark:text-content-subtle'
+         }`}>
+          2000+ comprehensive problems for more targeted practice
+         </div>
+        </button>
        </div>
       </div>
 

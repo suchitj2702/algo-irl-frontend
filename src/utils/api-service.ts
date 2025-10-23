@@ -125,7 +125,12 @@ export async function generateStudyPlan(config: StudyPlanConfig): Promise<StudyP
     ...(config.topicFocus && config.topicFocus.length > 0 && { topicFocus: config.topicFocus })
   };
 
-  const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.STUDY_PLAN_GENERATE), {
+  // Select endpoint based on dataset type
+  const endpoint = config.datasetType === 'blind75'
+    ? API_CONFIG.ENDPOINTS.STUDY_PLAN_GENERATE_BLIND75
+    : API_CONFIG.ENDPOINTS.STUDY_PLAN_GENERATE;
+
+  const response = await fetch(buildApiUrl(endpoint), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

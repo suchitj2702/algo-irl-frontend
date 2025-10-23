@@ -17,6 +17,7 @@ export const API_CONFIG = {
     EXECUTE_CODE: '/api/execute-code',
     EXECUTE_CODE_STATUS: '/api/execute-code/status',
     STUDY_PLAN_GENERATE: '/api/study-plan/generate',
+    STUDY_PLAN_GENERATE_BLIND75: '/api/study-plan/generate-blind75',
 
     // User study plan endpoints (require auth)
     USER_STUDY_PLANS: '/api/user/study-plans',
