@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
-import { Plus, Calendar, Target, Trash2, BookOpen, Clock } from 'lucide-react';
+import { Plus, Calendar, Target, Trash2, BookOpen, Clock, Sparkles } from 'lucide-react';
 import { CachedStudyPlan, ROLE_OPTIONS } from '../../../types/studyPlan';
 import { getStudyPlansFromFirestore, deleteStudyPlanFromFirestore, getCompletionPercentageFromPlan } from '../../../services/studyPlanFirestoreService';
 import { getAllCachedPlans, removePlanFromCache, savePlanToCache, migrateToCachedPlanData } from '../../../services/studyPlanCacheService';
 import { getCompanyDisplayName } from '../../../utils/companyDisplay';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
+import { isBlind75StudyPlan, normalizeStudyPlanDatasetType } from '../../../utils/studyPlanDataset';
 
 interface MyStudyPlansPageProps {
  onCreateNew: () => void;
@@ -46,6 +47,35 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
     const cachedPlans = getAllCachedPlans();
     const firestorePlanIds = new Set(firestorePlans.map(p => p.id));
 
+    // Map of dataset types from cache (if available) to preserve Blind75 flag for older plans
+    const datasetTypeFallbacks = new Map(
+      cachedPlans
+        .filter(plan => plan.config.datasetType)
+        .map(plan => [plan.planId, plan.config.datasetType!])
+    );
+
+    // Normalize dataset type using fallback or schedule inference
+    const normalizedPlans = firestorePlans.map(plan => {
+      const fallbackDataset = datasetTypeFallbacks.get(plan.id);
+      const configWithFallback =
+        fallbackDataset && plan.config.datasetType !== fallbackDataset
+          ? { ...plan.config, datasetType: fallbackDataset }
+          : plan.config;
+      const normalizedConfig = normalizeStudyPlanDatasetType(
+        configWithFallback,
+        plan.response.studyPlan.dailySchedule
+      );
+
+      if (normalizedConfig === plan.config) {
+        return plan;
+      }
+
+      return {
+        ...plan,
+        config: normalizedConfig
+      };
+    });
+
     // Remove deleted plans from cache (ghosts)
     const ghostPlans = cachedPlans.filter(cached => !firestorePlanIds.has(cached.planId));
     if (ghostPlans.length > 0) {
@@ -56,14 +86,14 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
     }
 
     // Update cache with current Firestore data
-    firestorePlans.forEach(plan => {
+    normalizedPlans.forEach(plan => {
       // Pass problemProgress to migration to preserve problem details
       const cached = migrateToCachedPlanData(plan, plan.progress.problemProgress);
       savePlanToCache(cached);
     });
 
     // Show validated data (no ghosts)
-    setStudyPlans(firestorePlans);
+    setStudyPlans(normalizedPlans);
     setLoading(false);
    } catch (err) {
     console.error('Failed to load study plans:', err);
@@ -187,6 +217,10 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
        const companyName = getCompanyDisplayName(plan.config.companyId);
        const roleOption = ROLE_OPTIONS.find(r => r.id === plan.config.roleFamily);
        const roleName = roleOption?.name || plan.config.roleFamily;
+       const isBlind75Plan = isBlind75StudyPlan(
+        plan.config.datasetType,
+        plan.response.studyPlan.dailySchedule
+       );
 
        const createdDate = new Date(plan.createdAt).toLocaleDateString('en-US', {
         month: 'short',
@@ -220,18 +254,24 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
            <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1.5">
-             <h3 className="text-lg font-semibold text-content">
-              {companyName}
-             </h3>
-             <span className="px-2 py-0.5 bg-mint-100 dark:bg-mint-900/30 text-mint-700 dark:text-mint-300 rounded-md text-xs font-medium border border-mint-200 dark:border-mint-800">
-              {plan.config.timeline} days
+           <div className="flex items-center gap-2 mb-1.5">
+            <h3 className="text-lg font-semibold text-content">
+             {companyName}
+            </h3>
+            <span className="px-2 py-0.5 bg-mint-100 dark:bg-mint-900/30 text-mint-700 dark:text-mint-300 rounded-md text-xs font-medium border border-mint-200 dark:border-mint-800">
+             {plan.config.timeline} days
+            </span>
+            {isBlind75Plan && (
+             <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50/90 px-2 py-0.5 text-[11px] font-medium text-amber-700 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-amber-900/60 dark:bg-amber-900/35 dark:text-amber-200">
+              <Sparkles className="h-3 w-3" />
+              Blind 75 Track
              </span>
-            </div>
-            <div className="flex items-center gap-1.5 text-sm text-content-muted dark:text-content-subtle">
-             <span>{roleName}</span>
-            </div>
+            )}
            </div>
+           <div className="flex items-center gap-1.5 text-sm text-content-muted dark:text-content-subtle">
+            <span>{roleName}</span>
+           </div>
+          </div>
 
            {/* Delete Button */}
            <button

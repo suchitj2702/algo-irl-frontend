@@ -1,15 +1,18 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { ArrowLeft } from 'iconoir-react';
+import { Sparkles } from 'lucide-react';
 import { StudyPlanResponse, EnrichedProblem, ROLE_OPTIONS, StudyPlanViewState } from '../../../types/studyPlan';
 import { StudyPlanOverviewCard } from '../../StudyPlanOverviewCard';
 import { DayScheduleCard } from '../../DayScheduleCard';
 import { getCompanyDisplayName } from '../../../utils/companyDisplay';
 import { warmUpCacheForPlan, getPlanFromCache } from '../../../services/studyPlanCacheService';
+import { isBlind75StudyPlan } from '../../../utils/studyPlanDataset';
 
 interface StudyPlanViewProps {
  studyPlan: StudyPlanResponse;
  companyId: string;
  studyPlanId?: string | null;
+ datasetType?: 'blind75' | 'full';
  onBack: () => void;
  onStartProblem: (problem: EnrichedProblem, planId?: string) => void;
  completedProblems?: Set<string>;
@@ -26,6 +29,7 @@ export function StudyPlanView({
  studyPlan,
  companyId,
  studyPlanId,
+ datasetType,
  onBack,
  onStartProblem,
  completedProblems,
@@ -39,6 +43,7 @@ export function StudyPlanView({
 }: StudyPlanViewProps) {
  const { studyPlan: plan } = studyPlan;
  const { metadata, dailySchedule } = plan;
+ const isBlind75Plan = isBlind75StudyPlan(datasetType, dailySchedule);
 
  // Initialize filter states from viewState if provided, otherwise defaults
  const [showTopics, setShowTopics] = useState(viewState?.showTopics ?? false);
@@ -157,6 +162,21 @@ export function StudyPlanView({
  useEffect(() => {
   if (!viewState || hasRestoredScroll.current) return;
 
+  // 🎯 FIX: Validate problem exists in this plan before highlighting
+  // This prevents stale highlighting from previous plans with similar problem IDs
+  if (viewState.currentProblemId) {
+   const problemExists = dailySchedule.some(day =>
+    day.problems.some(p => p.problemId === viewState.currentProblemId)
+   );
+
+   if (!problemExists) {
+    console.warn(`⚠️ [ViewState] Problem ${viewState.currentProblemId} from view state not found in current plan, skipping highlight`);
+    // Clear the invalid highlight state
+    setHighlightedProblemId(undefined);
+    return; // Don't proceed with highlighting
+   }
+  }
+
   // Auto-expand the day containing the current problem if needed
   if (viewState.currentProblemDay !== undefined && !expandedDays.includes(viewState.currentProblemDay)) {
    setExpandedDays(prev => [...prev, viewState.currentProblemDay!]);
@@ -186,7 +206,7 @@ export function StudyPlanView({
    }, 3000);
    return () => clearTimeout(timer);
   }
- }, [viewState, expandedDays, highlightedProblemId]);
+ }, [viewState, expandedDays, highlightedProblemId, dailySchedule]);
 
  // Handler for toggling day expansion
  const handleToggleDayExpansion = (dayNumber: number) => {
@@ -217,12 +237,18 @@ export function StudyPlanView({
        Your Study Plan
       </h1>
       <div className="flex items-center gap-2">
-       <span className="px-3 py-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-medium border border-indigo-200 dark:border-indigo-800">
+      <span className="px-3 py-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-medium border border-indigo-200 dark:border-indigo-800">
         {companyName}
        </span>
        <span className="px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-medium border border-purple-200 dark:border-purple-800">
         {roleName}
        </span>
+       {isBlind75Plan && (
+        <span className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-1.5 text-sm font-medium text-amber-700 dark:border-amber-900/60 dark:bg-amber-900/30 dark:text-amber-200">
+         <Sparkles className="h-4 w-4" />
+         Blind 75 Track
+        </span>
+       )}
       </div>
      </div>
 
@@ -230,6 +256,22 @@ export function StudyPlanView({
       A personalized {dailySchedule.length}-day schedule with {plan.totalProblems} curated problems
      </p>
     </div>
+
+    {isBlind75Plan && (
+     <div className="mb-8">
+      <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-amber-800 shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:border-amber-900/60 dark:bg-amber-900/30 dark:text-amber-100/90">
+       <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-200">
+        <Sparkles className="h-4 w-4" />
+       </div>
+       <div className="space-y-1">
+        <p className="text-sm font-semibold">Focused on foundational coverage</p>
+        <p className="text-xs leading-relaxed">
+         This plan pulls exclusively from the Blind 75 problem set. It is perfect for mastering core patterns but does not represent the complete range of company-specific interview questions. Consider pairing it with a comprehensive plan once you are comfortable here.
+        </p>
+       </div>
+      </div>
+     </div>
+    )}
 
     {/* Overview Card */}
     <div className="mb-8">

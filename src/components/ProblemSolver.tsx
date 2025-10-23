@@ -16,6 +16,7 @@ import {
 import CodeEditor from './CodeEditor';
 import { executeCodeAndPoll, ExecutionResults } from '../utils/codeExecution';
 import { TestCase } from '../types';
+import { ThinkingIndicator } from './ThinkingIndicator';
 
 interface Problem {
  title: string;
@@ -54,9 +55,9 @@ interface StudyPlanContextActions {
 }
 
 interface ProblemSolverProps {
- problem: Problem;
+ problem: Problem | null;
  solution: string | null;
- codeDetails: CodeDetails;
+ codeDetails: CodeDetails | null;
  onSubmit: (code: string, results: ExecutionResults) => void;
  onCodeChange?: (code: string) => void;
  onSolveAnother?: () => void;
@@ -72,7 +73,16 @@ interface ProblemSolverProps {
  } | null;
  studyPlanContext?: StudyPlanContextActions;
  onReturnToBlind75?: () => void;
+ isLoading?: boolean; // New prop to show thinking indicator
 }
+
+const THINKING_STATES = [
+  "Thinking...",
+  "Analyzing...",
+  "Generating...",
+  "Processing...",
+  "Computing..."
+];
 
 // Helper function to render text with backtick and bold markdown support
 const renderTextWithBackticks = (text: string, keyPrefix: string) => {
@@ -111,43 +121,31 @@ export function ProblemSolver({
  maxSubmitTestCases = 20, // Default to 20 test cases for submission
  testResults,
  studyPlanContext,
- onReturnToBlind75
+ onReturnToBlind75,
+ isLoading = false
 }: ProblemSolverProps) {
- const processedProblem = useRef<Problem>(problem);
+ const processedProblem = useRef<Problem | null>(problem);
 
- // Early return for invalid or null props (prevents UI bugs during navigation)
- if (!problem || !problem.title || !problem.testCases || !codeDetails) {
-  return (
-   <div className="min-h-[calc(100vh-3.5rem)] bg-surface dark:bg-surface flex flex-col">
-    <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
-     <div className="text-center">
-      <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mb-4"></div>
-      <h2 className="text-xl font-medium">Loading problem...</h2>
-      {/* Show error state only if we've been loading too long */}
-      <div className="bg-red-100 text-red-700 p-4 rounded-md mb-4 mt-4" style={{display: 'none'}}>
-       <p className="font-medium">Error: Invalid problem data</p>
-       <p className="text-sm mt-2">The problem data is incomplete. Please ensure test cases are provided.</p>
-      </div>
-      <button
-       onClick={() => window.location.reload()}
-      className="mt-4 inline-flex items-center justify-center px-6 py-2.5 text-[15px] font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-[14px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_1px_20px_rgba(0,0,0,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.15),0_2px_30px_rgba(0,0,0,0.4)_inset] active:scale-[0.98] transition-all duration-200"
-     >
-      Reload Page
-     </button>
-    </div>
-    </div>
-   </div>
-  );
-}
- 
  const getInitialCode = () => {
+  if (!codeDetails) {
+    return `function solution(input) {
+ // Your solution here
+ return null;
+}`;
+  }
   return solution || codeDetails.defaultUserCode || `function solution(input) {
  // Your solution here
  return null;
 }`;
  };
- 
+
  const getBoilerplateCode = () => {
+  if (!codeDetails) {
+    return `function solution(input) {
+ // Your solution here
+ return null;
+}`;
+  }
   return codeDetails.defaultUserCode || `function solution(input) {
  // Your solution here
  return null;
@@ -254,7 +252,13 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
  }, [problem, solution, codeDetails]);
 
  useEffect(() => {
-  if (!problem || !problem.title) return;
+  if (isLoading || !problem || !problem.title) {
+    setTypedText("");
+    setTypingComplete(false);
+    setShowEditor(false);
+    return;
+  }
+
   let fullTextContent = "";
   fullTextContent += problem.title + "\n\n";
   if (problem.background) fullTextContent += problem.background + "\n\n";
@@ -274,11 +278,11 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   if (problem.requirements && problem.requirements.length > 0) { fullTextContent += "Requirements: \n"; problem.requirements.forEach(r => fullTextContent += `• ${r}\n`); fullTextContent += "\n"; }
   if (problem.leetcodeUrl) fullTextContent += "Original LeetCode problem for this problem statement";
 
-  // Display text immediately without typing animation
+  // Show content immediately - no streaming
   setTypedText(fullTextContent);
   setTypingComplete(true);
   setShowEditor(true);
- }, [problem]);
+ }, [problem, isLoading]);
  
  const handleReset = () => { 
   setCode(boilerplateCode.current); 
@@ -589,7 +593,9 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
     <div className="w-full md:w-1/2 md:h-full flex flex-col bg-white dark:bg-neutral-850">
      <div className="flex-1 md:overflow-y-auto">
       <div className="px-6 pt-3 pb-6">
-       {problem && problem.title ? (
+       {isLoading ? (
+        <ThinkingIndicator states={THINKING_STATES} />
+       ) : problem && problem.title ? (
         <div className="prose dark:prose-invert max-w-none">
          {formatTypedText()}
         </div>
@@ -602,10 +608,19 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
      </div>
     </div>
     <div className={`w-full md:w-1/2 md:h-full flex flex-col bg-neutral-800 dark:bg-neutral-900 transition-all duration-500 transform ${showEditor ? 'translate-x-0 opacity-100' : 'md:translate-x-8 md:opacity-0'}`}>
-     <div className="flex-shrink-0 p-3 bg-neutral-700 dark:bg-neutral-800 flex justify-between items-center border-b border-neutral-600"><div className="flex items-center"><h3 className="font-medium text-button-foreground">Solution Editor</h3><div className="ml-3 flex items-center text-xs text-content-muted/70 border-l border-neutral-600 pl-3"><InfoIcon className="h-3 w-3 mr-1 flex-shrink-0" /><span>{codeDetails?.language || 'python'}</span><div className="ml-2 text-xs text-content-muted/70">(support for more languages coming soon)</div></div></div><button onClick={handleReset} disabled={isLoadingRun || isLoadingSubmit} className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(255,255,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"><RotateCcwIcon className="w-4 h-4" /> Reset</button></div>
+     <div className="flex-shrink-0 p-3 bg-neutral-700 dark:bg-neutral-800 flex justify-between items-center border-b border-neutral-600"><div className="flex items-center"><h3 className="font-medium text-button-foreground">Solution Editor</h3><div className="ml-3 flex items-center text-xs text-content-muted/70 border-l border-neutral-600 pl-3"><InfoIcon className="h-3 w-3 mr-1 flex-shrink-0" /><span>{codeDetails?.language || 'python'}</span><div className="ml-2 text-xs text-content-muted/70">(support for more languages coming soon)</div></div></div><button onClick={handleReset} disabled={isLoadingRun || isLoadingSubmit || isLoading} className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(255,255,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"><RotateCcwIcon className="w-4 h-4" /> Reset</button></div>
      <div className="flex-1 flex flex-col md:overflow-hidden">
       <div className={`${showResultsPanel ? 'h-96 md:h-3/4' : 'h-96 md:h-full'} bg-neutral-900 md:overflow-hidden transition-all duration-300`}>
-       <CodeEditor code={code} language={codeDetails?.language || 'python'} onChange={handleCodeChange} height="100%" width="100%"/>
+       {isLoading || !codeDetails ? (
+        <div className="flex items-center justify-center h-full">
+         <div className="text-center text-content-muted">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-mint-600 mb-2"></div>
+          <p>Loading editor...</p>
+         </div>
+        </div>
+       ) : (
+        <CodeEditor code={code} language={codeDetails.language || 'python'} onChange={handleCodeChange} height="100%" width="100%"/>
+       )}
       </div>
       {showResultsPanel && executionResults && (
        <div className={'h-64 md:h-1/4 flex-shrink-0 border-t border-neutral-700 bg-neutral-800 overflow-y-auto p-3 transition-all duration-300 opacity-100'}>
@@ -674,7 +689,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
      <div className="flex-shrink-0 p-3 bg-neutral-700 dark:bg-neutral-800 border-t border-neutral-600 dark:border-neutral-700 flex justify-end space-x-3">
       <button
        onClick={handleRun}
-       disabled={isLoadingRun || isLoadingSubmit}
+       disabled={isLoadingRun || isLoadingSubmit || isLoading}
        className="inline-flex items-center gap-2 px-5 py-2.5 text-[15px] font-medium text-content bg-white/90 hover:bg-white border border-black/8 rounded-[14px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
       >
        {isLoadingRun ? (
@@ -686,7 +701,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
       </button>
       <button
        onClick={handleSubmit}
-       disabled={isLoadingRun || isLoadingSubmit}
+       disabled={isLoadingRun || isLoadingSubmit || isLoading}
        className="inline-flex items-center gap-2 px-5 py-2.5 text-[15px] font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-[14px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
       >
        {isLoadingSubmit ? (

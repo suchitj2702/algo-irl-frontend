@@ -125,7 +125,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
           className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-medium text-content bg-white/90 dark:bg-white/10 hover:bg-mint-light /15 backdrop-blur-xl border border-slate/30 rounded-[14px] transition-all duration-200 active:scale-[0.98] shadow-[0_1px_2px_rgba(153,166,178,0.1),0_1px_20px_rgba(248,250,252,0.6)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(255,255,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(188,204,220,0.3),0_2px_30px_rgba(248,250,252,0.8)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset]"
          >
           <User className="h-4 w-4" />
-          <span className="max-w-[150px] truncate">{user.email || 'Account'}</span>
+          <span className="max-w-[150px] truncate">{user.displayName || user.email || 'Account'}</span>
           <ChevronDown className="h-4 w-4" />
          </button>
 

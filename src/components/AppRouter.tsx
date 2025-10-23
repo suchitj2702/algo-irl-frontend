@@ -2,7 +2,7 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { IntroSection } from './pages/IntroSection';
 import { ProblemForm } from './pages/ProblemForm';
-import { LoadingSequence } from './LoadingSequence';
+import { StudyPlanLoading } from './pages/StudyPlanLoading';
 import { ResumeLoadingSequence } from './ResumeLoadingSequence';
 import { ProblemSolver } from './ProblemSolver';
 import { ResultsView } from './ResultsView';
@@ -57,6 +57,7 @@ import {
 import { getCompanyDisplayName } from '../utils/companyDisplay';
 import { extractCleanProblemTitle } from '../utils/problemTitleExtractor';
 import { saveBlind75ViewState, loadBlind75ViewState, Blind75ViewState, createDefaultBlind75ViewState } from '../utils/blind75ViewState';
+import { normalizeStudyPlanDatasetType } from '../utils/studyPlanDataset';
 
 interface TestResultsFromParent {
  passed: boolean;
@@ -299,22 +300,40 @@ export function AppRouter() {
 
  const handleViewStudyPlan = async (planId: string) => {
   try {
-   // Load from cache first for instant display
-   const cachedPlan = getPlanFromCache(planId);
+   // 🎯 FIX: Load plan-specific view state OR create fresh default
+   // This prevents stale view state from previous plans causing incorrect highlighting
+   const savedViewState = loadViewStateFromSession(planId);
+   setStudyPlanViewState(savedViewState || createDefaultViewState());
+   console.log(`🔄 [ViewState] ${savedViewState ? 'Restored' : 'Reset to default'} view state for plan ${planId}`);
 
-   if (cachedPlan) {
+   // Load from cache first for instant display
+  const cachedPlan = getPlanFromCache(planId);
+
+  if (cachedPlan) {
+    const normalizedConfig = normalizeStudyPlanDatasetType(
+      cachedPlan.config,
+      cachedPlan.response.studyPlan.dailySchedule
+    );
+    const planForState = normalizedConfig === cachedPlan.config
+      ? cachedPlan
+      : { ...cachedPlan, config: normalizedConfig };
+
+    if (planForState !== cachedPlan) {
+      savePlanToCache(planForState);
+    }
+
      // Instant load from cache
      console.log(`💾 [Cache] Loading plan ${planId} from cache`);
      setCurrentStudyPlanId(planId);
-     setStudyPlanConfig(cachedPlan.config);
-     setStudyPlanResponse(cachedPlan.response);
-     syncPlanStructures(cachedPlan.response);
+     setStudyPlanConfig(planForState.config);
+     setStudyPlanResponse(planForState.response);
+     syncPlanStructures(planForState.response);
 
      // Initialize progress from cache
      initializePlanProgressState(
-       new Set(cachedPlan.progress.completedProblems),
-       new Set(cachedPlan.progress.bookmarkedProblems),
-       new Set(cachedPlan.progress.inProgressProblems)
+       new Set(planForState.progress.completedProblems),
+       new Set(planForState.progress.bookmarkedProblems),
+       new Set(planForState.progress.inProgressProblems)
      );
 
      setCurrentPlanProblemId(null);
@@ -335,19 +354,27 @@ export function AppRouter() {
 
      // Save to cache for next time - PASS problemProgress to migration
      // This ensures problemDetails are populated from Firestore data
-     const cachedData = migrateToCachedPlanData(plan, plan.progress.problemProgress);
+     const normalizedConfig = normalizeStudyPlanDatasetType(
+       plan.config,
+       plan.response.studyPlan.dailySchedule
+     );
+     const normalizedPlan = normalizedConfig === plan.config
+       ? plan
+       : { ...plan, config: normalizedConfig };
+
+     const cachedData = migrateToCachedPlanData(normalizedPlan, normalizedPlan.progress.problemProgress);
      savePlanToCache(cachedData);
 
      setCurrentStudyPlanId(planId);
-     setStudyPlanConfig(plan.config);
-     setStudyPlanResponse(plan.response);
-     syncPlanStructures(plan.response);
+     setStudyPlanConfig(normalizedPlan.config);
+     setStudyPlanResponse(normalizedPlan.response);
+     syncPlanStructures(normalizedPlan.response);
 
      // Initialize progress from Firestore data (already fetched, no need for blocking call)
      initializePlanProgressState(
-       new Set(plan.progress.completedProblems || []),
-       new Set(plan.progress.bookmarkedProblems || []),
-       new Set(plan.progress.inProgressProblems || [])
+       new Set(normalizedPlan.progress.completedProblems || []),
+       new Set(normalizedPlan.progress.bookmarkedProblems || []),
+       new Set(normalizedPlan.progress.inProgressProblems || [])
      );
 
      setCurrentPlanProblemId(null);
@@ -870,6 +897,11 @@ export function AppRouter() {
        new Set(cachedPlan.progress.inProgressProblems)
      );
    }
+
+   // 🎯 FIX: Reset to default view state for brand new plan
+   // This ensures no stale highlighting from previous plans
+   setStudyPlanViewState(createDefaultViewState());
+   console.log('🔄 [ViewState] Reset to default for new plan');
 
    setStudyPlanResponse(response);
    syncPlanStructures(response);
@@ -1689,10 +1721,16 @@ export function AppRouter() {
      } />
 
      <Route path="/loading" element={
-      <LoadingSequence
-       company={getCompanyDisplayName(isCompanyContextFlow ? companyContextFormData.company : currentCompanyId)}
-       maxTotalDuration={MAX_LOADING_DURATION_SECONDS}
-       forceComplete={apiResponseReceived}
+      <ProblemSolver
+       problem={problem}
+       solution={solutionFromSolver}
+       codeDetails={codeDetails}
+       onSubmit={handleFinalSolutionSubmit}
+       onCodeChange={handleCodeChange}
+       onSolveAnother={handleSolveAnother}
+       testResults={evaluationResults}
+       onReturnToBlind75={returnToBlind75 ? () => navigate('/blind75') : undefined}
+       isLoading={!problem || !codeDetails || !apiResponseReceived}
       />
      } />
 
@@ -1787,11 +1825,7 @@ export function AppRouter() {
 
      <Route path="/study-plan-loading" element={
       <PremiumGate feature="Study Plans" message="Please sign in to access My Study Plans.">
-       <LoadingSequence
-        company={studyPlanConfig ? getCompanyDisplayName(studyPlanConfig.companyId) : 'Company'}
-        maxTotalDuration={MAX_LOADING_DURATION_SECONDS}
-        forceComplete={!isGeneratingStudyPlan}
-       />
+       <StudyPlanLoading />
       </PremiumGate>
      } />
 
@@ -1802,6 +1836,7 @@ export function AppRouter() {
          studyPlan={studyPlanResponse}
          companyId={studyPlanConfig.companyId}
          studyPlanId={currentStudyPlanId}
+         datasetType={studyPlanConfig.datasetType}
          onBack={handleBackToStudyPlanForm}
          onStartProblem={handleStartProblemFromPlan}
          completedProblems={completedPlanProblems}
