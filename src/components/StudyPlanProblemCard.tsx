@@ -95,10 +95,14 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
   <>
    <div
     ref={cardRef}
-    className={`bg-panel-muted dark:bg-panel-300 border rounded-lg p-4 hover:shadow-md transition-all duration-200 ${
+    className={`rounded-lg p-4 transition-all duration-200 ${
+     isCompleted
+      ? 'bg-green-50/60 dark:bg-green-950/20 border border-green-200/50 dark:border-green-800/40 hover:shadow-lg hover:shadow-green-500/10'
+      : 'bg-panel-muted dark:bg-panel-300 border border-panel-200 dark:border-panel-300 hover:shadow-md'
+    } ${
      isHighlighted
       ? 'border-indigo-500 dark:border-indigo-400 ring-4 ring-indigo-500/20 dark:ring-indigo-400/20 shadow-lg shadow-indigo-500/10 dark:shadow-indigo-400/10'
-      : 'border-panel-200 dark:border-panel-300'
+      : ''
     }`}
    >
     <div className="flex items-start gap-4">
@@ -109,7 +113,7 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
        <div
         className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border ${
          isCompleted
-          ? 'bg-mint-100 text-mint-700 border-mint-200 dark:bg-mint-900/30 dark:text-mint-300 dark:border-mint-800'
+          ? 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700'
           : 'bg-gray-100 text-content-subtle border-gray-200 dark:bg-gray-800 dark:text-content-subtle dark:border-gray-700'
         }`}
        >
@@ -205,7 +209,11 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
      {/* Right: Action Button */}
      <button
       onClick={handleActionClick}
-      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-[12px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_1px_20px_rgba(0,0,0,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.15),0_2px_30px_rgba(0,0,0,0.4)_inset] active:scale-[0.98] transition-all duration-200 flex-shrink-0"
+      className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium rounded-[12px] backdrop-blur-xl transition-all duration-200 flex-shrink-0 active:scale-[0.98] ${
+       isCompleted && hasResumeHandler
+        ? 'text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 border border-green-300 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/40 shadow-[0_1px_2px_rgba(34,197,94,0.15),0_1px_20px_rgba(34,197,94,0.1)_inset] dark:shadow-[0_1px_2px_rgba(74,222,128,0.1),0_1px_20px_rgba(74,222,128,0.1)_inset] hover:shadow-[0_1px_3px_rgba(34,197,94,0.2),0_2px_30px_rgba(34,197,94,0.15)_inset] dark:hover:shadow-[0_1px_3px_rgba(74,222,128,0.15),0_2px_30px_rgba(74,222,128,0.15)_inset]'
+        : 'text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_1px_20px_rgba(0,0,0,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.15),0_2px_30px_rgba(0,0,0,0.4)_inset]'
+      }`}
      >
       <span>{actionLabel}</span>
      </button>

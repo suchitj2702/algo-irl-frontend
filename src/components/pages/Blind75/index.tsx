@@ -218,7 +218,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
  };
 
  return (
-  <div className="min-h-[calc(100vh-3.5rem)] bg-surface dark:bg-surface p-6">
+  <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-neutral-900 p-6">
    <div className="max-w-5xl mx-auto">
     {/* Header */}
     <div className="text-center mb-6">

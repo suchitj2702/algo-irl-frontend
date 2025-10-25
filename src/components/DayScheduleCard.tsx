@@ -61,11 +61,11 @@ export function DayScheduleCard({
   : day.problems;
 
  return (
-  <div className="bg-panel-100 dark:bg-panel-300 rounded-lg shadow-md border border-panel-200 dark:border-panel-300 overflow-hidden hover:shadow-lg">
+  <div className="bg-panel-100 dark:bg-panel-300 rounded-lg shadow-md border border-panel-200 dark:border-panel-300 overflow-hidden transition-all duration-200 hover:shadow-lg">
    {/* Card Header - Always Visible */}
    <button
     onClick={onToggleExpand}
-    className="w-full px-6 py-4 flex items-center justify-between hover:bg-panel-accent dark:hover:bg-panel-300"
+    className="w-full px-6 py-4 flex items-center justify-between transition-colors hover:bg-panel-accent dark:hover:bg-panel-300"
    >
     <div className="flex items-center gap-4">
      {/* Day Info */}
@@ -100,7 +100,7 @@ export function DayScheduleCard({
 
      {/* Expand/Collapse Icon */}
      <NavArrowDown
-      className={`w-5 h-5 text-content-subtle ${
+      className={`w-5 h-5 text-content-subtle transition-transform duration-200 ${
        isExpanded ? 'rotate-180' : ''
       }`}
       strokeWidth={ICON_STROKE_WIDTH}

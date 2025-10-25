@@ -8,7 +8,9 @@ import {
  Bookmark,
  BookmarkCheck,
  CheckCircle2,
- BookOpenCheck
+ BookOpenCheck,
+ Check,
+ AlertCircle
 } from 'lucide-react';
 import CodeEditor from './CodeEditor';
 import { executeCodeAndPoll, ExecutionResults } from '../utils/codeExecution';
@@ -71,6 +73,8 @@ interface ProblemSolverProps {
  studyPlanContext?: StudyPlanContextActions;
  onReturnToBlind75?: () => void;
  isLoading?: boolean; // New prop to show thinking indicator
+ saveStatus?: 'saving' | 'saved' | 'error';
+ lastSaveTime?: number | null;
 }
 
 const THINKING_STATES = [
@@ -119,7 +123,9 @@ export function ProblemSolver({
  testResults,
  studyPlanContext,
  onReturnToBlind75,
- isLoading = false
+ isLoading = false,
+ saveStatus,
+ lastSaveTime
 }: ProblemSolverProps) {
  const processedProblem = useRef<Problem | null>(problem);
 
@@ -416,7 +422,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
 
   return sections.map((s, idx) => {
    switch (s.type) {
-    case 'title': return s.content.length > 0 ? <h2 key={`s-${idx}`} className="text-2xl font-bold mt-4 mb-2">{renderTextWithBackticks(s.content.join('\n'), `s-${idx}-title`)}</h2> : null;
+    case 'title': return s.content.length > 0 ? <h2 key={`s-${idx}`} className="text-2xl font-bold font-playfair mt-4 mb-2">{renderTextWithBackticks(s.content.join('\n'), `s-${idx}-title`)}</h2> : null;
     case 'examples-header': case 'constraints-header': case 'requirements-header': return s.content.length > 0 ? <h3 key={`s-${idx}`} className="text-xl font-medium mt-4 mb-2">{renderTextWithBackticks(s.content[0], `s-${idx}-header`)}</h3> : null;
     case 'example': 
      return <div key={`s-${idx}`} className="mt-2">{s.content.map((l,i) => 
@@ -587,7 +593,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
     </div>
    )}
    <div className="flex flex-1 flex-col md:flex-row md:overflow-hidden">
-    <div className="w-full md:w-1/2 md:h-full flex flex-col bg-white dark:bg-neutral-850">
+    <div className="w-full md:w-1/2 md:h-full flex flex-col bg-white dark:bg-neutral-850 border-r border-gray-200 dark:border-neutral-700">
      <div className="flex-1 md:overflow-y-auto">
       <div className="px-6 pt-3 pb-6">
        {isLoading ? (
@@ -683,43 +689,65 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
        </div>
       )}
      </div>
-     <div className="flex-shrink-0 p-3 bg-white dark:bg-neutral-800 border-t border-gray-200 dark:border-neutral-700 flex justify-end space-x-3">
-      <button
-       onClick={handleRun}
-       disabled={isLoadingRun || isLoadingSubmit || isLoading}
-       className="inline-flex items-center gap-2 px-3.5 py-1.5 text-[13px] font-medium text-content bg-white/90 hover:bg-white border border-black/8 rounded-[10px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
-      >
-       {isLoadingRun && (
-        <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-black"></div>
+     <div className="flex-shrink-0 p-3 bg-white dark:bg-neutral-800 border-t border-gray-200 dark:border-neutral-700 flex justify-between items-center">
+      {/* Left side: Save status indicator */}
+      <div className="flex-shrink-0 min-w-[80px]">
+       {saveStatus === 'saving' && (
+        <span className="text-xs text-content-muted">Saving...</span>
        )}
-       Run
-      </button>
-      <button
-       onClick={handleSubmit}
-       disabled={isLoadingRun || isLoadingSubmit || isLoading}
-       className="inline-flex items-center gap-2 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-[10px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
-      >
-       {isLoadingSubmit && (
-        <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"></div>
+       {saveStatus === 'saved' && lastSaveTime && (
+        <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
+         <Check className="h-3.5 w-3.5" />
+         <span>Saved</span>
+        </div>
        )}
-       Submit
-      </button>
-      {onSolveAnother && (
+       {saveStatus === 'error' && (
+        <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
+         <AlertCircle className="h-3.5 w-3.5" />
+         <span>Error</span>
+        </div>
+       )}
+      </div>
+
+      {/* Right side: Action buttons */}
+      <div className="flex space-x-3">
        <button
-        onClick={() => {
-         // Save current progress before navigating away
-         if (onCodeChange) {
-          onCodeChange(code);
-         }
-         onSolveAnother();
-        }}
-        disabled={isLoadingRun || isLoadingSubmit}
-        className="inline-flex items-center gap-2 px-5 py-2.5 text-[15px] font-medium text-content bg-white/90 hover:bg-white border border-black/8 rounded-[14px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
+        onClick={handleRun}
+        disabled={isLoadingRun || isLoadingSubmit || isLoading}
+        className="inline-flex items-center gap-2 px-3.5 py-1.5 text-[13px] font-medium text-content bg-white/90 hover:bg-white border border-black/8 rounded-[10px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
        >
-        <RotateCcwIcon className="w-4 h-4" />
-        Solve Another Problem
+        {isLoadingRun && (
+         <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-black"></div>
+        )}
+        Run
        </button>
-     )}
+       <button
+        onClick={handleSubmit}
+        disabled={isLoadingRun || isLoadingSubmit || isLoading}
+        className="inline-flex items-center gap-2 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-[10px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
+       >
+        {isLoadingSubmit && (
+         <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"></div>
+        )}
+        Submit
+       </button>
+       {onSolveAnother && (
+        <button
+         onClick={() => {
+          // Save current progress before navigating away
+          if (onCodeChange) {
+           onCodeChange(code);
+          }
+          onSolveAnother();
+         }}
+         disabled={isLoadingRun || isLoadingSubmit}
+         className="inline-flex items-center gap-2 px-5 py-2.5 text-[15px] font-medium text-content bg-white/90 hover:bg-white border border-black/8 rounded-[14px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
+        >
+         <RotateCcwIcon className="w-4 h-4" />
+         Solve Another Problem
+        </button>
+      )}
+      </div>
     </div>
    </div>
   </div>

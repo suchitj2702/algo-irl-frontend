@@ -146,6 +146,8 @@ export function AppRouter() {
  // Auto-save state
  const [lastSaveTime, setLastSaveTime] = useState<number>(Date.now());
  const [currentCode, setCurrentCode] = useState<string>('');
+ const [codeSaveStatus, setCodeSaveStatus] = useState<'saving' | 'saved' | 'error' | undefined>();
+ const [codeSaveTimestamp, setCodeSaveTimestamp] = useState<number | null>(null);
 
  // Track active problem ID with ref for race condition prevention
  // This ensures debounced saves don't fire for wrong problem after navigation
@@ -189,12 +191,34 @@ export function AppRouter() {
       return;
     }
 
-    // Save to Firestore
-    await saveProblemCode(data.planId, data.problemId, data.code);
-    setLastSaveTime(Date.now());
+    try {
+      // Save to Firestore
+      await saveProblemCode(data.planId, data.problemId, data.code);
+      const now = Date.now();
+      setLastSaveTime(now);
+      setCodeSaveTimestamp(now);
+      setCodeSaveStatus('saved');
+
+      // Auto-hide "saved" indicator after 2 seconds
+      setTimeout(() => {
+        setCodeSaveStatus(undefined);
+      }, 2000);
+    } catch (error) {
+      console.error('[Auto-Save] Cloud save error:', error);
+      setCodeSaveStatus('error');
+
+      // Auto-hide error after 3 seconds
+      setTimeout(() => {
+        setCodeSaveStatus(undefined);
+      }, 3000);
+    }
   },
   onError: (error) => {
     console.error('[Auto-Save] Error:', error);
+    setCodeSaveStatus('error');
+    setTimeout(() => {
+      setCodeSaveStatus(undefined);
+    }, 3000);
   }
  });
 
@@ -768,6 +792,7 @@ export function AppRouter() {
 
  const handleCodeChange = async (code: string) => {
   setCurrentCode(code);
+  setCodeSaveStatus('saving'); // Show "Saving..." immediately
 
   // For non-study-plan problems, keep using cache.ts
   if (problem?.problemId && !currentStudyPlanId) {
@@ -1720,6 +1745,8 @@ export function AppRouter() {
        testResults={evaluationResults}
        onReturnToBlind75={returnToBlind75 ? () => navigate('/blind75') : undefined}
        isLoading={!problem || !codeDetails || !apiResponseReceived}
+       saveStatus={codeSaveStatus}
+       lastSaveTime={codeSaveTimestamp}
       />
      } />
 
@@ -1742,6 +1769,8 @@ export function AppRouter() {
         testResults={evaluationResults}
         studyPlanContext={studyPlanSolverContext}
         onReturnToBlind75={returnToBlind75 ? handleReturnToBlind75 : undefined}
+        saveStatus={codeSaveStatus}
+        lastSaveTime={codeSaveTimestamp}
        />
       ) : (
        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
@@ -1767,6 +1796,8 @@ export function AppRouter() {
          onCodeChange={handleCodeChange}
          testResults={evaluationResults}
          studyPlanContext={studyPlanSolverContext}
+         saveStatus={codeSaveStatus}
+         lastSaveTime={codeSaveTimestamp}
         />
        ) : (
         <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">

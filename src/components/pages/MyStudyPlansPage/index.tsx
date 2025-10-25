@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { Plus, Calendar, Target, Trash2, BookOpen, Clock } from 'lucide-react';
 import { CachedStudyPlan, ROLE_OPTIONS } from '../../../types/studyPlan';
 import { getStudyPlansFromFirestore, deleteStudyPlanFromFirestore, getCompletionPercentageFromPlan } from '../../../services/studyPlanFirestoreService';
@@ -132,7 +131,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
 
  if (loading) {
   return (
-   <div className="min-h-[calc(100vh-3.5rem)] bg-surface dark:bg-surface py-8 px-4 flex items-center justify-center">
+   <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-neutral-900 py-8 px-4 flex items-center justify-center">
     <div className="text-center">
      <div className="animate-spin w-12 h-12 border-4 border-mint-600 border-t-transparent rounded-full mx-auto mb-4"></div>
      <p className="text-content-muted">Loading your study plans...</p>
@@ -143,7 +142,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
 
  if (error) {
   return (
-   <div className="min-h-[calc(100vh-3.5rem)] bg-surface dark:bg-surface py-8 px-4 flex items-center justify-center">
+   <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-neutral-900 py-8 px-4 flex items-center justify-center">
     <div className="text-center max-w-md">
      <div className="text-red-600 dark:text-red-400 mb-4 text-4xl">⚠️</div>
      <p className="text-content mb-4">{error}</p>
@@ -159,7 +158,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
  }
 
  return (
-  <div className="min-h-[calc(100vh-3.5rem)] bg-surface dark:bg-surface py-8 px-4">
+  <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-neutral-900 py-8 px-4">
    <div className="max-w-6xl mx-auto">
     {/* Header */}
     <div className="mb-8">
@@ -172,10 +171,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
     </div>
 
     {/* Create New Button */}
-    <motion.button
-     initial={{ opacity: 0, y: 8 }}
-     animate={{ opacity: 1, y: 0 }}
-     transition={{ duration: 0.3 }}
+    <button
      onClick={onCreateNew}
      className="group relative w-full mb-6 px-6 py-4 bg-gradient-to-r from-button-600 via-button-500 to-button-600 hover:from-button-500 hover:via-button-400 hover:to-button-500 text-button-foreground rounded-[16px] shadow-[0_4px_16px_rgba(159,191,235,0.4)] dark:shadow-[0_4px_20px_rgba(48,73,135,0.5)] hover:shadow-[0_6px_24px_rgba(159,191,235,0.5)] dark:hover:shadow-[0_6px_28px_rgba(48,73,135,0.6)] border-2 border-button-700/40 dark:border-button-400/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.99] overflow-hidden"
     >
@@ -184,16 +180,11 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
       <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
       <span className="text-base font-semibold">Create New Study Plan</span>
      </div>
-    </motion.button>
+    </button>
 
     {/* Study Plans List */}
     {studyPlans.length === 0 ? (
-     <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: 0.1 }}
-      className="text-center py-16"
-     >
+     <div className="text-center py-16 animate-fade-in" style={{ animationDelay: '100ms' }}>
       <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
        <BookOpen className="w-10 h-10 text-content-subtle dark:text-content-muted" />
       </div>
@@ -210,7 +201,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
        <Plus className="w-4 h-4" />
        Create Your First Plan
       </button>
-     </motion.div>
+     </div>
     ) : (
      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {studyPlans.map((plan, index) => {
@@ -235,13 +226,11 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
        const bookmarkCount = plan.progress.bookmarkedProblems?.length ?? 0;
 
        return (
-        <motion.div
+        <div
          key={plan.id}
-         initial={{ opacity: 0, y: 8 }}
-         animate={{ opacity: 1, y: 0 }}
-         transition={{ duration: 0.3, delay: index * 0.05 }}
          onClick={() => onViewPlan(plan.id)}
-         className="group relative bg-panel-100 dark:bg-panel-300 backdrop-blur-lg rounded-[16px] border border-panel-200 dark:border-panel-300 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3),0_8px_24px_rgba(0,0,0,0.2)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.08),0_12px_32px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_2px_8px_rgba(0,0,0,0.4),0_12px_32px_rgba(0,0,0,0.3)] transition-all duration-200 cursor-pointer overflow-hidden"
+         className="group relative bg-panel-100 dark:bg-panel-300 backdrop-blur-lg rounded-[16px] border border-panel-200 dark:border-panel-300 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_8px_24px_rgba(0,0,0,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3),0_8px_24px_rgba(0,0,0,0.2)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.08),0_12px_32px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_2px_8px_rgba(0,0,0,0.4),0_12px_32px_rgba(0,0,0,0.3)] transition-all duration-200 hover:-translate-y-1 cursor-pointer overflow-hidden animate-fade-in"
+         style={{ animationDelay: `${index * 50}ms` }}
         >
          {/* Progress Bar at Top */}
          <div className="absolute top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700">
@@ -326,7 +315,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
            </div>
           </div>
          </div>
-        </motion.div>
+        </div>
        );
       })}
      </div>

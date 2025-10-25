@@ -107,7 +107,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
      </h2>
      <button
       onClick={() => setShowUsageGuide(true)}
-      className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60"
+      className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 transition-colors hover:bg-blue-200 dark:hover:bg-blue-900/60"
       aria-label="How to use this study plan"
       title="How to use this study plan"
      >
@@ -136,7 +136,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
      </div>
      <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
       <div
-       className="h-full bg-mint-500 dark:bg-mint-500"
+       className="h-full bg-mint dark:bg-mint-500 transition-all duration-500 ease-out"
        style={{ width: `${progressPercentage ?? 0}%` }}
       />
      </div>
@@ -253,7 +253,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
       {/* Close button */}
       <button
        onClick={() => setShowUsageGuide(false)}
-       className="absolute top-4 right-4 text-content-muted dark:text-content-subtle hover:text-content dark:hover:text-button-foreground"
+       className="absolute top-4 right-4 text-content-muted dark:text-content-subtle transition-colors hover:text-content dark:hover:text-button-foreground"
        aria-label="Close"
       >
        <Xmark className="w-5 h-5" strokeWidth={ICON_STROKE_WIDTH} />
@@ -348,7 +348,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
       <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
        <button
         onClick={() => setShowUsageGuide(false)}
-        className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg"
+        className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
        >
         Got it!
        </button>

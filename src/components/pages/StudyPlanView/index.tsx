@@ -256,7 +256,7 @@ export function StudyPlanView({
  }, []);
 
  return (
-  <div className="min-h-[calc(100vh-3.5rem)] bg-surface dark:bg-surface py-8 px-4 font-sans">
+  <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-neutral-900 py-8 px-4 font-sans">
    <div className="max-w-6xl mx-auto">
     {/* Header */}
     <div className="mb-8">
