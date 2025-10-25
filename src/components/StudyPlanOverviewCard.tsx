@@ -99,7 +99,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
    : 'Today is the last scheduled day—finish strong!';
 
  return (
-  <div className="bg-panel-muted dark:bg-panel-300 rounded-xl shadow-md border border-panel-200 dark:border-panel-300 p-4 sm:p-5">
+  <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow-md border border-gray-200 dark:border-slate-700 p-4 sm:p-5">
    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
     <div className="flex items-center gap-2">
      <h2 className="text-xl font-semibold text-content font-playfair">
@@ -134,9 +134,9 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
        {progressPercentage ?? 0}% • {completedCount}/{totalProgressProblems} problems
       </span>
      </div>
-     <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+     <div className="h-2 bg-gray-200 dark:bg-[#334155] rounded-full overflow-hidden">
       <div
-       className="h-full bg-mint dark:bg-mint-500 transition-all duration-500 ease-out"
+       className="h-full bg-mint-500 dark:bg-emerald-400 transition-all duration-500 ease-out"
        style={{ width: `${progressPercentage ?? 0}%` }}
       />
      </div>
@@ -152,45 +152,45 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
    )}
 
    {/* Stats Strip */}
-   <div className="mb-5 inline-flex max-w-full rounded-lg border border-emerald-200/70 dark:border-emerald-800 bg-white/60 dark:bg-gray-800/40 px-4 py-3">
-    <div className="flex flex-nowrap items-center divide-x divide-emerald-400/50 dark:divide-emerald-500/40">
+   <div className="mb-5 inline-flex max-w-full rounded-lg border border-emerald-200/70 dark:border-emerald-600/60 bg-white/90 dark:bg-[#334155] px-4 py-3">
+    <div className="flex flex-nowrap items-center divide-x divide-emerald-400/50 dark:divide-emerald-500/30">
      <div className="flex items-center gap-2 pr-3">
-      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100/80 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
        <OpenBook className="h-4 w-4" strokeWidth={ICON_STROKE_WIDTH} />
       </span>
       <div>
-       <div className="text-sm font-semibold text-emerald-800 dark:text-emerald-200 leading-tight">
+       <div className="text-sm font-semibold text-emerald-800 dark:text-emerald-300 leading-tight">
         {totalProblems}
        </div>
-       <div className="text-[11px] uppercase tracking-wide text-emerald-700/70 dark:text-emerald-400/80">
+       <div className="text-[11px] uppercase tracking-wide text-emerald-700/70 dark:text-emerald-400/70">
         Problems
        </div>
       </div>
      </div>
 
      <div className="flex items-center gap-2 px-3">
-      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100/80 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
        <Calendar className="h-4 w-4" strokeWidth={ICON_STROKE_WIDTH} />
       </span>
       <div>
-       <div className="text-sm font-semibold text-emerald-800 dark:text-emerald-200 leading-tight">
+       <div className="text-sm font-semibold text-emerald-800 dark:text-emerald-300 leading-tight">
         {studyPlan.dailySchedule.length}
        </div>
-       <div className="text-[11px] uppercase tracking-wide text-emerald-700/70 dark:text-emerald-400/80">
+       <div className="text-[11px] uppercase tracking-wide text-emerald-700/70 dark:text-emerald-400/70">
         Days
        </div>
       </div>
      </div>
 
      <div className="flex items-center gap-2 pl-3">
-      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100/80 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
        <Clock className="h-4 w-4" strokeWidth={ICON_STROKE_WIDTH} />
       </span>
       <div>
-       <div className="text-sm font-semibold text-emerald-800 dark:text-emerald-200 leading-tight">
+       <div className="text-sm font-semibold text-emerald-800 dark:text-emerald-300 leading-tight">
         {Math.round(estimatedHours)}h
        </div>
-       <div className="text-[11px] uppercase tracking-wide text-emerald-700/70 dark:text-emerald-400/80">
+       <div className="text-[11px] uppercase tracking-wide text-emerald-700/70 dark:text-emerald-400/70">
         Total Time
        </div>
       </div>
@@ -200,26 +200,26 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
 
    {/* Quality Metrics */}
    <div className="grid gap-3 sm:grid-cols-2">
-    <div className="flex items-start gap-2 rounded-lg border border-emerald-200/70 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-900/20 px-3 py-2.5">
-     <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" strokeWidth={ICON_STROKE_WIDTH} />
+    <div className="flex items-start gap-2 rounded-lg border border-emerald-200/70 dark:border-emerald-600/50 bg-emerald-50/70 dark:bg-emerald-900/25 px-3 py-2.5">
+     <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-300 flex-shrink-0 mt-0.5" strokeWidth={ICON_STROKE_WIDTH} />
      <div>
-      <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100 leading-tight">
+      <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-200 leading-tight">
        {quality.actualCompanyProblems} actually asked at {companyName}
       </p>
-      <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
+      <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">
        Verified interview problems
       </p>
      </div>
     </div>
 
     {quality.extrapolatedProblems > 0 && (
-     <div className="flex items-start gap-2 rounded-lg border border-emerald-200/70 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-900/20 px-3 py-2.5">
-      <InfoCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" strokeWidth={ICON_STROKE_WIDTH} />
+     <div className="flex items-start gap-2 rounded-lg border border-emerald-200/70 dark:border-emerald-600/50 bg-emerald-50/70 dark:bg-emerald-900/25 px-3 py-2.5">
+      <InfoCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-300 flex-shrink-0 mt-0.5" strokeWidth={ICON_STROKE_WIDTH} />
       <div>
-       <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100 leading-tight">
+       <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-200 leading-tight">
         {quality.extrapolatedProblems} recommended for {roleArticle} {roleDisplayName} role at {companyName}
        </p>
-       <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
+       <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">
         Derived from role relevance and company trends
        </p>
       </div>

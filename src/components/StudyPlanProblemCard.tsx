@@ -63,13 +63,13 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
  const getDifficultyColor = () => {
   switch (problem.difficulty) {
    case 'Easy':
-    return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800';
+    return 'bg-green-100 text-green-700 dark:bg-emerald-500/20 dark:text-emerald-300 border-green-200 dark:border-emerald-500/40';
    case 'Medium':
-    return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800';
+    return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/25 dark:text-yellow-200 border-yellow-200 dark:border-yellow-500/40';
    case 'Hard':
-    return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-800';
+    return 'bg-red-100 text-red-700 dark:bg-red-500/25 dark:text-red-200 border-red-200 dark:border-red-500/40';
    default:
-    return 'bg-gray-100 text-content-muted dark:bg-gray-800 dark:text-content-subtle border-gray-200 dark:border-gray-700';
+    return 'bg-gray-100 text-content-muted dark:bg-gray-700 dark:text-content-subtle border-gray-200 dark:border-gray-600';
   }
  };
 
@@ -97,8 +97,8 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
     ref={cardRef}
     className={`rounded-lg p-4 transition-all duration-200 ${
      isCompleted
-      ? 'bg-green-50/60 dark:bg-green-950/20 border border-green-200/50 dark:border-green-800/40 hover:shadow-lg hover:shadow-green-500/10'
-      : 'bg-panel-muted dark:bg-panel-300 border border-panel-200 dark:border-panel-300 hover:shadow-md'
+      ? 'bg-green-50/60 dark:bg-emerald-900/20 border border-green-200/50 dark:border-emerald-600/50 hover:shadow-lg hover:shadow-green-500/10'
+      : 'bg-white dark:bg-[#334155] border border-gray-200 dark:border-slate-600 hover:shadow-md'
     } ${
      isHighlighted
       ? 'border-indigo-500 dark:border-indigo-400 ring-4 ring-indigo-500/20 dark:ring-indigo-400/20 shadow-lg shadow-indigo-500/10 dark:shadow-indigo-400/10'
@@ -113,7 +113,7 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
        <div
         className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border ${
          isCompleted
-          ? 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/40 dark:text-green-300 dark:border-green-700'
+          ? 'bg-green-100 text-green-700 border-green-300 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-600'
           : 'bg-gray-100 text-content-subtle border-gray-200 dark:bg-gray-800 dark:text-content-subtle dark:border-gray-700'
         }`}
        >
@@ -211,7 +211,7 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
       onClick={handleActionClick}
       className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium rounded-[12px] backdrop-blur-xl transition-all duration-200 flex-shrink-0 active:scale-[0.98] ${
        isCompleted && hasResumeHandler
-        ? 'text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 border border-green-300 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/40 shadow-[0_1px_2px_rgba(34,197,94,0.15),0_1px_20px_rgba(34,197,94,0.1)_inset] dark:shadow-[0_1px_2px_rgba(74,222,128,0.1),0_1px_20px_rgba(74,222,128,0.1)_inset] hover:shadow-[0_1px_3px_rgba(34,197,94,0.2),0_2px_30px_rgba(34,197,94,0.15)_inset] dark:hover:shadow-[0_1px_3px_rgba(74,222,128,0.15),0_2px_30px_rgba(74,222,128,0.15)_inset]'
+        ? 'text-green-700 dark:text-emerald-300 bg-green-50 dark:bg-emerald-900/30 border border-green-300 dark:border-emerald-600 hover:bg-green-100 dark:hover:bg-emerald-900/40'
         : 'text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_1px_20px_rgba(0,0,0,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.15),0_2px_30px_rgba(0,0,0,0.4)_inset]'
       }`}
      >

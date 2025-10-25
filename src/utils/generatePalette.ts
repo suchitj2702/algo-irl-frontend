@@ -85,27 +85,27 @@ export function injectColorScales(palette: ColorPalette): void {
   // Add special computed properties
   const dark = isDarkMode();
 
-  // Panel muted is a common pattern
-  root.style.setProperty('--panel-muted', dark ? palette.panel[300] : palette.panel[100]);
+  // Panel muted is a common pattern - lighter in dark mode for better contrast
+  root.style.setProperty('--panel-muted', dark ? palette.panel[200] : palette.panel[100]);
 
-  // Button foreground
+  // Button foreground - brighter white in dark mode
   root.style.setProperty('--button-foreground', dark ? '#ffffff' : getCSSVariable('--foreground'));
 
-  // Text hierarchy
+  // Text hierarchy - improved readability in dark mode
   root.style.setProperty('--text-primary', getCSSVariable('--foreground'));
-  root.style.setProperty('--text-muted', dark ? palette.slate[400] : palette.slate[600]);
-  root.style.setProperty('--text-subtle', dark ? palette.slate[300] : palette.slate[500]);
+  root.style.setProperty('--text-muted', dark ? palette.slate[300] : palette.slate[600]);
+  root.style.setProperty('--text-subtle', dark ? palette.slate[400] : palette.slate[500]);
   root.style.setProperty('--text-inverse', getCSSVariable('--background'));
 
-  // Surface colors
+  // Surface colors - brighter elevated surfaces in dark mode
   root.style.setProperty('--surface-primary', getCSSVariable('--background'));
-  root.style.setProperty('--surface-elevated', dark ? palette.panel[200] : '#ffffff');
-  root.style.setProperty('--surface-muted', dark ? palette.panel[300] : palette.panel[100]);
+  root.style.setProperty('--surface-elevated', dark ? palette.panel[100] : '#ffffff');
+  root.style.setProperty('--surface-muted', dark ? palette.panel[200] : palette.panel[100]);
 
-  // Borders
-  root.style.setProperty('--border', dark ? palette.panel[300] : palette.panel[200]);
-  root.style.setProperty('--border-subtle', dark ? palette.panel[200] : palette.panel[200]);
-  root.style.setProperty('--border-strong', dark ? palette.panel[400] : palette.panel[300]);
+  // Borders - better visibility in dark mode
+  root.style.setProperty('--border', dark ? palette.panel[200] : palette.panel[200]);
+  root.style.setProperty('--border-subtle', dark ? palette.panel[100] : palette.panel[200]);
+  root.style.setProperty('--border-strong', dark ? palette.panel[300] : palette.panel[300]);
 
   // Semantic scale generation
   const success = getCSSVariable('--success');

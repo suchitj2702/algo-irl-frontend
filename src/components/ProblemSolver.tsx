@@ -714,10 +714,10 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
        <button
         onClick={handleRun}
         disabled={isLoadingRun || isLoadingSubmit || isLoading}
-        className="inline-flex items-center gap-2 px-3.5 py-1.5 text-[13px] font-medium text-content bg-white/90 hover:bg-white border border-black/8 rounded-[10px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
+        className="inline-flex items-center gap-2 px-3.5 py-1.5 text-[13px] font-medium text-gray-700 dark:text-slate-100 bg-white dark:bg-slate-600 hover:bg-gray-50 dark:hover:bg-slate-500 border border-gray-300 dark:border-slate-500 rounded-[10px] transition-all duration-200 active:scale-[0.98] disabled:opacity-40"
        >
         {isLoadingRun && (
-         <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-black"></div>
+         <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-gray-700 dark:border-slate-100"></div>
         )}
         Run
        </button>

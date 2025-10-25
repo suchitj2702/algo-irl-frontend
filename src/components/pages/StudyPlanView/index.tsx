@@ -273,10 +273,10 @@ export function StudyPlanView({
        Your Study Plan
       </h1>
       <div className="flex items-center gap-2">
-      <span className="px-3 py-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-medium border border-indigo-200 dark:border-indigo-800">
+      <span className="px-3 py-1.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-200 rounded-lg text-sm font-medium border border-indigo-200 dark:border-indigo-500/40">
         {companyName}
        </span>
-       <span className="px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-medium border border-purple-200 dark:border-purple-800">
+       <span className="px-3 py-1.5 bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-200 rounded-lg text-sm font-medium border border-purple-200 dark:border-purple-500/40">
         {roleName}
        </span>
        {isBlind75Plan && (
@@ -333,18 +333,18 @@ export function StudyPlanView({
        <button
         type="button"
         onClick={() => dispatchFilter({ type: 'TOGGLE_TOPICS' })}
-        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-600 bg-white/90 dark:bg-slate-800/80 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content-subtle shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-slate-100 shadow-sm hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors"
         aria-pressed={filterState.showTopics}
        >
         <span>{filterState.showTopics ? 'Hide topics' : 'Show topics'}</span>
         <span
          className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-          filterState.showTopics ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-gray-600'
+          filterState.showTopics ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-gray-300 dark:bg-slate-700'
          }`}
         >
          <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow will-change-transform ${
-           filterState.showTopics ? 'translate-x-4' : 'translate-x-1'
+          className={`inline-block h-4 w-4 transform rounded-full shadow will-change-transform ${
+           filterState.showTopics ? 'translate-x-4 bg-white' : 'translate-x-1 bg-white dark:bg-slate-200'
           }`}
          />
         </span>
@@ -352,18 +352,18 @@ export function StudyPlanView({
        <button
         type="button"
         onClick={() => dispatchFilter({ type: 'TOGGLE_DIFFICULTY' })}
-        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-600 bg-white/90 dark:bg-slate-800/80 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content-subtle shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-slate-100 shadow-sm hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors"
         aria-pressed={filterState.showDifficulty}
        >
         <span>{filterState.showDifficulty ? 'Hide difficulty' : 'Show difficulty'}</span>
         <span
          className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-          filterState.showDifficulty ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-gray-600'
+          filterState.showDifficulty ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-gray-300 dark:bg-slate-700'
          }`}
         >
          <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow will-change-transform ${
-           filterState.showDifficulty ? 'translate-x-4' : 'translate-x-1'
+          className={`inline-block h-4 w-4 transform rounded-full shadow will-change-transform ${
+           filterState.showDifficulty ? 'translate-x-4 bg-white' : 'translate-x-1 bg-white dark:bg-slate-200'
           }`}
          />
         </span>
@@ -371,18 +371,18 @@ export function StudyPlanView({
        <button
         type="button"
         onClick={() => dispatchFilter({ type: 'TOGGLE_SAVED_ONLY' })}
-        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-600 bg-white/90 dark:bg-slate-800/80 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content-subtle shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-slate-100 shadow-sm hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors"
         aria-pressed={filterState.showSavedOnly}
        >
         <span>{filterState.showSavedOnly ? 'Show all problems' : 'Saved problems only'}</span>
         <span
          className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-          filterState.showSavedOnly ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-gray-600'
+          filterState.showSavedOnly ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-gray-300 dark:bg-slate-700'
          }`}
         >
          <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow will-change-transform ${
-           filterState.showSavedOnly ? 'translate-x-4' : 'translate-x-1'
+          className={`inline-block h-4 w-4 transform rounded-full shadow will-change-transform ${
+           filterState.showSavedOnly ? 'translate-x-4 bg-white' : 'translate-x-1 bg-white dark:bg-slate-200'
           }`}
          />
         </span>

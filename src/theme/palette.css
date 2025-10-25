@@ -84,33 +84,33 @@
 
   /* Primary
      Used in: Primary buttons, CTAs, active states in dark mode
-     Brighter medium blue for good contrast on dark backgrounds */
-  --primary: #4a6fa5;
+     Brighter medium blue for better contrast and vibrancy */
+  --primary: #6b95d4;
 
   /* Secondary
      Used in: Secondary actions, highlights in dark mode
-     Soft lavender-blue for visual interest */
-  --secondary: #7b88b5;
+     Vivid mint/teal for visual interest matching day mode energy */
+  --secondary: #5cd8b0;
 
   /* Accent
      Used in: Special accents, bright highlights in dark mode
-     Keep bright for proper accent contrast */
-  --accent: #c8d8ff;
+     Slightly adjusted for better readability */
+  --accent: #e0e8ff;
 
   /* Background
      Used in: Main dark background, deepest surface
-     Deep charcoal-blue for professional appearance */
-  --background: #0f1419;
+     Lighter dark background for better overall contrast */
+  --background: #1a1f2e;
 
   /* Foreground
      Used in: Primary text in dark mode, high contrast text
-     Soft white-blue for comfortable reading */
-  --foreground: #e3e8f0;
+     Brighter white-blue for clearer, more readable text */
+  --foreground: #f0f4f8;
 
   /* Muted
      Used in: Muted elements, subtle text in dark mode
-     Gray-blue for proper hierarchy */
-  --muted: #8b95a8;
+     Slightly lighter gray-blue for better mid-tone hierarchy */
+  --muted: #9ca7b8;
 
   /* ==========================================
      SEMANTIC STATUS COLORS - Dark Mode
