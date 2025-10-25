@@ -415,35 +415,6 @@ export function StudyPlanView({
      ))}
     </div>
 
-    {/* Footer Info */}
-    <div className="mt-12 p-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-     <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2 font-playfair">
-      💡 How to Use This Study Plan
-     </h3>
-     <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
-      <li className="flex items-start gap-2">
-       <span className="flex-shrink-0">•</span>
-       <span>Click on any problem to start solving it in our coding environment</span>
-      </li>
-      <li className="flex items-start gap-2">
-       <span className="flex-shrink-0">•</span>
-       <span>Click the hotness badge to understand why each problem was prioritized</span>
-      </li>
-      <li className="flex items-start gap-2">
-       <span className="flex-shrink-0">•</span>
-       <span>Problems with ✓ have been actually asked at {companyName} in interviews</span>
-      </li>
-      <li className="flex items-start gap-2">
-       <span className="flex-shrink-0">•</span>
-       <span>Problems with ○ are recommended based on your role and the company's tech stack</span>
-      </li>
-      <li className="flex items-start gap-2">
-       <span className="flex-shrink-0">•</span>
-       <span>Your study plan is automatically saved - you can return to it anytime</span>
-      </li>
-     </ul>
-    </div>
-
     {/* Bottom Padding */}
     <div className="h-8"></div>
    </div>
