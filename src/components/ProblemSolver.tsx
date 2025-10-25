@@ -632,9 +632,9 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
             <span className="ml-2 text-xs text-content-muted/60">(showing first failure)</span>
            }
           </h4>
-          {executionResults.error && <p className="text-xs text-red-400 bg-red-900/30 p-1 rounded my-1">Error: {executionResults.error}</p>}
+          {executionResults.error && <p className="text-xs text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/30 p-1 rounded my-1">Error: {executionResults.error}</p>}
           {(executionResults.testCaseResults.length > 0 || !executionResults.error) && (
-            <div className="text-xs text-content-muted/70 mb-1">
+            <div className="text-xs text-content-muted mb-1">
               {typeof executionResults.executionTime === 'number' && <span className="mr-2">Time: {executionResults.executionTime.toFixed(1)}ms</span>}
               {/* {typeof executionResults.memoryUsage === 'number' && <span>Memory: {executionResults.memoryUsage.toFixed(1)}MB</span>} */}
             </div>
@@ -645,27 +645,27 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
               const originalTestInput = executionResults.testCaseResults.find(r => r.testCase.stdin === tcResult.testCase.stdin && r.testCase.expectedStdout === tcResult.testCase.expectedStdout && r.actualOutput === tcResult.actualOutput )?.testCase;
               const originalIndex = originalTestInput ? problem.testCases.findIndex(ptc => ptc.stdin === originalTestInput.stdin && ptc.expectedStdout === originalTestInput.expectedStdout) : -1;
               return (
-                <div key={`tc-${originalIndex}-${tcResult.status}-${tcResult.testCase.stdin}`} className={`p-1.5 rounded text-xs ${tcResult.passed ? 'bg-green-100 dark:bg-mint-dark/20' : 'bg-red-100 dark:bg-red-900/25'} text-neutral-200`}>
+                <div key={`tc-${originalIndex}-${tcResult.status}-${tcResult.testCase.stdin}`} className={`p-1.5 rounded text-xs ${tcResult.passed ? 'bg-green-100 dark:bg-emerald-900/30' : 'bg-red-100 dark:bg-red-900/25'} text-content`}>
                 <p className="font-mono font-medium">
                   Test Case #{originalIndex !== -1 ? originalIndex + 1 : 'Custom'}:
-                  <span className={tcResult.passed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>{tcResult.passed ? "Passed" : "Failed"}</span>
+                  <span className={tcResult.passed ? 'text-green-600 dark:text-emerald-300' : 'text-red-600 dark:text-red-400'}>{tcResult.passed ? "Passed" : "Failed"}</span>
                   ({tcResult.status})
                   {lastActionType === 'submit' && !tcResult.passed &&
-                    <span className="ml-2 text-xs text-amber-400">(first failure)</span>
+                    <span className="ml-2 text-xs text-amber-700 dark:text-amber-400">(first failure)</span>
                   }
                 </p>
-                <p className="font-mono mt-0.5">Input: <span className="text-content-subtle">{typeof tcResult.testCase.stdin === 'object' ? JSON.stringify(tcResult.testCase.stdin) : String(tcResult.testCase.stdin)}</span></p>
-                <p className="font-mono">Expected: <span className="text-content-subtle">{typeof tcResult.testCase.expectedStdout === 'object' ? JSON.stringify(tcResult.testCase.expectedStdout) : String(tcResult.testCase.expectedStdout)}</span></p>
+                <p className="font-mono mt-0.5"><span className="text-content-muted">Input:</span> <span className="text-content-subtle">{typeof tcResult.testCase.stdin === 'object' ? JSON.stringify(tcResult.testCase.stdin) : String(tcResult.testCase.stdin)}</span></p>
+                <p className="font-mono"><span className="text-content-muted">Expected:</span> <span className="text-content-subtle">{typeof tcResult.testCase.expectedStdout === 'object' ? JSON.stringify(tcResult.testCase.expectedStdout) : String(tcResult.testCase.expectedStdout)}</span></p>
 
                 { (lastActionType === 'run' || !tcResult.passed) &&
-                 <p className={`font-mono ${!tcResult.passed ? 'text-red-600 dark:text-red-300' : 'text-content-subtle'}`}>
-                  Actual: <span className={`${!tcResult.passed ? 'text-red-600 dark:text-red-300' : 'text-green-600 dark:text-green-400'}`}>{typeof tcResult.actualOutput === 'object' ? JSON.stringify(tcResult.actualOutput) : String(tcResult.actualOutput)}</span>
+                 <p className={`font-mono ${!tcResult.passed ? 'text-content-muted' : 'text-content-muted'}`}>
+                  <span className="text-content-muted">Actual:</span> <span className={`${!tcResult.passed ? 'text-red-600 dark:text-red-300' : 'text-green-600 dark:text-green-400'}`}>{typeof tcResult.actualOutput === 'object' ? JSON.stringify(tcResult.actualOutput) : String(tcResult.actualOutput)}</span>
                  </p>
                 }
 
-                {tcResult.error && <p className="font-mono text-red-300">Detail: {tcResult.error}</p>}
+                {tcResult.error && <p className="font-mono text-red-700 dark:text-red-300">Detail: {tcResult.error}</p>}
                 {/* {tcResult.stdout && <pre className="font-mono text-xs text-content-subtle bg-neutral-700/50 p-1 my-0.5 rounded max-h-20 overflow-y-auto whitespace-pre-wrap">Stdout: {tcResult.stdout}</pre>} */}
-                {tcResult.stderr && <pre className="font-mono text-xs text-red-300 bg-neutral-700/50 p-1 my-0.5 rounded max-h-20 overflow-y-auto whitespace-pre-wrap">Stderr: {tcResult.stderr}</pre>}
+                {tcResult.stderr && <pre className="font-mono text-xs text-red-700 dark:text-red-300 bg-neutral-200/50 dark:bg-neutral-700/50 p-1 my-0.5 rounded max-h-20 overflow-y-auto whitespace-pre-wrap">Stderr: {tcResult.stderr}</pre>}
                 </div>
               );
             })}

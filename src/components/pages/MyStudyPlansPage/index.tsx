@@ -163,7 +163,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
    <div className="max-w-6xl mx-auto">
     {/* Header */}
     <div className="mb-8">
-     <h1 className="text-3xl font-bold text-content mb-2">
+     <h1 className="text-3xl font-bold text-content mb-2 font-playfair">
       My Study Plans
      </h1>
      <p className="text-content-muted dark:text-content-subtle">
@@ -197,7 +197,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
       <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
        <BookOpen className="w-10 h-10 text-content-subtle dark:text-content-muted" />
       </div>
-      <h3 className="text-xl font-semibold text-content mb-2">
+      <h3 className="text-xl font-semibold text-content mb-2 font-playfair">
        No Study Plans Yet
       </h3>
       <p className="text-content-muted dark:text-content-subtle mb-6 max-w-md mx-auto">

@@ -89,12 +89,12 @@ export function injectColorScales(palette: ColorPalette): void {
   root.style.setProperty('--panel-muted', dark ? palette.panel[300] : palette.panel[100]);
 
   // Button foreground
-  root.style.setProperty('--button-foreground', dark ? getCSSVariable('--background') : '#ffffff');
+  root.style.setProperty('--button-foreground', dark ? '#ffffff' : getCSSVariable('--foreground'));
 
   // Text hierarchy
   root.style.setProperty('--text-primary', getCSSVariable('--foreground'));
-  root.style.setProperty('--text-muted', dark ? palette.slate[600] : palette.slate[500]);
-  root.style.setProperty('--text-subtle', dark ? palette.slate[700] : palette.slate[400]);
+  root.style.setProperty('--text-muted', dark ? palette.slate[400] : palette.slate[600]);
+  root.style.setProperty('--text-subtle', dark ? palette.slate[300] : palette.slate[500]);
   root.style.setProperty('--text-inverse', getCSSVariable('--background'));
 
   // Surface colors

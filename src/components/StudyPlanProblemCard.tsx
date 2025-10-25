@@ -45,12 +45,14 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
  const [showHotnessModal, setShowHotnessModal] = useState(false);
  const cardRef = useRef<HTMLDivElement>(null);
 
- // Auto-scroll to highlighted problem with instant scroll
+ // Auto-scroll to highlighted problem with smooth scroll for better UX
+ // This is a user-initiated navigation action (not continuous scrolling),
+ // so smooth scroll provides valuable visual feedback without performance impact
  useEffect(() => {
   if (isHighlighted && cardRef.current) {
    setTimeout(() => {
     cardRef.current?.scrollIntoView({
-     behavior: 'instant',
+     behavior: 'smooth',
      block: 'center',
      inline: 'nearest'
     });

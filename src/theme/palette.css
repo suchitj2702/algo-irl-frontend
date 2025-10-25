@@ -45,7 +45,7 @@
      Used in: Disabled states, subtle borders, secondary text
      Components: Form placeholders, disabled buttons,
                  dividers, subtle text, help text */
-  --muted: #111111;
+  --muted: #64748b;
 
   /* ==========================================
      SEMANTIC STATUS COLORS

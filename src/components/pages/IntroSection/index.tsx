@@ -214,7 +214,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
     <div className="relative py-24 px-6 bg-gradient-to-b from-cream to-cream-light dark:from-gray-900 dark:to-gray-800">
      <div className="max-w-6xl mx-auto">
       <div className="text-center mb-16">
-       <h2 className="text-3xl sm:text-4xl font-bold text-content mb-4">
+       <h2 className="text-3xl sm:text-4xl font-bold text-content mb-4 font-playfair">
         Built for both sides of the interview
        </h2>
        <p className="text-xl text-content-muted dark:text-content-subtle max-w-3xl mx-auto">
@@ -230,7 +230,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
           <div className="w-12 h-12 bg-mint rounded-xl flex items-center justify-center text-button-foreground mr-4">
            <Target className="w-6 h-6" />
           </div>
-          <h3 className="text-xl font-bold text-content">For Candidates</h3>
+          <h3 className="text-xl font-bold text-content font-playfair">For Candidates</h3>
          </div>
          <p className="text-content-muted dark:text-content-subtle mb-6">
           Master algorithms by understanding their real world applications. Build confidence by solving problems in the context of actual products you use daily.
@@ -265,7 +265,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
           <div className="w-12 h-12 bg-teal rounded-xl flex items-center justify-center text-button-foreground mr-4">
            <Users className="w-6 h-6" />
           </div>
-          <h3 className="text-xl font-bold text-content">For Companies</h3>
+          <h3 className="text-xl font-bold text-content font-playfair">For Companies</h3>
          </div>
          <p className="text-content-muted dark:text-content-subtle mb-6">
           Create engaging interview problems that reflect your actual engineering challenges. Assess candidates on problems relevant to your product and tech stack.
@@ -300,7 +300,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
     <div id="demo" className="relative py-24 px-6 bg-white dark:bg-gray-900/50">
      <div className="max-w-7xl mx-auto">
       <div className="text-center mb-16">
-       <h2 className="text-3xl sm:text-4xl font-bold text-content mb-4">
+       <h2 className="text-3xl sm:text-4xl font-bold text-content mb-4 font-playfair">
         See the magic in action
        </h2>
        <p className="text-xl text-content-muted dark:text-content-subtle max-w-3xl mx-auto">
@@ -386,7 +386,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
     <div className="relative py-24 px-6 bg-cream-light dark:bg-gray-900">
      <div className="max-w-6xl mx-auto">
       <div className="text-center mb-16">
-       <h2 className="text-3xl sm:text-4xl font-bold text-content mb-4">
+       <h2 className="text-3xl sm:text-4xl font-bold text-content mb-4 font-playfair">
         Your journey to mastery
        </h2>
        <p className="text-xl text-content-muted dark:text-content-subtle max-w-3xl mx-auto">
@@ -401,7 +401,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
          <div className="w-16 h-16 bg-gradient-to-br from-mint to-slate rounded-2xl flex items-center justify-center mb-6 text-button-foreground">
           <Target className="w-8 h-8" />
          </div>
-         <h3 className="text-xl font-bold text-content mb-4">1. Choose Your Path</h3>
+         <h3 className="text-xl font-bold text-content mb-4 font-playfair">1. Choose Your Path</h3>
          <p className="text-content-muted dark:text-content-subtle mb-4">
           Select from the Blind 75 problems or pick any company, from FAANG to your dream startup.
          </p>
@@ -419,7 +419,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
          <div className="w-16 h-16 bg-gradient-to-br from-slate to-navy rounded-2xl flex items-center justify-center mb-6 text-button-foreground">
           <Code2 className="w-8 h-8" />
          </div>
-         <h3 className="text-xl font-bold text-content mb-4">2. Code with Context</h3>
+         <h3 className="text-xl font-bold text-content mb-4 font-playfair">2. Code with Context</h3>
          <p className="text-content-muted dark:text-content-subtle mb-4">
           Solve algorithms framed as real engineering challenges you'd face on the job.
          </p>
@@ -437,7 +437,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
          <div className="w-16 h-16 bg-gradient-to-br from-navy to-mint rounded-2xl flex items-center justify-center mb-6 text-button-foreground">
           <Zap className="w-8 h-8" />
          </div>
-         <h3 className="text-xl font-bold text-content mb-4">3. Ace Interviews</h3>
+         <h3 className="text-xl font-bold text-content mb-4 font-playfair">3. Ace Interviews</h3>
                    <p className="text-content-muted dark:text-content-subtle mb-4">
            Walk in prepared, having already solved similar challenges in familiar contexts.
           </p>
@@ -456,7 +456,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
     <div className="relative py-24 px-6 bg-white dark:bg-gray-900/50">
      <div className="max-w-7xl mx-auto">
       <div className="text-center mb-16">
-       <h2 className="text-3xl sm:text-4xl font-bold text-content mb-4">
+       <h2 className="text-3xl sm:text-4xl font-bold text-content mb-4 font-playfair">
         Everything you need to succeed
        </h2>
        <p className="text-xl text-content-muted dark:text-content-subtle max-w-3xl mx-auto">
@@ -467,7 +467,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
        {/* Feature cards */}
        <div className="bg-gradient-to-br from-sage-light to-teal-light dark:from-sage-dark/20 dark:to-mint-dark/20 rounded-2xl p-8 border border-sage-light dark:border-sage-dark">
-        <h3 className="text-lg font-semibold text-content mb-2">
+        <h3 className="text-lg font-semibold text-content mb-2 font-playfair">
          AI Powered Scenarios
         </h3>
         <p className="text-content-muted dark:text-content-subtle">
@@ -479,7 +479,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
         <div className="w-12 h-12 bg-teal rounded-xl flex items-center justify-center mb-4 text-button-foreground">
          <Code2 className="w-6 h-6" />
         </div>
-        <h3 className="text-lg font-semibold text-content mb-2">
+        <h3 className="text-lg font-semibold text-content mb-2 font-playfair">
          Built in Code Editor
         </h3>
         <p className="text-content-muted dark:text-content-subtle">
@@ -491,7 +491,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
         <div className="w-12 h-12 bg-slate rounded-xl flex items-center justify-center mb-4 text-button-foreground">
          <Users className="w-6 h-6" />
         </div>
-        <h3 className="text-lg font-semibold text-content mb-2">
+        <h3 className="text-lg font-semibold text-content mb-2 font-playfair">
          Company Collection
         </h3>
         <p className="text-content-muted dark:text-content-subtle">
@@ -503,7 +503,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
         <div className="w-12 h-12 bg-mint rounded-xl flex items-center justify-center mb-4 text-button-foreground">
          <Target className="w-6 h-6" />
         </div>
-        <h3 className="text-lg font-semibold text-content mb-2">
+        <h3 className="text-lg font-semibold text-content mb-2 font-playfair">
          Blind 75 Coverage
         </h3>
         <p className="text-content-muted dark:text-content-subtle">
@@ -515,7 +515,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
         <div className="w-12 h-12 bg-teal rounded-xl flex items-center justify-center mb-4 text-button-foreground">
          <Zap className="w-6 h-6" />
         </div>
-        <h3 className="text-lg font-semibold text-content mb-2">
+        <h3 className="text-lg font-semibold text-content mb-2 font-playfair">
          Instant Feedback
         </h3>
         <p className="text-content-muted dark:text-content-subtle">
@@ -527,7 +527,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
         <div className="w-12 h-12 bg-slate rounded-xl flex items-center justify-center mb-4 text-button-foreground">
          <Calendar className="w-6 h-6" />
         </div>
-        <h3 className="text-lg font-semibold text-content mb-2">
+        <h3 className="text-lg font-semibold text-content mb-2 font-playfair">
          Personalized Study Plans
         </h3>
         <p className="text-content-muted dark:text-content-subtle">
@@ -539,7 +539,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
         <div className="w-12 h-12 bg-slate rounded-xl flex items-center justify-center mb-4 text-button-foreground">
          <Shield className="w-6 h-6" />
         </div>
-        <h3 className="text-lg font-semibold text-content mb-2">
+        <h3 className="text-lg font-semibold text-content mb-2 font-playfair">
          Complete Privacy
         </h3>
         <p className="text-content-muted dark:text-content-subtle">
@@ -577,7 +577,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
     {/* Final CTA */}
     <div className="relative py-24 px-6 text-center bg-gradient-to-b from-cream-light to-cream dark:from-gray-800 dark:to-gray-900">
      <div className="max-w-3xl mx-auto">
-      <h2 className="text-3xl sm:text-4xl font-bold text-content mb-6">
+      <h2 className="text-3xl sm:text-4xl font-bold text-content mb-6 font-playfair">
        Ready to transform your interview prep?
       </h2>
       <p className="text-xl text-content-muted dark:text-content-subtle mb-12">
