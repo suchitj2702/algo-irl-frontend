@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Editor, { Monaco } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
 import type { UserPreferences } from '../data-types/user';
+import { useDarkMode } from './DarkModeContext';
 
 // Define the available languages and their labels
 export const SUPPORTED_LANGUAGES = [
@@ -52,6 +53,7 @@ export default function CodeEditor({
  const monacoRef = useRef<Monaco | null>(null);
  const [isEditorReady, setIsEditorReady] = useState(false);
  const [editorError, setEditorError] = useState(false);
+ const { isDarkMode } = useDarkMode();
 
  // Configure editor options based on user preferences
  const editorOptions = {
@@ -82,11 +84,11 @@ export default function CodeEditor({
  };
 
  // Get selected language
- const selectedLanguage = SUPPORTED_LANGUAGES.find(lang => lang.id === language) 
+ const selectedLanguage = SUPPORTED_LANGUAGES.find(lang => lang.id === language)
   || SUPPORTED_LANGUAGES[0];
 
- // Handle editor theme
- const theme = preferences?.codeEditorTheme || 'vs-dark';
+ // Handle editor theme - sync with app dark mode if no preference is set
+ const theme = preferences?.codeEditorTheme || (isDarkMode ? 'vs-dark' : 'vs');
 
  const handleRetry = () => {
   setEditorError(false);
@@ -94,7 +96,7 @@ export default function CodeEditor({
  };
 
  return (
-  <div className="code-editor-container w-full h-full bg-neutral-900">
+  <div className="code-editor-container w-full h-full bg-white dark:bg-neutral-900">
    {editorError ? (
     <div className="p-4 text-button-foreground">
      <div className="mb-4">

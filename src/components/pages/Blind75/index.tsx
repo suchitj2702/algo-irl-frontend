@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { PlayIcon, CheckCircleIcon, ClockIcon, TrashIcon, AlertTriangleIcon, XIcon } from 'lucide-react';
+import { CheckCircleIcon, ClockIcon, TrashIcon, AlertTriangleIcon, XIcon } from 'lucide-react';
 import { getAllCachedProblems, CachedProblem, clearCache } from '../../../utils/cache';
 import { blind75Data } from '../../../constants/blind75';
 import { Blind75ViewState } from '../../../utils/blind75ViewState';
@@ -331,7 +331,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
       {(stats.total.solved > 0 || stats.total.inProgress > 0) && (
        <button
         onClick={() => setShowResetConfirmation(true)}
-        className="inline-flex items-center gap-2 px-5 py-2.5 text-[15px] font-medium text-red-600 dark:text-red-400 bg-white/90 dark:bg-white/10 hover:bg-white /15 border border-red-500/20 dark:border-red-400/20 rounded-[14px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(255,255,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200"
+        className="inline-flex items-center gap-2 px-5 py-2.5 text-[15px] font-medium text-red-600 dark:text-red-400 bg-white/90 dark:bg-accent/10 hover:bg-white /15 border border-red-500/20 dark:border-red-400/20 rounded-[14px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(200,216,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200"
         title="Reset all progress"
        >
         <TrashIcon className="w-4 h-4" />
@@ -350,9 +350,9 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
          {stats.easy.solved}/{stats.easy.total}
         </span>
        </div>
-       <div className="w-full bg-mint-light/50 dark:bg-green-900/30 rounded-full h-2 overflow-hidden">
+       <div className="w-full bg-green-100 dark:bg-green-900/40 rounded-full h-2.5 overflow-hidden border border-green-200/50 dark:border-green-800/50">
         <div
-         className="h-full bg-gradient-to-r from-sage-light to-sage rounded-full transition-all duration-1000 ease-out shadow-sm"
+         className="h-full bg-gradient-to-r from-green-400 to-green-600 dark:from-green-500 dark:to-green-700 rounded-full transition-all duration-1000 ease-out shadow-sm"
          style={{ width: `${(stats.easy.solved / stats.easy.total) * 100}%` }}
         ></div>
        </div>
@@ -371,9 +371,9 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
          {stats.medium.solved}/{stats.medium.total}
         </span>
        </div>
-       <div className="w-full bg-mint-light/50 dark:bg-yellow-900/30 rounded-full h-2 overflow-hidden">
+       <div className="w-full bg-yellow-100 dark:bg-yellow-900/40 rounded-full h-2.5 overflow-hidden border border-yellow-200/50 dark:border-yellow-800/50">
         <div
-         className="h-full bg-gradient-to-r from-teal-light to-teal rounded-full transition-all duration-1000 ease-out shadow-sm"
+         className="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 dark:from-yellow-500 dark:to-yellow-700 rounded-full transition-all duration-1000 ease-out shadow-sm"
          style={{ width: `${(stats.medium.solved / stats.medium.total) * 100}%` }}
         ></div>
        </div>
@@ -392,9 +392,9 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
          {stats.hard.solved}/{stats.hard.total}
         </span>
        </div>
-       <div className="w-full bg-slate-light/50 dark:bg-red-900/30 rounded-full h-2 overflow-hidden">
+       <div className="w-full bg-red-100 dark:bg-red-900/40 rounded-full h-2.5 overflow-hidden border border-red-200/50 dark:border-red-800/50">
         <div
-         className="h-full bg-gradient-to-r from-slate-light to-slate rounded-full transition-all duration-1000 ease-out shadow-sm"
+         className="h-full bg-gradient-to-r from-red-400 to-red-600 dark:from-red-500 dark:to-red-700 rounded-full transition-all duration-1000 ease-out shadow-sm"
          style={{ width: `${(stats.hard.solved / stats.hard.total) * 100}%` }}
         ></div>
        </div>
@@ -486,7 +486,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
             {(status === 'solved' || status === 'in_progress') && (
              <button
               onClick={() => handleActionClick(problem.slug, status)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-content bg-white/90 dark:bg-white/10 hover:bg-white /15 border border-black/8 rounded-[12px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(255,255,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200 flex-shrink-0"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-content bg-white/90 dark:bg-accent/10 hover:bg-white /15 border border-black/8 rounded-[12px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(200,216,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200 flex-shrink-0"
              >
               {status === 'solved' ? (
                <>
@@ -495,7 +495,6 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
                </>
               ) : (
                <>
-                <PlayIcon className="w-3.5 h-3.5" />
                 Resume
                </>
               )}
@@ -507,7 +506,6 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
              onClick={() => onPracticeWithContext(problem.slug)}
              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-[12px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_1px_20px_rgba(0,0,0,0.3)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.15),0_2px_30px_rgba(0,0,0,0.4)_inset] active:scale-[0.98] transition-all duration-200 flex-shrink-0"
             >
-             <PlayIcon className="w-3.5 h-3.5" />
              Practice
             </button>
            </div>
@@ -537,7 +535,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
         </div>
         <button
          onClick={() => setShowResetConfirmation(false)}
-         className="ml-auto p-1.5 text-content bg-white/90 dark:bg-white/10 hover:bg-white /15 backdrop-blur-xl border border-black/8 rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(255,255,255,0.1)_inset] active:scale-[0.95] transition-all duration-200"
+         className="ml-auto p-1.5 text-content bg-white/90 dark:bg-accent/10 hover:bg-white /15 backdrop-blur-xl border border-black/8 rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(200,216,255,0.1)_inset] active:scale-[0.95] transition-all duration-200"
         >
          <XIcon className="w-5 h-5" />
         </button>
@@ -557,7 +555,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
        <div className="flex gap-3">
         <button
          onClick={() => setShowResetConfirmation(false)}
-         className="flex-1 px-4 py-2.5 text-[15px] font-medium text-content bg-white/90 dark:bg-white/10 hover:bg-white /15 backdrop-blur-xl border border-black/8 rounded-[14px] shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(255,255,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200"
+         className="flex-1 px-4 py-2.5 text-[15px] font-medium text-content bg-white/90 dark:bg-accent/10 hover:bg-white /15 backdrop-blur-xl border border-black/8 rounded-[14px] shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(200,216,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200"
         >
          Cancel
         </button>

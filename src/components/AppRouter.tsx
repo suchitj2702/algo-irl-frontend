@@ -825,22 +825,12 @@ export function AppRouter() {
 };
 
  const handleGoBackToProblem = () => {
-  navigate('/problem');
- };
-
- const handleSolveAnother = () => {
-  navigate('/form');
-  setIsCompanyContextFlow(false);
-  setSolutionFromSolver(null);
-  setEvaluationResults(null);
-  setProblem(null);
-  setCodeDetails(null);
-  setError(null);
-  setApiResponseReceived(false);
-  setIsResuming(false);
-  setResumeProblemId(null);
-  setResumeDataLoaded(false);
-  clearPlanSessionContext();
+  // If in study plan context, stay in study plan routes
+  if (currentStudyPlanId) {
+    navigate('/study-plan/problem');
+  } else {
+    navigate('/problem');
+  }
  };
 
  const handleResumeLoadingComplete = () => {
@@ -1727,7 +1717,6 @@ export function AppRouter() {
        codeDetails={codeDetails}
        onSubmit={handleFinalSolutionSubmit}
        onCodeChange={handleCodeChange}
-       onSolveAnother={handleSolveAnother}
        testResults={evaluationResults}
        onReturnToBlind75={returnToBlind75 ? () => navigate('/blind75') : undefined}
        isLoading={!problem || !codeDetails || !apiResponseReceived}
@@ -1751,7 +1740,6 @@ export function AppRouter() {
         onSubmit={handleFinalSolutionSubmit}
         onCodeChange={handleCodeChange}
         testResults={evaluationResults}
-        onSolveAnother={handleSolveAnother}
         studyPlanContext={studyPlanSolverContext}
         onReturnToBlind75={returnToBlind75 ? handleReturnToBlind75 : undefined}
        />
@@ -1759,7 +1747,7 @@ export function AppRouter() {
        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
         <div className="text-center">
          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mb-4"></div>
-         <h2 className="text-xl font-medium">Loading problem data...</h2>
+         <h2 className="text-xl font-medium font-playfair">Loading problem data...</h2>
          <p className="text-sm text-content-subtle mt-2">If this persists, please try again.</p>
         </div>
        </div>
@@ -1784,7 +1772,7 @@ export function AppRouter() {
         <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
          <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mb-4"></div>
-          <h2 className="text-xl font-medium">Loading problem data...</h2>
+          <h2 className="text-xl font-medium font-playfair">Loading problem data...</h2>
           <p className="text-sm text-content-subtle mt-2">If this persists, please try again.</p>
          </div>
         </div>
@@ -1805,7 +1793,7 @@ export function AppRouter() {
        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
         <div className="text-center">
          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mb-4"></div>
-         <h2 className="text-xl font-medium">Loading results...</h2>
+         <h2 className="text-xl font-medium font-playfair">Loading results...</h2>
         </div>
        </div>
       )
@@ -1852,7 +1840,7 @@ export function AppRouter() {
         <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
          <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600 mb-4"></div>
-          <h2 className="text-xl font-medium">Loading study plan...</h2>
+          <h2 className="text-xl font-medium font-playfair">Loading study plan...</h2>
           <p className="text-sm text-content-subtle mt-2">If this persists, please return to the form.</p>
          </div>
         </div>

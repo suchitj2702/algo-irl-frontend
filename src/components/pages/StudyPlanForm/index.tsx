@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { SparklesIcon, XCircleIcon, ChevronDownIcon } from 'lucide-react';
+import { XCircleIcon, ChevronDownIcon } from 'lucide-react';
 import { Company } from '../../../types';
 import { StudyPlanConfig, ROLE_OPTIONS, COMMON_TOPICS, RoleFamily, DifficultyPreference } from '../../../types/studyPlan';
 import { fetchCompanies as fetchCompaniesAPI } from '../../../utils/api-service';
@@ -151,7 +151,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
     <div className="w-full max-w-lg">
      <div className="bg-panel-100 dark:bg-panel-300 rounded-[20px] shadow-lg border border-panel-200 dark:border-panel-300 overflow-hidden">
       {/* Header */}
-      <div className="text-center px-6 pt-6 pb-4 border-b border-black/5 dark:border-white/5">
+      <div className="text-center px-6 pt-6 pb-4 border-b border-black/5 dark:border-accent/10">
        <h2 className="text-lg font-semibold text-content mb-1">
         Create Study Plan
        </h2>
@@ -244,7 +244,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
          onClick={() => setDatasetType('blind75')}
          className={`py-2.5 px-3 text-xs font-medium transition-colors duration-150 rounded-[8px] text-left ${
           datasetType === 'blind75'
-           ? 'bg-mint-400 text-content border border-mint-500 shadow-sm dark:bg-mint-600 dark:text-cream-50 dark:border-mint-700'
+           ? 'bg-button-500 text-button-foreground border border-button-600 shadow-sm'
            : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:text-cream-50 dark:border-panel-600 dark:hover:bg-panel-400'
          }`}
          disabled={isLoading}
@@ -252,7 +252,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
          <div className="font-semibold text-xs mb-1">Blind 75</div>
          <div className={`text-[10px] leading-tight ${
           datasetType === 'blind75'
-           ? 'text-content-muted dark:text-cream-200'
+           ? 'text-content-subtle dark:text-cream-200'
            : 'text-content-muted dark:text-content-subtle'
          }`}>
           75 essential LeetCode problems covering all major data structures and algorithms patterns
@@ -445,7 +445,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
          })}
         </div>
         {topicFocus.length > 0 && (
-         <div className="mt-2 pt-2 border-t border-black/5 dark:border-white/5">
+         <div className="mt-2 pt-2 border-t border-black/5 dark:border-accent/10">
           <p className="text-center text-[10px] text-content-muted dark:text-content-subtle">
            {topicFocus.length}/5 selected
           </p>
@@ -468,7 +468,6 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
          </>
         ) : (
          <>
-          <SparklesIcon className="h-3.5 w-3.5" />
           Generate Study Plan
          </>
         )}

@@ -2,6 +2,8 @@
 // Explains why a problem earned its prioritization score
 
 import type { CSSProperties } from 'react';
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { EnrichedProblem } from '../types/studyPlan';
 import { getHeatPalette } from '../utils/heatPalette';
@@ -84,6 +86,14 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
   boxShadow: `0 8px 18px ${palette.glow}, 0 0 22px ${palette.glow}`
  };
 
+ // Prevent body scroll when modal is open
+ useEffect(() => {
+  document.body.style.overflow = 'hidden';
+  return () => {
+   document.body.style.overflow = '';
+  };
+ }, []);
+
  const recencyLabel = getRecencyLabel(frequencyData.recency);
 
  const narratives: string[] = [];
@@ -107,24 +117,24 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
  narratives.push(getRoleNarrative(roleRelevance, roleName));
  narratives.push(getCompanyNarrative(hotnessBreakdown.companyContext, companyName));
 
- return (
-  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-   <div className="bg-panel-muted dark:bg-panel-300 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+ return createPortal(
+  <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm">
+   <div className="bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
     {/* Header */}
-    <div className="sticky top-0 bg-panel-muted dark:bg-panel-300 border-b border-panel-200 dark:border-panel-300 px-6 py-4 flex items-center justify-between">
+    <div className="sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-6 py-4 flex items-center justify-between shadow-sm">
      <div>
-      <h2 className="text-2xl font-bold text-content">
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white font-playfair">
        Why this problem was prioritized
       </h2>
-      <p className="text-sm text-content-muted dark:text-content-subtle mt-1">
-       Hotness score <span className="font-semibold text-content">{hotnessScore}</span>
+      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+       Hotness score <span className="font-semibold text-gray-900 dark:text-white">{hotnessScore}</span>
       </p>
      </div>
      <button
       onClick={onClose}
-      className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
      >
-      <X className="w-5 h-5 text-content-muted dark:text-content-subtle" />
+      <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
      </button>
     </div>
 
@@ -154,7 +164,7 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
 
      {/* Narrative */}
      <div className="space-y-4">
-      <h3 className="text-base font-semibold text-content">
+      <h3 className="text-base font-semibold text-content font-playfair">
        What stood out
       </h3>
       <ul className="space-y-3">
@@ -178,7 +188,7 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
 
      {/* Topics Preview */}
      <div>
-      <h4 className="text-sm font-semibold text-content mb-2">
+      <h4 className="text-sm font-semibold text-content mb-2 font-playfair">
        Topics Covered
       </h4>
       <div className="flex flex-wrap gap-2">
@@ -195,7 +205,7 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
     </div>
 
     {/* Footer */}
-    <div className="sticky bottom-0 bg-panel-muted dark:bg-panel-300 border-t border-panel-200 dark:border-panel-300 px-6 py-4">
+    <div className="sticky bottom-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-6 py-4 shadow-[0_-2px_4px_0_rgb(0_0_0_/_0.05)]">
      <button
       onClick={onClose}
       className="w-full px-4 py-2.5 bg-mint-600 hover:bg-mint-700 text-button-foreground font-medium rounded-lg transition-colors"
@@ -204,6 +214,7 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
      </button>
     </div>
    </div>
-  </div>
+  </div>,
+  document.body
  );
 }

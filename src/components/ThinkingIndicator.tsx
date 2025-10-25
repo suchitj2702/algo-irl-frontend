@@ -61,7 +61,7 @@ export function ThinkingIndicator({
   return (
     <div className="p-6">
       {title && (
-        <h2 className="text-2xl font-bold mb-6 text-content dark:text-content-subtle">
+        <h2 className="text-2xl font-bold mb-6 text-content dark:text-content-subtle font-playfair">
           {title}
         </h2>
       )}

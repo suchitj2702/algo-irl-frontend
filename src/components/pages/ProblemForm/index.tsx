@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SparklesIcon, XCircleIcon, ChevronDownIcon } from 'lucide-react';
+import { XCircleIcon, ChevronDownIcon } from 'lucide-react';
 import { getProblemShowTimestamps, updateProblemShowTimestamp } from '../../../utils/cache';
 import { blind75Data, TopicName, getTopicNames, getAllProblems, getProblemsByTopic } from '../../../constants/blind75';
 import { FormData, Company } from '../../../types';
@@ -279,7 +279,7 @@ export function ProblemForm({
       </div>
       <button
        onClick={clearAllErrors}
-       className="p-1 text-content bg-cream dark:bg-white/10 hover:bg-cream-light /15 backdrop-blur-xl border border-slate/20 rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(255,255,255,0.1)_inset] active:scale-[0.95] transition-all duration-200"
+       className="p-1 text-content bg-cream dark:bg-accent/10 hover:bg-cream-light /15 backdrop-blur-xl border border-slate/20 rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(200,216,255,0.1)_inset] active:scale-[0.95] transition-all duration-200"
       >
        <XCircleIcon className="h-4 w-4" />
       </button>
@@ -295,7 +295,7 @@ export function ProblemForm({
      <div className="grid grid-cols-1 gap-2">
       <button
        type="button"
-       className="inline-flex items-center justify-center py-2.5 px-4 text-[15px] font-medium text-content bg-cream dark:bg-white/8 border border-slate/20 dark:border-white/8 rounded-[14px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.04),0_1px_18px_rgba(255,255,255,0.25)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.25),0_1px_18px_rgba(255,255,255,0.08)_inset] cursor-default"
+       className="inline-flex items-center justify-center py-2.5 px-4 text-[15px] font-medium text-content bg-cream dark:bg-accent/8 border border-slate/20 dark:border-accent/16 rounded-[14px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.04),0_1px_18px_rgba(255,255,255,0.25)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.25),0_1px_18px_rgba(200,216,255,0.08)_inset] cursor-default"
       >
        Blind 75
       </button>
@@ -435,9 +435,6 @@ export function ProblemForm({
         }`}
         disabled={isLoading}
        >
-        {topic.id === 'random' && (
-         <SparklesIcon className="w-3.5 h-3.5" />
-        )}
         <span className="truncate">
          {topic.name}
         </span>
@@ -464,7 +461,6 @@ export function ProblemForm({
        </>
       ) : (
        <>
-        <SparklesIcon className="h-5 w-5" />
         Generate Challenge
        </>
       )}

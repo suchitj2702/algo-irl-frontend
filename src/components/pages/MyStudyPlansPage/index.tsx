@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Plus, Calendar, Target, Trash2, BookOpen, Clock, Sparkles } from 'lucide-react';
+import { Plus, Calendar, Target, Trash2, BookOpen, Clock } from 'lucide-react';
 import { CachedStudyPlan, ROLE_OPTIONS } from '../../../types/studyPlan';
 import { getStudyPlansFromFirestore, deleteStudyPlanFromFirestore, getCompletionPercentageFromPlan } from '../../../services/studyPlanFirestoreService';
 import { getAllCachedPlans, removePlanFromCache, savePlanToCache, migrateToCachedPlanData } from '../../../services/studyPlanCacheService';
@@ -177,10 +177,11 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
      animate={{ opacity: 1, y: 0 }}
      transition={{ duration: 0.3 }}
      onClick={onCreateNew}
-     className="w-full mb-6 px-6 py-4 bg-gradient-to-r from-mint to-mint-dark dark:from-mint-600 dark:to-mint-700 hover:from-mint-dark hover:to-mint dark:hover:from-mint-500 dark:hover:to-mint-600 text-button-foreground rounded-[16px] shadow-[0_2px_8px_rgba(188,204,220,0.3)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.4)] hover:shadow-[0_4px_16px_rgba(188,204,220,0.4)] dark:hover:shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-all duration-200 active:scale-[0.98] border border-mint-dark/20 dark:border-mint-500/30"
+     className="group relative w-full mb-6 px-6 py-4 bg-gradient-to-r from-button-600 via-button-500 to-button-600 hover:from-button-500 hover:via-button-400 hover:to-button-500 text-button-foreground rounded-[16px] shadow-[0_4px_16px_rgba(159,191,235,0.4)] dark:shadow-[0_4px_20px_rgba(48,73,135,0.5)] hover:shadow-[0_6px_24px_rgba(159,191,235,0.5)] dark:hover:shadow-[0_6px_28px_rgba(48,73,135,0.6)] border-2 border-button-700/40 dark:border-button-400/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.99] overflow-hidden"
     >
-     <div className="flex items-center justify-center gap-3">
-      <Plus className="w-5 h-5" />
+     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-[-100%] group-hover:translate-x-[100%] group-hover:transition-transform group-hover:duration-700"></div>
+     <div className="relative flex items-center justify-center gap-3">
+      <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
       <span className="text-base font-semibold">Create New Study Plan</span>
      </div>
     </motion.button>
@@ -263,7 +264,6 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
             </span>
             {isBlind75Plan && (
              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50/90 px-2 py-0.5 text-[11px] font-medium text-amber-700 shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:border-amber-900/60 dark:bg-amber-900/35 dark:text-amber-200">
-              <Sparkles className="h-3 w-3" />
               Blind 75 Track
              </span>
             )}
@@ -315,7 +315,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-3 border-t border-black/5 dark:border-white/5">
+          <div className="flex items-center justify-between pt-3 border-t border-black/5 dark:border-accent/10">
            <div className="flex items-center gap-1.5 text-xs text-content-muted dark:text-content-subtle">
             <Calendar className="w-3.5 h-3.5" />
             <span>Created {createdDate}</span>

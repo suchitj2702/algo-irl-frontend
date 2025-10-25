@@ -6,11 +6,9 @@ import {
  Calendar,
  Clock,
  InfoCircle,
- StatsUpSquare,
- TriangleFlag,
- Xmark,
  OpenBook,
- CheckCircle
+ CheckCircle,
+ Xmark
 } from 'iconoir-react';
 import { StudyPlanResponse, ROLE_OPTIONS } from '../types/studyPlan';
 import { getCompanyDisplayName } from '../utils/companyDisplay';
@@ -31,7 +29,7 @@ const ICON_STROKE_WIDTH = 1.75;
 
 export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyPlanOverviewCardProps) {
  const companyName = getCompanyDisplayName(companyId);
- const [showLikelihoodInfo, setShowLikelihoodInfo] = useState(false);
+ const [showUsageGuide, setShowUsageGuide] = useState(false);
  const { totalProblems, estimatedHours, metadata } = studyPlan;
  const { quality } = metadata;
  const roleOption = ROLE_OPTIONS.find(option => option.id === metadata.role);
@@ -45,7 +43,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
  const bookmarkedCount = progress?.bookmarkedCount ?? 0;
  const inProgressCount = progress?.inProgressCount ?? 0;
 
- // Completion likelihood calculation
+ // Timeline calculation
  const msInDay = 1000 * 60 * 60 * 24;
  const normalizeToStartOfDay = (date: Date) => {
   const normalized = new Date(date);
@@ -59,43 +57,11 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
  const today = normalizeToStartOfDay(new Date());
  const planStart = normalizeToStartOfDay(startDate);
  const planEnd = normalizeToStartOfDay(endDate);
- const totalPlanDays = Math.max(scheduleLength, 1);
  const daysUntilStart = today < planStart ? Math.floor((planStart.getTime() - today.getTime()) / msInDay) : 0;
- const rawDaysIntoPlan = today >= planStart ? Math.floor((today.getTime() - planStart.getTime()) / msInDay) + 1 : 0;
- const daysIntoPlan = Math.min(Math.max(rawDaysIntoPlan, 0), totalPlanDays);
- const expectedProgressRatio = Math.min(daysIntoPlan / totalPlanDays, 1);
- const actualProgressRatio = progressPercentage !== null ? Math.max(Math.min(progressPercentage / 100, 1), 0) : 0;
- const paceRatio =
-  expectedProgressRatio > 0
-   ? Math.min(Math.max(actualProgressRatio / expectedProgressRatio, 0), 1.3)
-   : actualProgressRatio > 0
-   ? 1
-   : 0.65;
  const rawDaysRemaining = today <= planEnd ? Math.floor((planEnd.getTime() - today.getTime()) / msInDay) + 1 : 0;
  const daysRemaining = Math.max(rawDaysRemaining, 0);
  const overdueDays = today > planEnd ? Math.floor((today.getTime() - planEnd.getTime()) / msInDay) : 0;
- const bufferScore =
-  overdueDays > 0 ? 1 / (1 + overdueDays) : Math.min(1, (daysRemaining || 1) / totalPlanDays);
- let probability = Math.round(
-  Math.max(0, Math.min((0.45 * paceRatio + 0.35 * actualProgressRatio + 0.2 * bufferScore) * 100, 100))
- );
- if (actualProgressRatio >= 1) {
-  probability = 100;
- }
- const probabilityTone =
-  probability >= 85
-   ? 'You are comfortably ahead of schedule.'
-   : probability >= 70
-   ? 'Steady pace—keep the rhythm.'
-   : probability >= 50
-   ? 'Slightly behind—consider a small push.'
-   : 'At risk of slipping behind—time to refocus.';
- const probabilityTextClass =
-  probability >= 85
-   ? 'text-emerald-600 dark:text-emerald-300'
-   : probability >= 60
-   ? 'text-amber-600 dark:text-amber-300'
-   : 'text-rose-600 dark:text-rose-300';
+ const actualProgressRatio = progressPercentage !== null ? Math.max(Math.min(progressPercentage / 100, 1), 0) : 0;
  const pluralizeDays = (value: number) => `${value} day${value === 1 ? '' : 's'}`;
  const timelineHeadline =
   actualProgressRatio >= 1
@@ -107,6 +73,20 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
    : overdueDays > 0
    ? `Overdue by ${pluralizeDays(overdueDays)}`
    : 'On the final stretch';
+
+ // Color coding based on days remaining
+ const getTimelineColor = () => {
+  if (actualProgressRatio >= 1) return 'text-emerald-600 dark:text-emerald-400';
+  if (overdueDays > 0) return 'text-rose-600 dark:text-rose-400';
+  if (daysUntilStart > 0) return 'text-blue-600 dark:text-blue-400';
+
+  const totalDays = scheduleLength;
+  const daysRatio = daysRemaining / totalDays;
+
+  if (daysRatio > 0.5) return 'text-emerald-600 dark:text-emerald-400'; // Green - plenty of time
+  if (daysRatio > 0.25) return 'text-amber-600 dark:text-amber-400'; // Amber - moderate time
+  return 'text-rose-600 dark:text-rose-400'; // Red - running out of time
+ };
  const timelineSubtext =
   actualProgressRatio >= 1
    ? 'All scheduled problems are done—fantastic work.'
@@ -121,9 +101,19 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
  return (
   <div className="bg-panel-muted dark:bg-panel-300 rounded-xl shadow-md border border-panel-200 dark:border-panel-300 p-4 sm:p-5">
    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-    <h2 className="text-xl font-semibold text-content">
-     Study Plan Overview
-    </h2>
+    <div className="flex items-center gap-2">
+     <h2 className="text-xl font-semibold text-content font-playfair">
+      Study Plan Overview
+     </h2>
+     <button
+      onClick={() => setShowUsageGuide(true)}
+      className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60"
+      aria-label="How to use this study plan"
+      title="How to use this study plan"
+     >
+      <InfoCircle className="w-3.5 h-3.5" strokeWidth={ICON_STROKE_WIDTH} />
+     </button>
+    </div>
     <div className="text-xs text-content-muted dark:text-content-subtle">
      Generated{' '}
      {new Date(metadata.generatedAt).toLocaleDateString('en-US', {
@@ -131,51 +121,6 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
       day: 'numeric',
       year: 'numeric'
      })}
-    </div>
-   </div>
-
-   {/* Completion Likelihood & Timeline Cards */}
-   <div className="grid gap-3 sm:grid-cols-2 mb-5">
-    <div className="relative overflow-hidden rounded-xl border border-emerald-200/70 dark:border-emerald-800 bg-gradient-to-br from-emerald-50/80 via-white to-emerald-100/60 dark:from-emerald-900/20 dark:via-gray-900/20 dark:to-emerald-800/10 p-4 sm:p-5">
-     <div>
-      <div className="flex items-center gap-1.5">
-       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
-        <StatsUpSquare className="h-3.5 w-3.5" strokeWidth={ICON_STROKE_WIDTH} />
-        Completion Likelihood
-       </span>
-       <button
-        onClick={() => setShowLikelihoodInfo(true)}
-        className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900/60 transition-colors"
-        aria-label="About completion likelihood"
-        title="How this metric works"
-       >
-        <InfoCircle className="w-3 h-3" strokeWidth={ICON_STROKE_WIDTH} />
-       </button>
-      </div>
-      <div className={`mt-3 text-3xl font-extrabold ${probabilityTextClass}`}>
-       {probability}%
-      </div>
-      <p className="mt-2 text-xs text-emerald-700/80 dark:text-emerald-200/80">
-       {probabilityTone}
-      </p>
-     </div>
-    </div>
-
-    <div className="relative overflow-hidden rounded-xl border border-teal-200/60 dark:border-teal-800 bg-gradient-to-br from-teal-50/70 via-white to-emerald-100/40 dark:from-teal-900/20 dark:via-gray-900/20 dark:to-emerald-800/5 p-4 sm:p-5">
-     <div className="flex items-start justify-between gap-4">
-      <div>
-       <span className="inline-flex items-center gap-1 rounded-full bg-teal-500/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300">
-        <TriangleFlag className="h-3.5 w-3.5" strokeWidth={ICON_STROKE_WIDTH} />
-        Timeline Status
-       </span>
-       <div className="mt-3 text-2xl font-bold text-teal-800 dark:text-teal-200">
-        {timelineHeadline}
-       </div>
-       <p className="mt-2 text-xs text-teal-700/80 dark:text-teal-200/80">
-        {timelineSubtext}
-       </p>
-      </div>
-     </div>
     </div>
    </div>
 
@@ -191,7 +136,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
      </div>
      <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
       <div
-       className="h-full bg-mint dark:bg-mint-500 transition-all duration-300"
+       className="h-full bg-mint-500 dark:bg-mint-500"
        style={{ width: `${progressPercentage ?? 0}%` }}
       />
      </div>
@@ -199,6 +144,9 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
       <span>{completedCount} completed</span>
       <span>{inProgressCount} in progress</span>
       <span>{bookmarkedCount} bookmarked</span>
+      <span className={getTimelineColor()}>
+       {timelineHeadline}
+      </span>
      </div>
     </div>
    )}
@@ -265,13 +213,13 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
     </div>
 
     {quality.extrapolatedProblems > 0 && (
-     <div className="flex items-start gap-2 rounded-lg border border-teal-200/70 dark:border-teal-800 bg-teal-50/70 dark:bg-teal-900/20 px-3 py-2.5">
-      <InfoCircle className="h-5 w-5 text-teal-600 dark:text-teal-400 flex-shrink-0 mt-0.5" strokeWidth={ICON_STROKE_WIDTH} />
+     <div className="flex items-start gap-2 rounded-lg border border-emerald-200/70 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-900/20 px-3 py-2.5">
+      <InfoCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" strokeWidth={ICON_STROKE_WIDTH} />
       <div>
-       <p className="text-sm font-semibold text-teal-900 dark:text-teal-100 leading-tight">
+       <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100 leading-tight">
         {quality.extrapolatedProblems} recommended for {roleArticle} {roleDisplayName} role at {companyName}
        </p>
-       <p className="text-xs text-teal-700 dark:text-teal-300 mt-0.5">
+       <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
         Derived from role relevance and company trends
        </p>
       </div>
@@ -292,71 +240,115 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
     </div>
    )}
 
-   {/* Completion Likelihood Info Modal */}
-   {showLikelihoodInfo && (
+   {/* Usage Guide Modal */}
+   {showUsageGuide && (
     <div
      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
-     onClick={() => setShowLikelihoodInfo(false)}
+     onClick={() => setShowUsageGuide(false)}
     >
      <div
-      className="relative bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-emerald-200 dark:border-emerald-700"
+      className="relative bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-blue-200 dark:border-blue-700"
       onClick={(e) => e.stopPropagation()}
      >
       {/* Close button */}
       <button
-       onClick={() => setShowLikelihoodInfo(false)}
-       className="absolute top-4 right-4 text-content-muted dark:text-content-subtle hover:text-content dark:hover:text-button-foreground transition-colors"
+       onClick={() => setShowUsageGuide(false)}
+       className="absolute top-4 right-4 text-content-muted dark:text-content-subtle hover:text-content dark:hover:text-button-foreground"
        aria-label="Close"
       >
        <Xmark className="w-5 h-5" strokeWidth={ICON_STROKE_WIDTH} />
       </button>
 
       {/* Title */}
-      <h2 className="text-2xl font-bold text-content mb-4 pr-8 flex items-center gap-2">
-       <StatsUpSquare className="w-6 h-6 text-emerald-600 dark:text-emerald-400" strokeWidth={ICON_STROKE_WIDTH} />
-       Completion Likelihood
+      <h2 className="text-2xl font-bold text-content mb-4 pr-8 flex items-center gap-2 font-playfair">
+       <InfoCircle className="w-6 h-6 text-blue-600 dark:text-blue-400" strokeWidth={ICON_STROKE_WIDTH} />
+       How to Use This Study Plan
       </h2>
 
       {/* Content */}
       <div className="space-y-4 text-sm text-content-muted dark:text-content-subtle">
-       <p className="leading-relaxed">
-        This percentage predicts how likely you are to complete your study plan on schedule based on your current momentum.
-       </p>
-
-       <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 border border-emerald-200 dark:border-emerald-800">
-        <p className="font-semibold text-emerald-800 dark:text-emerald-200 mb-2">
-         This metric considers:
+       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+        <p className="font-semibold text-blue-800 dark:text-blue-200 mb-3">
+         Navigation & Problem Access:
         </p>
-        <ul className="space-y-1.5 text-emerald-700 dark:text-emerald-300">
+        <ul className="space-y-2 text-blue-700 dark:text-blue-300">
          <li className="flex items-start gap-2">
-          <span className="text-emerald-600 dark:text-emerald-400">•</span>
-          <span>Your current progress vs. expected progress for this point in the plan</span>
+          <span className="text-blue-600 dark:text-blue-400 flex-shrink-0">•</span>
+          <span>Click on any day to expand and view problems for that day</span>
          </li>
          <li className="flex items-start gap-2">
-          <span className="text-emerald-600 dark:text-emerald-400">•</span>
-          <span>Your pace and momentum compared to the schedule</span>
+          <span className="text-blue-600 dark:text-blue-400 flex-shrink-0">•</span>
+          <span>Click "Start" to solve a problem in our coding environment</span>
          </li>
          <li className="flex items-start gap-2">
-          <span className="text-emerald-600 dark:text-emerald-400">•</span>
-          <span>Time remaining vs. problems left to complete</span>
+          <span className="text-blue-600 dark:text-blue-400 flex-shrink-0">•</span>
+          <span>Problem titles are revealed once you start or complete them</span>
+         </li>
+         <li className="flex items-start gap-2">
+          <span className="text-blue-600 dark:text-blue-400 flex-shrink-0">•</span>
+          <span>Click "Resume" on in-progress problems to continue where you left off</span>
          </li>
         </ul>
        </div>
 
-       <p className="leading-relaxed">
-        <strong className="text-content">This updates automatically</strong> as you complete problems, so you always know where you stand.
-       </p>
+       <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-4 border border-emerald-200 dark:border-emerald-800">
+        <p className="font-semibold text-emerald-800 dark:text-emerald-200 mb-3">
+         Understanding Problem Indicators:
+        </p>
+        <ul className="space-y-2 text-emerald-700 dark:text-emerald-300">
+         <li className="flex items-start gap-2">
+          <span className="text-emerald-600 dark:text-emerald-400 flex-shrink-0">•</span>
+          <span><strong>Hotness badge:</strong> Click to see why each problem was prioritized for you</span>
+         </li>
+         <li className="flex items-start gap-2">
+          <span className="text-emerald-600 dark:text-emerald-400 flex-shrink-0">•</span>
+          <span><strong>Role fit %:</strong> Shows how relevant the problem is to your target role</span>
+         </li>
+         <li className="flex items-start gap-2">
+          <span className="text-emerald-600 dark:text-emerald-400 flex-shrink-0">•</span>
+          <span><strong>Topics:</strong> Toggle to show/hide algorithm patterns and data structures</span>
+         </li>
+         <li className="flex items-start gap-2">
+          <span className="text-emerald-600 dark:text-emerald-400 flex-shrink-0">•</span>
+          <span><strong>Difficulty:</strong> Toggle to show/hide Easy/Medium/Hard labels</span>
+         </li>
+        </ul>
+       </div>
 
-       <p className="text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-50/50 dark:bg-emerald-900/10 rounded p-2 border-l-2 border-emerald-400">
-        💡 Tip: Check this metric regularly to stay on track and adjust your study pace if needed.
+       <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 border border-amber-200 dark:border-amber-800">
+        <p className="font-semibold text-amber-800 dark:text-amber-200 mb-3">
+         Organization & Tracking:
+        </p>
+        <ul className="space-y-2 text-amber-700 dark:text-amber-300">
+         <li className="flex items-start gap-2">
+          <span className="text-amber-600 dark:text-amber-400 flex-shrink-0">•</span>
+          <span>Click "Save" to bookmark problems you want to review later</span>
+         </li>
+         <li className="flex items-start gap-2">
+          <span className="text-amber-600 dark:text-amber-400 flex-shrink-0">•</span>
+          <span>Toggle "Saved problems only" to filter and focus on bookmarked problems</span>
+         </li>
+         <li className="flex items-start gap-2">
+          <span className="text-amber-600 dark:text-amber-400 flex-shrink-0">•</span>
+          <span>Your progress is automatically saved and synced across sessions</span>
+         </li>
+         <li className="flex items-start gap-2">
+          <span className="text-amber-600 dark:text-amber-400 flex-shrink-0">•</span>
+          <span>Track your timeline with color-coded days remaining (green to red)</span>
+         </li>
+        </ul>
+       </div>
+
+       <p className="text-xs text-content bg-gray-50/50 dark:bg-gray-900/10 rounded p-3 border-l-2 border-blue-400">
+        💡 <strong>Tip:</strong> Focus on completing problems in order to build a strong foundation. The hotness score helps you prioritize what's most relevant for {companyName} interviews.
        </p>
       </div>
 
       {/* Footer */}
       <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
        <button
-        onClick={() => setShowLikelihoodInfo(false)}
-        className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors"
+        onClick={() => setShowUsageGuide(false)}
+        className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg"
        >
         Got it!
        </button>

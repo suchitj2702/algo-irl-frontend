@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useReducer, useCallback } from 'react';
 import { ArrowLeft } from 'iconoir-react';
-import { Sparkles } from 'lucide-react';
 import { StudyPlanResponse, EnrichedProblem, ROLE_OPTIONS, StudyPlanViewState } from '../../../types/studyPlan';
 import { StudyPlanOverviewCard } from '../../StudyPlanOverviewCard';
 import { DayScheduleCard } from '../../DayScheduleCard';
@@ -282,7 +281,6 @@ export function StudyPlanView({
        </span>
        {isBlind75Plan && (
         <span className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-1.5 text-sm font-medium text-amber-700 dark:border-amber-900/60 dark:bg-amber-900/30 dark:text-amber-200">
-         <Sparkles className="h-4 w-4" />
          Blind 75 Track
         </span>
        )}
@@ -296,10 +294,7 @@ export function StudyPlanView({
 
     {isBlind75Plan && (
      <div className="mb-8">
-      <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-amber-800 shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:border-amber-900/60 dark:bg-amber-900/30 dark:text-amber-100/90">
-       <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-200">
-        <Sparkles className="h-4 w-4" />
-       </div>
+      <div className="rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-amber-800 shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:border-amber-900/60 dark:bg-amber-900/30 dark:text-amber-100/90">
        <div className="space-y-1">
         <p className="text-sm font-semibold">Focused on foundational coverage</p>
         <p className="text-xs leading-relaxed">
@@ -338,7 +333,7 @@ export function StudyPlanView({
        <button
         type="button"
         onClick={() => dispatchFilter({ type: 'TOGGLE_TOPICS' })}
-        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white/90 dark:bg-gray-800/80 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content-subtle shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-600 bg-white/90 dark:bg-slate-800/80 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content-subtle shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
         aria-pressed={filterState.showTopics}
        >
         <span>{filterState.showTopics ? 'Hide topics' : 'Show topics'}</span>
@@ -357,7 +352,7 @@ export function StudyPlanView({
        <button
         type="button"
         onClick={() => dispatchFilter({ type: 'TOGGLE_DIFFICULTY' })}
-        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white/90 dark:bg-gray-800/80 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content-subtle shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-600 bg-white/90 dark:bg-slate-800/80 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content-subtle shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
         aria-pressed={filterState.showDifficulty}
        >
         <span>{filterState.showDifficulty ? 'Hide difficulty' : 'Show difficulty'}</span>
@@ -376,7 +371,7 @@ export function StudyPlanView({
        <button
         type="button"
         onClick={() => dispatchFilter({ type: 'TOGGLE_SAVED_ONLY' })}
-        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white/90 dark:bg-gray-800/80 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content-subtle shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-600 bg-white/90 dark:bg-slate-800/80 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content-subtle shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
         aria-pressed={filterState.showSavedOnly}
        >
         <span>{filterState.showSavedOnly ? 'Show all problems' : 'Saved problems only'}</span>

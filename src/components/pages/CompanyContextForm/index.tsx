@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SparklesIcon, ChevronDownIcon } from 'lucide-react';
+import { ChevronDownIcon } from 'lucide-react';
 import { fetchCompanies as fetchCompaniesAPI } from '../../../utils/api-service';
 import { getCachedCompanies, cacheCompanies } from '../../../utils/companiesCache';
 import { Company } from '../../../types';
@@ -243,25 +243,15 @@ export function CompanyContextForm({ onSubmit, onCancel, problemSlug }: CompanyC
          <p className="text-xs text-content-subtle mt-2">Loading companies...</p>
         </div>
        )}
-
-       {/* Selected Company Display */}
-       {!FIXED_COMPANY_IDS.includes(formData.company) && selectedCompanyName && (
-        <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/30 rounded-md">
-         <p className="text-sm text-indigo-700 dark:text-indigo-300">
-          <span className="font-medium">Selected:</span> {selectedCompanyName}
-         </p>
-        </div>
-       )}
       </div>
      </div>
 
      <div className="pt-4 space-y-3">
       <button
        type="submit"
-       className="w-full flex justify-center items-center px-4 py-2.5 text-base font-medium text-button-foreground bg-brand-primary hover:bg-brand-secondary rounded-lg transition-all duration-200 shadow-subtle hover:shadow-medium disabled:opacity-50 disabled:cursor-not-allowed"
+       className="w-full flex justify-center items-center px-4 py-2.5 text-base font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-lg transition-all duration-200 shadow-subtle hover:shadow-medium disabled:opacity-50 disabled:cursor-not-allowed"
        disabled={isLoadingCompanies}
       >
-       <SparklesIcon className="h-4 w-4 mr-2" />
        {problemSlug ? 'Get Contextualized Problem' : 'Get Random Problem'}
       </button>
 

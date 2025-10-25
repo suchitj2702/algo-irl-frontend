@@ -177,7 +177,7 @@ export function DuplicateWarningModal({
 
         <button
          onClick={onCancel}
-         className="w-full px-4 py-2.5 text-sm font-medium text-content bg-white/90 dark:bg-white/10 hover:bg-white /15 backdrop-blur-xl border border-black/8 rounded-[10px] transition-all duration-200 active:scale-[0.98] shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(255,255,255,0.1)_inset]"
+         className="w-full px-4 py-2.5 text-sm font-medium text-content bg-white/90 dark:bg-accent/10 hover:bg-white /15 backdrop-blur-xl border border-black/8 rounded-[10px] transition-all duration-200 active:scale-[0.98] shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(200,216,255,0.1)_inset]"
         >
          Cancel
         </button>

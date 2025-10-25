@@ -34,7 +34,7 @@ export function PremiumGate({
       <>
         <div className="text-center py-12 px-6 bg-panel-100/70 dark:bg-panel-400/70 rounded-2xl border border-panel-200 dark:border-panel-400 shadow-md max-w-xl mx-auto">
           <Crown className="w-16 h-16 mx-auto text-mint-600 mb-4" />
-          <h3 className="text-2xl font-bold mb-2 text-content">Sign in required</h3>
+          <h3 className="text-2xl font-bold mb-2 text-content font-playfair">Sign in required</h3>
           <p className="text-sm text-content-muted dark:text-content-subtle mb-6">
             {message || `Please sign in to access ${feature}.`}
           </p>
@@ -67,7 +67,7 @@ export function PremiumGate({
       <>
         <div className="text-center py-12 px-6 bg-panel-100/70 dark:bg-panel-400/70 rounded-2xl border border-panel-200 dark:border-panel-400 shadow-md max-w-xl mx-auto">
           <Crown className="w-16 h-16 mx-auto text-mint-600 mb-4" />
-          <h3 className="text-2xl font-bold mb-2 text-content">Upgrade to Premium</h3>
+          <h3 className="text-2xl font-bold mb-2 text-content font-playfair">Upgrade to Premium</h3>
           <p className="text-sm text-content-muted dark:text-content-subtle mb-6">
             {message || `${feature} requires a premium subscription.`}
           </p>
@@ -97,7 +97,7 @@ function ComingSoonModal({ feature, message }: { feature: string; message?: stri
   return (
     <div className="text-center py-12 px-6">
       <Clock className="w-16 h-16 mx-auto text-blue-600 mb-4" />
-      <h3 className="text-2xl font-bold mb-2 text-content">Coming Soon!</h3>
+      <h3 className="text-2xl font-bold mb-2 text-content font-playfair">Coming Soon!</h3>
       <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
         {message || `${feature} is currently in development and will be available soon.`}
       </p>
@@ -212,7 +212,7 @@ function UpgradeModal({ isOpen, onClose, monthlyPrice }: UpgradeModalProps) {
         {/* Header */}
         <div className="text-center mb-6">
           <Crown className="w-16 h-16 mx-auto text-mint-600 mb-4" />
-          <h2 className="text-3xl font-bold mb-2 text-content">Upgrade to Premium</h2>
+          <h2 className="text-3xl font-bold mb-2 text-content font-playfair">Upgrade to Premium</h2>
           <p className="text-gray-600 dark:text-gray-400">
             Unlock unlimited study plans and advanced features
           </p>

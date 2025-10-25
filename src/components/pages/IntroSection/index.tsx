@@ -1,4 +1,4 @@
-import { ArrowRightIcon, Code2, Users, Zap, Shield, Target, Sparkles, Calendar, SunIcon, MoonIcon } from 'lucide-react';
+import { ArrowRightIcon, Code2, Users, Zap, Shield, Target, Calendar, SunIcon, MoonIcon } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useDarkMode } from '../../DarkModeContext';
 
@@ -112,7 +112,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
     {/* Dark Mode Toggle */}
     <button
      onClick={toggleDarkMode}
-     className="fixed top-6 right-6 z-50 p-3 rounded-[14px] bg-white/80 dark:bg-white/12 hover:bg-mint-light /16 backdrop-blur-2xl border border-slate/30 dark:border-white/12 shadow-[0_1px_2px_rgba(153,166,178,0.1),0_1px_25px_rgba(248,250,252,0.7)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_25px_rgba(255,255,255,0.12)_inset] hover:shadow-[0_1px_3px_rgba(188,204,220,0.2),0_2px_35px_rgba(248,250,252,0.9)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_35px_rgba(255,255,255,0.18)_inset] active:scale-[0.95] transition-all duration-200 text-content"
+     className="fixed top-6 right-6 z-50 p-3 rounded-[14px] bg-white/80 dark:bg-accent/12 hover:bg-mint-light /16 backdrop-blur-2xl border border-slate/30 dark:border-accent/20 shadow-[0_1px_2px_rgba(153,166,178,0.1),0_1px_25px_rgba(248,250,252,0.7)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_25px_rgba(200,216,255,0.12)_inset] hover:shadow-[0_1px_3px_rgba(188,204,220,0.2),0_2px_35px_rgba(248,250,252,0.9)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_35px_rgba(255,255,255,0.18)_inset] active:scale-[0.95] transition-all duration-200 text-content"
      aria-label="Toggle dark mode"
     >
      {isDarkMode ? <SunIcon className="h-6 w-6" /> : <MoonIcon className="h-6 w-6" />}
@@ -149,7 +149,6 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
      <div className="text-center max-w-5xl mx-auto">
       <div className="mb-8">
        <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-mint-light dark:bg-emerald-900/30 text-mint-dark dark:text-emerald-300 mb-6">
-        <Sparkles className="w-4 h-4 mr-2" />
         Transform Your Interview Prep
        </span>
       </div>
@@ -187,7 +186,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
        </button>
        <a
         href="#demo"
-        className="inline-flex items-center justify-center px-10 py-4 text-[17px] font-medium text-content bg-cream/70 dark:bg-white/12 hover:bg-cream/90 /16 backdrop-blur-2xl border border-slate/30 dark:border-white/12 rounded-[16px] transition-all duration-200 active:scale-[0.98] shadow-[0_1px_2px_rgba(153,166,178,0.1),0_1px_25px_rgba(248,250,252,0.7)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_25px_rgba(255,255,255,0.12)_inset] hover:shadow-[0_1px_3px_rgba(153,166,178,0.15),0_2px_35px_rgba(248,250,252,0.9)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_35px_rgba(255,255,255,0.18)_inset]"
+        className="inline-flex items-center justify-center px-10 py-4 text-[17px] font-medium text-content bg-cream/70 dark:bg-accent/12 hover:bg-cream/90 /16 backdrop-blur-2xl border border-slate/30 dark:border-accent/20 rounded-[16px] transition-all duration-200 active:scale-[0.98] shadow-[0_1px_2px_rgba(153,166,178,0.1),0_1px_25px_rgba(248,250,252,0.7)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_25px_rgba(200,216,255,0.12)_inset] hover:shadow-[0_1px_3px_rgba(153,166,178,0.15),0_2px_35px_rgba(248,250,252,0.9)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_35px_rgba(255,255,255,0.18)_inset]"
        >
         See Demo
        </a>
@@ -468,9 +467,6 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
        {/* Feature cards */}
        <div className="bg-gradient-to-br from-sage-light to-teal-light dark:from-sage-dark/20 dark:to-mint-dark/20 rounded-2xl p-8 border border-sage-light dark:border-sage-dark">
-        <div className="w-12 h-12 bg-mint rounded-xl flex items-center justify-center mb-4 text-button-foreground">
-         <Sparkles className="w-6 h-6" />
-        </div>
         <h3 className="text-lg font-semibold text-content mb-2">
          AI Powered Scenarios
         </h3>

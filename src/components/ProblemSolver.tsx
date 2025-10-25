@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
- PlayIcon,
- SendIcon,
  RotateCcwIcon,
  InfoIcon,
  ArrowLeft,
@@ -10,8 +8,7 @@ import {
  Bookmark,
  BookmarkCheck,
  CheckCircle2,
- BookOpenCheck,
- Sparkles
+ BookOpenCheck
 } from 'lucide-react';
 import CodeEditor from './CodeEditor';
 import { executeCodeAndPoll, ExecutionResults } from '../utils/codeExecution';
@@ -607,10 +604,10 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
       </div>
      </div>
     </div>
-    <div className={`w-full md:w-1/2 md:h-full flex flex-col bg-neutral-800 dark:bg-neutral-900 transition-all duration-500 transform ${showEditor ? 'translate-x-0 opacity-100' : 'md:translate-x-8 md:opacity-0'}`}>
-     <div className="flex-shrink-0 p-3 bg-neutral-700 dark:bg-neutral-800 flex justify-between items-center border-b border-neutral-600"><div className="flex items-center"><h3 className="font-medium text-button-foreground">Solution Editor</h3><div className="ml-3 flex items-center text-xs text-content-muted/70 border-l border-neutral-600 pl-3"><InfoIcon className="h-3 w-3 mr-1 flex-shrink-0" /><span>{codeDetails?.language || 'python'}</span><div className="ml-2 text-xs text-content-muted/70">(support for more languages coming soon)</div></div></div><button onClick={handleReset} disabled={isLoadingRun || isLoadingSubmit || isLoading} className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(255,255,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"><RotateCcwIcon className="w-4 h-4" /> Reset</button></div>
+    <div className={`w-full md:w-1/2 md:h-full flex flex-col bg-white dark:bg-neutral-900 transition-all duration-500 transform ${showEditor ? 'translate-x-0 opacity-100' : 'md:translate-x-8 md:opacity-0'}`}>
+     <div className="flex-shrink-0 p-3 bg-white dark:bg-neutral-800 flex justify-between items-center border-b border-gray-200 dark:border-neutral-700"><div className="flex items-center"><h3 className="font-medium text-button-foreground">Solution Editor</h3><div className="ml-3 flex items-center text-xs text-content-muted/70 border-l border-neutral-600 pl-3"><InfoIcon className="h-3 w-3 mr-1 flex-shrink-0" /><span>{codeDetails?.language || 'python'}</span><div className="ml-2 text-xs text-content-muted/70">(support for more languages coming soon)</div></div></div><button onClick={handleReset} disabled={isLoadingRun || isLoadingSubmit || isLoading} className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(255,255,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"><RotateCcwIcon className="w-4 h-4" /> Reset</button></div>
      <div className="flex-1 flex flex-col md:overflow-hidden">
-      <div className={`${showResultsPanel ? 'h-96 md:h-3/4' : 'h-96 md:h-full'} bg-neutral-900 md:overflow-hidden transition-all duration-300`}>
+      <div className={`${showResultsPanel ? 'h-96 md:h-3/4' : 'h-96 md:h-full'} bg-white dark:bg-neutral-900 md:overflow-hidden transition-all duration-300`}>
        {isLoading || !codeDetails ? (
         <div className="flex items-center justify-center h-full">
          <div className="text-center text-content-muted">
@@ -623,14 +620,14 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
        )}
       </div>
       {showResultsPanel && executionResults && (
-       <div className={'h-64 md:h-1/4 flex-shrink-0 border-t border-neutral-700 bg-neutral-800 overflow-y-auto p-3 transition-all duration-300 opacity-100'}>
+       <div className={'h-64 md:h-1/4 flex-shrink-0 border-t border-neutral-700 bg-gray-50 dark:bg-neutral-800 overflow-y-auto p-3 transition-all duration-300 opacity-100'}>
         {(isLoadingRun || isLoadingSubmit) ? (
-          <div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div><p className="ml-3 text-sm text-button-foreground">{isLoadingRun ? "Running sample tests..." : "Submitting and running all tests..."}</p></div>
+          <div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-white"></div><p className="ml-3 text-sm text-button-foreground">{isLoadingRun ? "Running sample tests..." : "Submitting and running all tests..."}</p></div>
         ) : (
          <div>
           <h4 className="text-sm font-medium text-button-foreground mb-1">
-           Results: <span className={`ml-1 ${executionResults.passed ? 'text-mint' : 'text-red-400'}`}>{executionResults.testCasesPassed}/{executionResults.testCasesTotal} Passed</span>
-           {lastActionType === 'submit' && executionResults.passed && <span className="ml-2 text-mint">- All tests passed!</span>}
+           Results: <span className={`ml-1 ${executionResults.passed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{executionResults.testCasesPassed}/{executionResults.testCasesTotal} Passed</span>
+           {lastActionType === 'submit' && executionResults.passed && <span className="ml-2 text-green-600 dark:text-green-400">- All tests passed!</span>}
            {lastActionType === 'submit' && !executionResults.passed && resultsToShow.length === 1 &&
             <span className="ml-2 text-xs text-content-muted/60">(showing first failure)</span>
            }
@@ -648,10 +645,10 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
               const originalTestInput = executionResults.testCaseResults.find(r => r.testCase.stdin === tcResult.testCase.stdin && r.testCase.expectedStdout === tcResult.testCase.expectedStdout && r.actualOutput === tcResult.actualOutput )?.testCase;
               const originalIndex = originalTestInput ? problem.testCases.findIndex(ptc => ptc.stdin === originalTestInput.stdin && ptc.expectedStdout === originalTestInput.expectedStdout) : -1;
               return (
-                <div key={`tc-${originalIndex}-${tcResult.status}-${tcResult.testCase.stdin}`} className={`p-1.5 rounded text-xs ${tcResult.passed ? 'bg-mint-dark/20' : 'bg-red-900/25'} text-neutral-200`}>
+                <div key={`tc-${originalIndex}-${tcResult.status}-${tcResult.testCase.stdin}`} className={`p-1.5 rounded text-xs ${tcResult.passed ? 'bg-green-100 dark:bg-mint-dark/20' : 'bg-red-100 dark:bg-red-900/25'} text-neutral-200`}>
                 <p className="font-mono font-medium">
                   Test Case #{originalIndex !== -1 ? originalIndex + 1 : 'Custom'}:
-                  <span className={tcResult.passed ? 'text-mint' : 'text-red-300'}>{tcResult.passed ? "Passed" : "Failed"}</span>
+                  <span className={tcResult.passed ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>{tcResult.passed ? "Passed" : "Failed"}</span>
                   ({tcResult.status})
                   {lastActionType === 'submit' && !tcResult.passed &&
                     <span className="ml-2 text-xs text-amber-400">(first failure)</span>
@@ -661,8 +658,8 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
                 <p className="font-mono">Expected: <span className="text-content-subtle">{typeof tcResult.testCase.expectedStdout === 'object' ? JSON.stringify(tcResult.testCase.expectedStdout) : String(tcResult.testCase.expectedStdout)}</span></p>
 
                 { (lastActionType === 'run' || !tcResult.passed) &&
-                 <p className={`font-mono ${!tcResult.passed ? 'text-red-300' : 'text-content-subtle'}`}>
-                  Actual: <span className={`${!tcResult.passed ? 'text-red-300' : 'text-mint'}`}>{typeof tcResult.actualOutput === 'object' ? JSON.stringify(tcResult.actualOutput) : String(tcResult.actualOutput)}</span>
+                 <p className={`font-mono ${!tcResult.passed ? 'text-red-600 dark:text-red-300' : 'text-content-subtle'}`}>
+                  Actual: <span className={`${!tcResult.passed ? 'text-red-600 dark:text-red-300' : 'text-green-600 dark:text-green-400'}`}>{typeof tcResult.actualOutput === 'object' ? JSON.stringify(tcResult.actualOutput) : String(tcResult.actualOutput)}</span>
                  </p>
                 }
 
@@ -676,38 +673,34 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
           )}
           {/* Message if submitting and all passed, but no specific failed cases to show (because resultsToShow is empty) */}
           {lastActionType === 'submit' && executionResults.passed && resultsToShow.length === 0 &&
-            <p className="mt-2 text-sm text-mint flex items-center justify-center h-full">
+            <p className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center justify-center h-full">
               All submission tests passed successfully!
             </p>
           }
-          {lastActionType === 'run' && executionResults.passed && executionResults.testCaseResults.length > 0 && resultsToShow.length > 0 && resultsToShow.every(tc => tc.passed) && <p className="mt-2 text-sm text-mint">All sample tests passed!</p>}
+          {lastActionType === 'run' && executionResults.passed && executionResults.testCaseResults.length > 0 && resultsToShow.length > 0 && resultsToShow.every(tc => tc.passed) && <p className="mt-2 text-sm text-green-600 dark:text-green-400">All sample tests passed!</p>}
          </div>
         )}
        </div>
       )}
      </div>
-     <div className="flex-shrink-0 p-3 bg-neutral-700 dark:bg-neutral-800 border-t border-neutral-600 dark:border-neutral-700 flex justify-end space-x-3">
+     <div className="flex-shrink-0 p-3 bg-white dark:bg-neutral-800 border-t border-gray-200 dark:border-neutral-700 flex justify-end space-x-3">
       <button
        onClick={handleRun}
        disabled={isLoadingRun || isLoadingSubmit || isLoading}
-       className="inline-flex items-center gap-2 px-5 py-2.5 text-[15px] font-medium text-content bg-white/90 hover:bg-white border border-black/8 rounded-[14px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
+       className="inline-flex items-center gap-2 px-3.5 py-1.5 text-[13px] font-medium text-content bg-white/90 hover:bg-white border border-black/8 rounded-[10px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
       >
-       {isLoadingRun ? (
-        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
-       ) : (
-        <PlayIcon className="w-4 h-4" />
+       {isLoadingRun && (
+        <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-black"></div>
        )}
-       Run Code
+       Run
       </button>
       <button
        onClick={handleSubmit}
        disabled={isLoadingRun || isLoadingSubmit || isLoading}
-       className="inline-flex items-center gap-2 px-5 py-2.5 text-[15px] font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-[14px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
+       className="inline-flex items-center gap-2 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-[10px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
       >
-       {isLoadingSubmit ? (
-        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-       ) : (
-        <SendIcon className="w-4 h-4" />
+       {isLoadingSubmit && (
+        <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"></div>
        )}
        Submit
       </button>
@@ -747,7 +740,6 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
       <div className="relative rounded-2xl border border-emerald-200/70 bg-white/95 px-4 py-3 text-[11px] text-slate-700 shadow-xl ring-1 ring-emerald-100/50 backdrop-blur-sm dark:border-emerald-700/60 dark:bg-neutral-950/95 dark:text-slate-200 dark:ring-emerald-800/50">
        <div className="absolute left-1/2 -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45 border border-emerald-200/70 bg-white/95 dark:border-emerald-700/60 dark:bg-neutral-950/95" />
        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-300">
-        <Sparkles className="h-3.5 w-3.5" />
         Prompt Remix
        </div>
        <p className="mt-2 text-[12px] leading-5 text-slate-700 dark:text-slate-200">

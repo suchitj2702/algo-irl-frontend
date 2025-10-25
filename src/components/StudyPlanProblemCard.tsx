@@ -2,7 +2,7 @@
 // Horizontal card layout for problems within a day schedule
 
 import { useState, useEffect, useRef, memo } from 'react';
-import { Bookmark, BookmarkSolid, CheckCircle, Circle, Clock, Play } from 'iconoir-react';
+import { Bookmark, BookmarkSolid, CheckCircle, Circle, Clock } from 'iconoir-react';
 import { EnrichedProblem } from '../types/studyPlan';
 import { HotnessBadge } from './HotnessBadge';
 import { HotnessScoreModal } from './HotnessScoreModal';
@@ -205,7 +205,6 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
       onClick={handleActionClick}
       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-[12px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_1px_20px_rgba(0,0,0,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.15),0_2px_30px_rgba(0,0,0,0.4)_inset] active:scale-[0.98] transition-all duration-200 flex-shrink-0"
      >
-      <Play className="w-3.5 h-3.5" strokeWidth={ICON_STROKE_WIDTH} />
       <span>{actionLabel}</span>
      </button>
     </div>

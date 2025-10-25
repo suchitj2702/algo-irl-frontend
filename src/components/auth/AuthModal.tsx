@@ -50,7 +50,7 @@ export function AuthModal({ isOpen, onClose, message }: AuthModalProps) {
         <div className="text-center space-y-4">
           <LogIn className="w-10 h-10 mx-auto text-mint-600" />
           <div>
-            <h2 className="text-xl font-semibold text-content">Sign in to continue</h2>
+            <h2 className="text-xl font-semibold text-content font-playfair">Sign in to continue</h2>
             <p className="text-sm text-content-muted dark:text-content-subtle mt-1">
               {message || "Access premium features by signing in with your account."}
             </p>
