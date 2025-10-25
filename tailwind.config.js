@@ -272,7 +272,75 @@ export default {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            '--tw-prose-body': 'var(--foreground)',
+            '--tw-prose-headings': 'var(--foreground)',
+            '--tw-prose-bold': 'var(--foreground)',
+            '--tw-prose-links': 'var(--primary)',
+            '--tw-prose-code': 'var(--foreground)',
+            color: 'var(--foreground)',
+            maxWidth: 'none',
+            h1: {
+              color: 'var(--foreground)',
+              fontWeight: '700',
+            },
+            h2: {
+              color: 'var(--foreground)',
+              fontWeight: '700',
+            },
+            h3: {
+              color: 'var(--foreground)',
+              fontWeight: '500',
+            },
+            h4: {
+              color: 'var(--foreground)',
+              fontWeight: '500',
+            },
+            p: {
+              color: 'var(--foreground)',
+            },
+            strong: {
+              color: 'var(--foreground)',
+              fontWeight: '600',
+            },
+            code: {
+              color: 'var(--foreground)',
+              backgroundColor: 'var(--accent)',
+              padding: '0.125rem 0.25rem',
+              borderRadius: '0.25rem',
+              fontWeight: '400',
+            },
+            'code::before': {
+              content: '""',
+            },
+            'code::after': {
+              content: '""',
+            },
+            a: {
+              color: 'var(--primary)',
+              textDecoration: 'none',
+              '&:hover': {
+                opacity: '0.8',
+              },
+            },
+          },
+        },
+        invert: {
+          css: {
+            '--tw-prose-body': 'var(--foreground)',
+            '--tw-prose-headings': 'var(--foreground)',
+            '--tw-prose-bold': 'var(--foreground)',
+            '--tw-prose-links': 'var(--primary)',
+            '--tw-prose-code': 'var(--foreground)',
+          },
+        },
+      },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    require('tailwindcss-animate'),
+    require('@tailwindcss/typography'),
+  ],
 }

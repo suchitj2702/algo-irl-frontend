@@ -147,7 +147,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
 
  return (
   <PremiumGate feature="Study Plan Generation">
-   <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-surface dark:bg-surface">
+   <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-white dark:bg-neutral-900">
     <div className="w-full max-w-lg">
      <div className="bg-panel-100 dark:bg-panel-300 rounded-[20px] shadow-lg border border-panel-200 dark:border-panel-300 overflow-hidden">
       {/* Header */}
@@ -336,7 +336,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
            step="1"
            value={timelineLocal}
            onChange={(e) => setTimelineLocal(parseInt(e.target.value, 10))}
-           className="w-full h-2.5 rounded-full appearance-none cursor-pointer relative z-10 bg-gradient-to-r from-indigo-600 via-slate-400 to-mint-300
+           className="w-full h-2.5 rounded-full appearance-none cursor-pointer relative z-10 bg-gradient-to-r from-blue-500 via-blue-300 to-blue-100
             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6
             [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white dark:[&::-webkit-slider-thumb]:bg-neutral-850
             [&::-webkit-slider-thumb]:shadow-md
@@ -369,7 +369,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
            step="1"
            value={hoursPerDayLocal}
            onChange={(e) => setHoursPerDayLocal(parseInt(e.target.value, 10))}
-           className="w-full h-2.5 rounded-full appearance-none cursor-pointer relative z-10 bg-gradient-to-r from-mint-300 via-slate-400 to-indigo-600
+           className="w-full h-2.5 rounded-full appearance-none cursor-pointer relative z-10 bg-gradient-to-r from-indigo-100 via-blue-300 to-indigo-500
             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6
             [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white dark:[&::-webkit-slider-thumb]:bg-neutral-850
             [&::-webkit-slider-thumb]:shadow-md

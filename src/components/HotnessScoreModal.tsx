@@ -78,10 +78,8 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
 
  const palette = getHeatPalette(clampedScore);
  const badgeGradient = `linear-gradient(135deg, ${palette.stops.join(', ')})`;
- const badgeBorderGradient = `linear-gradient(135deg, ${palette.borderStops.join(', ')})`;
  const badgeStyle: CSSProperties = {
-  background: `${badgeGradient} padding-box, ${badgeBorderGradient} border-box`,
-  border: '1px solid transparent',
+  background: badgeGradient,
   color: palette.text,
   boxShadow: `0 8px 18px ${palette.glow}, 0 0 22px ${palette.glow}`
  };
@@ -144,13 +142,13 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
      <div>
       {frequencyData.isActuallyAsked ? (
        <div
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-xs font-semibold uppercase tracking-wide"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wide"
         style={badgeStyle}
        >
         <span className="h-2 w-2 rounded-full bg-white/85" aria-hidden />
         <span className="text-xs font-semibold uppercase tracking-wide">Interview insight</span>
         <span className="text-sm font-medium normal-case">
-         Confirmed at {companyName}{recencyLabel ? ` ${recencyLabel}` : ''}
+         Asked at {companyName}{recencyLabel ? ` ${recencyLabel}` : ''}
         </span>
        </div>
       ) : (

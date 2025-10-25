@@ -108,7 +108,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
     }
    `}</style>
    
-   <div className="min-h-screen bg-surface dark:bg-surface text-content relative overflow-hidden transition-colors duration-300">
+   <div className="min-h-screen bg-white dark:bg-neutral-900 text-content relative overflow-hidden transition-colors duration-300">
     {/* Dark Mode Toggle */}
     <button
      onClick={toggleDarkMode}

@@ -248,7 +248,7 @@ export function ProblemForm({
     formData.company)
   : '';
 
- return <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-surface dark:bg-surface">
+ return <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-white dark:bg-neutral-900">
   <div className="w-full max-w-md bg-panel-100 dark:bg-panel-300 rounded-xl shadow-lg border border-panel-200 dark:border-panel-300 p-6">
    <div className="text-center mb-6">
     <h2 className="text-xl font-bold text-content mb-1 font-playfair">

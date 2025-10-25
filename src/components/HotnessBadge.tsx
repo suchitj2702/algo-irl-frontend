@@ -2,6 +2,7 @@
 // Displays a compact badge showing the hotness score with tooltip
 
 import type { CSSProperties } from 'react';
+import { Flame } from 'lucide-react';
 import { EnrichedProblem } from '../types/studyPlan';
 import { getHeatPalette } from '../utils/heatPalette';
 
@@ -17,15 +18,13 @@ export function HotnessBadge({ problem, onClick, showTooltip = true }: HotnessBa
 
  const palette = getHeatPalette(clampedScore);
  const gradient = `linear-gradient(135deg, ${palette.stops.join(', ')})`;
- const borderGradient = `linear-gradient(135deg, ${palette.borderStops.join(', ')})`;
 
  const baseColor = palette.stops[0].split(' ')[0];
  const edgeColor = palette.stops[palette.stops.length - 1].split(' ')[0];
 
  const buttonStyles: CSSProperties = {
   position: 'relative',
-  background: `${gradient} padding-box, ${borderGradient} border-box`,
-  border: '1px solid transparent',
+  background: gradient,
   color: palette.text,
   boxShadow: `0 8px 18px ${palette.glow}, 0 0 22px ${palette.glow}`,
   isolation: 'isolate'
@@ -46,13 +45,18 @@ export function HotnessBadge({ problem, onClick, showTooltip = true }: HotnessBa
    onClick={onClick}
    className={`
     inline-flex items-center gap-1 px-3 py-1.5 rounded-[13px] font-semibold text-[12.5px]
-    border border-transparent backdrop-blur-xl transition-all duration-200
+    backdrop-blur-xl transition-all duration-200
     ${onClick ? 'cursor-pointer hover:opacity-95 active:scale-[0.97]' : 'cursor-default'}
    `}
    title={showTooltip ? tooltipText : undefined}
    style={buttonStyles}
   >
-   <span className="text-[15px]" aria-hidden>🔥</span>
+   <Flame
+    size={14}
+    strokeWidth={2.5}
+    className="flex-shrink-0"
+    aria-hidden="true"
+   />
    <span className="tracking-tight">{hotnessScore}</span>
    {frequencyData.isActuallyAsked && (
     <span
