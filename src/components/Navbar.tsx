@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { MenuIcon, XIcon, SunIcon, MoonIcon, TrendingUpIcon, Calendar, LogIn, User, LogOut, ChevronDown } from 'lucide-react';
 import { useDarkMode } from './DarkModeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { AuthModal } from './auth/AuthModal';
+import { useAuthDialog } from '../contexts/AuthDialogContext';
 
 interface NavbarProps {
  onHomeClick?: () => void;
@@ -14,7 +14,6 @@ interface NavbarProps {
 
 export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBeforeSignOut }: NavbarProps) {
  const [isMenuOpen, setIsMenuOpen] = useState(false);
- const [showAuthModal, setShowAuthModal] = useState(false);
  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
  const navigate = useNavigate();
  const location = useLocation();
@@ -23,6 +22,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
   toggleDarkMode
  } = useDarkMode();
  const { user, signOut, loading } = useAuth();
+ const { openAuthDialog, navSignInHidden } = useAuthDialog();
 
  const handleHomeClick = () => {
   if (onHomeClick) {
@@ -78,7 +78,11 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
  };
 
  const handleSignInClick = () => {
-  setShowAuthModal(true);
+ openAuthDialog({
+  intent: 'navbar',
+  title: 'Sign in to access your study plans',
+  description: 'Save study plans, sync your progress, and access premium prep tools across every device.',
+  });
   setIsMenuOpen(false);
  };
 
@@ -155,13 +159,15 @@ return <header className="bg-surface/50 dark:bg-surface-elevated/60 backdrop-blu
          )}
         </div>
        ) : (
-        <button
-         onClick={handleSignInClick}
-         className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-medium text-white bg-mint-600 hover:bg-mint-700 backdrop-blur-xl border border-mint-700 rounded-[14px] transition-all duration-200 active:scale-[0.98] shadow-[0_1px_2px_rgba(16,185,129,0.3),0_1px_20px_rgba(16,185,129,0.2)_inset] hover:shadow-[0_1px_3px_rgba(16,185,129,0.4),0_2px_30px_rgba(16,185,129,0.3)_inset]"
-        >
-         <LogIn className="h-4 w-4" />
-         Sign In
-        </button>
+        !navSignInHidden && (
+         <button
+          onClick={handleSignInClick}
+          className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-medium text-white bg-mint-600 hover:bg-mint-700 backdrop-blur-xl border border-mint-700 rounded-[14px] transition-all duration-200 active:scale-[0.98] shadow-[0_1px_2px_rgba(16,185,129,0.3),0_1px_20px_rgba(16,185,129,0.2)_inset] hover:shadow-[0_1px_3px_rgba(16,185,129,0.4),0_2px_30px_rgba(16,185,129,0.3)_inset]"
+         >
+          <LogIn className="h-4 w-4" />
+          Sign In
+         </button>
+        )
        )
       )}
      </div>
@@ -228,17 +234,18 @@ return <header className="bg-surface/50 dark:bg-surface-elevated/60 backdrop-blu
          </button>
         </>
        ) : (
-        <button
-         onClick={handleSignInClick}
-         className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-white bg-mint-600 hover:bg-mint-700 border border-mint-700 rounded-[14px] transition-all duration-200 active:scale-[0.98] shadow-[0_1px_2px_rgba(16,185,129,0.3),0_1px_20px_rgba(16,185,129,0.2)_inset]"
-        >
-         <LogIn className="h-4 w-4" />
-         Sign In
-        </button>
+        !navSignInHidden && (
+         <button
+          onClick={handleSignInClick}
+          className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-white bg-mint-600 hover:bg-mint-700 border border-mint-700 rounded-[14px] transition-all duration-200 active:scale-[0.98] shadow-[0_1px_2px_rgba(16,185,129,0.3),0_1px_20px_rgba(16,185,129,0.2)_inset]"
+         >
+          <LogIn className="h-4 w-4" />
+          Sign In
+         </button>
+        )
        )
       )}
      </div>
     </div>}
-   <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
   </header>;
 }

@@ -478,8 +478,8 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
  return (
   <div className="min-h-[calc(100vh-3.5rem)] md:h-[calc(100vh-3.5rem)] md:max-h-[calc(100vh-3.5rem)] flex flex-col bg-surface dark:bg-surface md:overflow-hidden">
    {/* Blind75 Back Button Toolbar */}
-   {onReturnToBlind75 && !planContext && (
-    <div className="border-b border-black/5 bg-white/70 dark:bg-neutral-900/80 backdrop-blur-md px-4 py-3">
+  {onReturnToBlind75 && !planContext && (
+    <div className="glass-panel border border-transparent border-b border-outline-subtle/60 px-4 py-3">
      <button
       onClick={onReturnToBlind75}
       className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-content shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-neutral-900 dark:text-content-subtle dark:hover:bg-neutral-800"
@@ -491,8 +491,8 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
    )}
 
    {/* Study Plan Toolbar */}
-   {planContext && (
-    <div className="border-b border-black/5 bg-white/70 dark:bg-neutral-900/80 backdrop-blur-md px-4 py-3">
+  {planContext && (
+    <div className="glass-panel border border-transparent border-b border-outline-subtle/60 px-4 py-3">
      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div className="flex flex-col gap-2">
        <div className="text-xs font-semibold uppercase tracking-wide text-content-muted dark:text-content-subtle ml-1">
@@ -691,7 +691,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
        </div>
       )}
      </div>
-     <div className="flex-shrink-0 p-3 bg-white dark:bg-neutral-800 border-t border-gray-200 dark:border-neutral-700 flex justify-between items-center">
+    <div className="glass-panel border border-transparent border-t border-outline-subtle/60 flex-shrink-0 flex justify-between items-center px-3 py-3 md:px-4">
       {/* Left side: Save status indicator */}
       <div className="flex-shrink-0 min-w-[80px]">
        {saveStatus === 'saving' && (

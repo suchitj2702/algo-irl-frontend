@@ -11,6 +11,44 @@
     @apply bg-background text-foreground font-sans;
   }
 }
+
+@layer components {
+  .glass-panel {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background: rgba(248, 250, 255, 0.72);
+    border: 1px solid transparent;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    backdrop-filter: saturate(140%) blur(18px);
+    -webkit-backdrop-filter: saturate(140%) blur(18px);
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .glass-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.2));
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  .dark .glass-panel {
+    background: rgba(19, 27, 44, 0.62);
+    box-shadow: 0 20px 45px rgba(2, 6, 23, 0.55);
+  }
+
+  .dark .glass-panel::before {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(148, 163, 184, 0.06));
+    opacity: 0.7;
+  }
+
+  .glass-panel > * {
+    position: relative;
+    z-index: 1;
+  }
+}
 @keyframes pulseIndigo {
   0%, 100% {
     width: 5%;

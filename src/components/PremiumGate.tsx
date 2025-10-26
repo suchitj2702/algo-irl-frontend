@@ -1,9 +1,10 @@
-import { useState, type ReactNode } from "react";
-import { Crown, Check, Clock } from "lucide-react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { Crown, Check, Clock, ShieldCheck } from "lucide-react";
 import { useFeatureFlags } from "../contexts/FeatureFlagsContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useSubscription } from "../hooks/useSubscription";
-import { AuthModal } from "./auth/AuthModal";
+import { useAuthDialog } from "../contexts/AuthDialogContext";
+import { AuthProviderList } from "./auth/AuthProviderList";
 
 interface PremiumGateProps {
   children: ReactNode;
@@ -17,10 +18,31 @@ export function PremiumGate({
   message,
 }: PremiumGateProps) {
   const { flags, loading: flagsLoading } = useFeatureFlags();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signInWithGoogle, error: authError, clearError } = useAuth();
   const { hasActiveSubscription, loading: subscriptionLoading } = useSubscription();
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { suppressNavSignInButton } = useAuthDialog();
+  const [signingIn, setSigningIn] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      const release = suppressNavSignInButton();
+      return release;
+    }
+    return undefined;
+  }, [user, suppressNavSignInButton]);
+
+  const handleGoogleSignIn = useCallback(async () => {
+    setSigningIn(true);
+    try {
+      clearError();
+      await signInWithGoogle();
+    } catch {
+      // AuthContext surfaces the error message
+    } finally {
+      setSigningIn(false);
+    }
+  }, [signInWithGoogle, clearError]);
 
   // Skip loading state if we already know user is not authenticated
   // This prevents double-render: "Loading..." → "Sign in required"
@@ -31,24 +53,59 @@ export function PremiumGate({
   // PRIORITY 1: ALWAYS require authentication for study plans
   if (!user) {
     return (
-      <>
-        <div className="text-center py-12 px-6 bg-panel-100/70 dark:bg-panel-400/70 rounded-2xl border border-panel-200 dark:border-panel-400 shadow-md max-w-xl mx-auto">
-          <Crown className="w-16 h-16 mx-auto text-mint-600 mb-4" />
-          <h3 className="text-2xl font-bold mb-2 text-content font-playfair">Sign in required</h3>
-          <p className="text-sm text-content-muted dark:text-content-subtle mb-6">
-            {message || `Please sign in to access ${feature}.`}
-          </p>
-          <button
-            type="button"
-            onClick={() => setShowAuthModal(true)}
-            className="px-6 py-3 bg-mint-600 hover:bg-mint-700 text-white rounded-lg font-medium transition-colors"
-          >
-            Sign In
-          </button>
+      <div className="min-h-[calc(100vh-3.5rem)] bg-background flex items-start justify-center px-4 pb-12 pt-24 sm:px-6">
+        <div className="relative w-full max-w-xl">
+          <div
+            className="absolute inset-0 -z-10 rounded-[32px] bg-gradient-to-br from-mint-200/45 via-transparent to-navy-400/30 dark:from-mint-500/25 dark:via-transparent dark:to-navy-800/45 blur-3xl"
+            aria-hidden="true"
+          />
+          <div className="relative overflow-hidden rounded-[24px] border border-outline-subtle/60 bg-white/75 dark:bg-surface-elevated/70 backdrop-blur-xl shadow-[0_30px_70px_rgba(15,23,42,0.18)]">
+            <div
+              className="pointer-events-none absolute inset-x-16 -top-24 h-48 rounded-full bg-mint-100/60 dark:bg-mint-500/10 blur-3xl"
+              aria-hidden="true"
+            />
+            <div className="relative flex flex-col items-center gap-6 px-8 py-10 text-center">
+              <span className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-button-600 via-primary to-mint-500 shadow-[0_12px_24px_rgba(79,70,229,0.25)]">
+                <div className="absolute inset-0 rounded-2xl bg-white/10 dark:bg-white/5" />
+                <ShieldCheck className="relative h-9 w-9 text-white" />
+              </span>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold text-content font-playfair">Sign in to access your study plans</h3>
+                <p className="text-sm text-content-muted dark:text-content-subtle">
+                  {message || `Access ${feature} and sync your study plans across devices.`}
+                </p>
+              </div>
+              <ul className="w-full max-w-sm text-left space-y-2 text-sm text-content-muted dark:text-content-subtle">
+                <li className="flex items-start gap-3">
+                  <Check className="mt-0.5 h-[18px] w-[18px] flex-shrink-0 text-mint-600 dark:text-mint-400" />
+                  <span>Save personalized study plans and resume where you left off.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="mt-0.5 h-[18px] w-[18px] flex-shrink-0 text-mint-600 dark:text-mint-400" />
+                  <span>Keep study plan progress, bookmarks, and code updates in sync.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="mt-0.5 h-[18px] w-[18px] flex-shrink-0 text-mint-600 dark:text-mint-400" />
+                  <span>Resume premium problem guidance and saved solutions instantly.</span>
+                </li>
+              </ul>
+              <div className="w-full max-w-sm">
+                <AuthProviderList
+                  title="Sign-in options"
+                  description="Choose your preferred provider. Blind 75 progress stays on this device for now."
+                  loading={signingIn || authLoading}
+                  onGoogleClick={handleGoogleSignIn}
+                  footer={
+                    authError ? (
+                      <p className="mt-2 text-sm text-red-500 text-left">{authError}</p>
+                    ) : undefined
+                  }
+                />
+              </div>
+            </div>
+          </div>
         </div>
-
-        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
-      </>
+      </div>
     );
   }
 

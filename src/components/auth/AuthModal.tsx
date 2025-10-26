@@ -1,14 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
-import { X, LogIn } from "lucide-react";
+import { Check, ShieldCheck, X } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import { AuthProviderList } from "./AuthProviderList";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  message?: string;
+  title?: string;
+  description?: string;
+  primaryButtonLabel?: string;
+  onSuccess?: () => void;
 }
 
-export function AuthModal({ isOpen, onClose, message }: AuthModalProps) {
+export function AuthModal({
+  isOpen,
+  onClose,
+  title,
+  description,
+  primaryButtonLabel = "Continue with Google",
+  onSuccess,
+}: AuthModalProps) {
   const { signInWithGoogle, clearError, error, loading } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -23,13 +34,14 @@ export function AuthModal({ isOpen, onClose, message }: AuthModalProps) {
     setIsProcessing(true);
     try {
       await signInWithGoogle();
+      onSuccess?.();
       onClose();
     } catch {
       // Error message surfaced through AuthContext.error
     } finally {
       setIsProcessing(false);
     }
-  }, [signInWithGoogle, onClose]);
+  }, [signInWithGoogle, onClose, onSuccess]);
 
   if (!isOpen) {
     return null;
@@ -37,7 +49,7 @@ export function AuthModal({ isOpen, onClose, message }: AuthModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="relative w-full max-w-md rounded-2xl bg-panel-50 dark:bg-panel-300 border border-outline-subtle shadow-xl p-6">
+      <div className="relative w-full max-w-md rounded-3xl bg-white/80 dark:bg-surface-elevated/80 backdrop-blur-2xl border border-outline-subtle/70 shadow-[0_30px_70px_rgba(15,23,42,0.18)] p-6 md:p-8">
         <button
           type="button"
           onClick={onClose}
@@ -47,25 +59,44 @@ export function AuthModal({ isOpen, onClose, message }: AuthModalProps) {
           <X className="w-5 h-5" />
         </button>
 
-        <div className="text-center space-y-4">
-          <LogIn className="w-10 h-10 mx-auto text-mint-600" />
-          <div>
-            <h2 className="text-xl font-semibold text-content font-playfair">Sign in to continue</h2>
-            <p className="text-sm text-content-muted dark:text-content-subtle mt-1">
-              {message || "Access premium features by signing in with your account."}
-            </p>
+        <div className="text-center space-y-6">
+          <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-button-600 via-primary to-mint-500 shadow-[0_12px_24px_rgba(79,70,229,0.25)]">
+            <div className="absolute inset-0 rounded-2xl bg-white/10 dark:bg-white/5" />
+            <ShieldCheck className="relative h-7 w-7 text-white" />
+          </div>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <h2 className="text-xl font-semibold text-content font-playfair">
+                {title || "Sign in to access your study plans"}
+              </h2>
+              <p className="text-sm text-content-muted dark:text-content-subtle">
+                {description ||
+                  "Sync your personalized study plans, saved solutions, and premium guidance across every device."}
+              </p>
+            </div>
+            <ul className="space-y-2 text-left text-sm text-content-muted dark:text-content-subtle">
+              <li className="flex items-start gap-3">
+                <Check className="mt-0.5 h-[18px] w-[18px] flex-shrink-0 text-mint-500" />
+                <span>Resume study plans right where you left off.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check className="mt-0.5 h-[18px] w-[18px] flex-shrink-0 text-mint-500" />
+                <span>Keep premium problem bookmarks and status synced automatically.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <Check className="mt-0.5 h-[18px] w-[18px] flex-shrink-0 text-mint-500" />
+                <span>Store solution drafts safely with cloud backups.</span>
+              </li>
+            </ul>
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
-
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={loading || isProcessing}
-            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-button-600 text-button-foreground font-medium hover:bg-button-700 transition-colors disabled:opacity-60"
-          >
-            {loading || isProcessing ? "Signing in…" : "Continue with Google"}
-          </button>
+          <AuthProviderList
+            inModal
+            loading={loading || isProcessing}
+            googleLabel={primaryButtonLabel}
+            onGoogleClick={handleGoogleSignIn}
+            footer={error ? <p className="text-sm text-red-500 text-center">{error}</p> : undefined}
+          />
         </div>
       </div>
     </div>
