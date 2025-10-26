@@ -10,26 +10,38 @@ import {
   Activity,
   ArrowRightIcon,
   BarChart4,
+  Building2,
   CheckCircle2,
   CircleDot,
-  ClipboardList,
+  Cpu,
   Layers,
-  Lock,
+  LineChart,
   Play,
-  ShieldCheck,
-  Sparkles,
   Target,
-  Users,
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { useDarkMode } from '../../DarkModeContext';
 import { ThinkingIndicator } from '../../ThinkingIndicator';
-import { prepareProblem } from '../../../utils/api-service';
+import {
+  prepareProblem,
+  fetchCompanies as fetchCompaniesAPI,
+} from '../../../utils/api-service';
+import {
+  cacheCompanies,
+  getCachedCompanies,
+  isCompaniesCacheValid,
+} from '../../../utils/companiesCache';
+import type { Company } from '../../../types';
+import SectionContainer from './components/SectionContainer';
+import CardSlot from './components/CardSlot';
+import FeatureCard from './components/FeatureCard';
+import CTAButton from './components/CTAButton';
 
 interface IntroSectionProps {
   onStartClick: () => void;
 }
 
-type HeroVariant = 'fear' | 'aspiration';
+type HeroVariant = 'analysis' | 'momentum';
 
 interface HeroCopy {
   eyebrow: string;
@@ -37,79 +49,26 @@ interface HeroCopy {
   subheadline: string;
   primaryCta: string;
   secondaryCta: string;
-  proofPoints: string[];
 }
 
 const HERO_VARIANTS: Record<HeroVariant, HeroCopy> = {
-  fear: {
-    eyebrow: 'Interview prep that mirrors the real onsite loop',
-    headline:
-      "Solved 200 LeetCode problems yet unsure what Amazon actually asks?",
+  analysis: {
+    eyebrow: 'Company-specific algorithm practice',
+    headline: 'Practice algorithms the way {company} actually asks them',
     subheadline:
-      'AlgoIRL keeps the algorithm but rewrites the scenario in the language Amazon, Netflix, and Stripe interviewers expect. Anchor your answers in real systems instead of abstract puzzles.',
-    primaryCta: 'Start free with Blind 75 in context',
-    secondaryCta: 'See how transformations work',
-    proofPoints: [
-      '20 high-demand companies covered',
-      'Role-specific narratives baked in',
-      'No credit card required',
-    ],
+      'Turn Two Sum into Google\'s cache design or Meta\'s friend suggestions. Same patterns, real company context that mirrors actual interviews.',
+    primaryCta: 'Start free with Blind 75',
+    secondaryCta: 'See it work on a problem',
   },
-  aspiration: {
-    eyebrow: 'From grind to conviction in under ten minutes',
-    headline: 'Practice the way senior interviewers evaluate engineers',
+  momentum: {
+    eyebrow: 'Stop guessing what they\'ll ask',
+    headline: 'Solved 200 problems but unsure what {company} actually asks?',
     subheadline:
-      'Spin up company-ready prompts for your next interview loop. AlgoIRL adds stakeholder trade-offs, system constraints, and follow-ups so you sound like an insider from the first answer.',
-    primaryCta: 'Generate my first transformation',
-    secondaryCta: 'Explore the interactive demo',
-    proofPoints: [
-      'Role-first preparation for ML, Backend, Security',
-      'Blind 75 transformations included',
-      'Keep momentum with guided study plans',
-    ],
+      'Practice algorithms the way top companies frame them. Transform generic LeetCode into real scenarios from Google, Meta, and Amazon interviews.',
+    primaryCta: 'Start free with Blind 75',
+    secondaryCta: 'See a transformation',
   },
 };
-
-const HERO_COMPANIES = [
-  'Netflix',
-  'Amazon',
-  'Stripe',
-  'Meta',
-  'Google',
-  'Microsoft',
-  'Spotify',
-  'Uber',
-  'Apple',
-  'Airbnb',
-  'Tesla',
-  'Databricks',
-  'Dropbox',
-  'DoorDash',
-  'Coinbase',
-  'Snowflake',
-  'Figma',
-  'Notion',
-  'Canva',
-  'Discord',
-] as const;
-
-const TRUST_POINTS = [
-  {
-    title: 'Guided by 2025 hiring data',
-    description:
-      '47% of hiring teams now evaluate “real-world tasks” ahead of puzzle recall (CoderPad Global Hiring Report).',
-  },
-  {
-    title: '20 vetted company playbooks',
-    description:
-      'We focus on the top 20 companies our research shows appear most in senior interview calendars.',
-  },
-  {
-    title: 'Built for judgement rounds',
-    description:
-      'Blend technical depth with product reasoning so you can handle the “why” questions confidently.',
-  },
-] as const;
 
 const PROBLEM_OPTIONS = [
   { id: 'two-sum', label: 'Two Sum' },
@@ -129,113 +88,149 @@ const ROLE_OPTIONS = [
   { id: 'security', label: 'Security' },
 ] as const;
 
+const ORIGINAL_PROBLEMS: Record<string, { title: string; description: string }> = {
+  'two-sum': {
+    title: 'Two Sum',
+    description: `Given an array of integers \`nums\` and an integer \`target\`, return indices of the two numbers such that they add up to target.
+
+**Example:**
+\`\`\`
+Input: nums = [2,7,11,15], target = 9
+Output: [0,1]
+Explanation: nums[0] + nums[1] == 9, so we return [0, 1].
+\`\`\`
+
+**Constraints:**
+- 2 <= nums.length <= 10^4
+- -10^9 <= nums[i] <= 10^9
+- Only one valid answer exists.`
+  },
+  'contains-duplicate': {
+    title: 'Contains Duplicate',
+    description: `Given an integer array \`nums\`, return \`true\` if any value appears at least twice in the array, and return \`false\` if every element is distinct.
+
+**Example:**
+\`\`\`
+Input: nums = [1,2,3,1]
+Output: true
+\`\`\`
+
+**Constraints:**
+- 1 <= nums.length <= 10^5
+- -10^9 <= nums[i] <= 10^9`
+  },
+  'valid-anagram': {
+    title: 'Valid Anagram',
+    description: `Given two strings \`s\` and \`t\`, return \`true\` if \`t\` is an anagram of \`s\`, and \`false\` otherwise.
+
+**Example:**
+\`\`\`
+Input: s = "anagram", t = "nagaram"
+Output: true
+\`\`\`
+
+**Constraints:**
+- 1 <= s.length, t.length <= 5 * 10^4
+- s and t consist of lowercase English letters.`
+  }
+};
+
 interface DemoState {
-  problemStatement: string;
-  background?: string;
   title?: string;
+  background?: string;
+  problemStatement: string;
 }
 
-const BENEFITS = [
+interface FeaturedCompany {
+  id: string;
+  name: string;
+}
+
+const DATA_FACTORS = [
   {
-    icon: Layers,
-    title: 'Translate algorithms into real systems',
+    icon: Building2,
+    title: 'Company profiles',
     description:
-      'Each prompt pairs the familiar algorithm with the systems, constraints, and metrics interviewers care about.',
-    footer: 'Explain trade-offs under production constraints.',
+      'We maintain detailed dossiers covering product domains, tech stacks, and interview focus areas for each supported company.',
   },
   {
     icon: Activity,
-    title: 'Role-specific signal',
+    title: 'Role-specific patterns',
     description:
-      'Craft answers that highlight the considerations unique to backend, ML, and security roles.',
-    footer: 'Arrive ready for cross-functional follow-ups.',
-  },
-  {
-    icon: Users,
-    title: 'Engineering narratives that land',
-    description:
-      'Use stakeholder framing, metrics, and pull-through messaging tuned to the hiring panel’s expectations.',
-    footer: 'Sound like a teammate — not a test taker.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Privacy-first workspace',
-    description:
-      'Your code stays local until you decide to sync. No trackers, no third-party data resale.',
-    footer: 'Focus on depth without worrying about leaks.',
-  },
-  {
-    icon: ClipboardList,
-    title: 'Study plans that stay on course',
-    description:
-      'Blind 75 transformations guide the free tier. Upgrade when you’re ready for the full 2,000+ dataset.',
-    footer: 'Momentum without micromanaging spreadsheets.',
+      'Community reports from Reddit, Blind, Glassdoor, and internal alumni outline how backend, ML, and security loops emphasise signal.',
   },
   {
     icon: BarChart4,
-    title: 'Feedback rooted in actual loops',
+    title: 'Quality scoring engine',
     description:
-      'We continuously compare outputs against real interview transcripts to keep prompts accurate and current.',
-    footer: 'Prep evolves with interviewer expectations.',
+      'Every AI-generated scenario is judged across six metrics — company relevance, role alignment, realism, technical fidelity, clarity, and safety.',
   },
 ] as const;
 
-const STEPS = [
+const STUDY_PLAN_STEPS = [
   {
     icon: Target,
-    title: 'Pick the company and role',
+    title: 'Sign in and choose your dataset',
     description:
-      'Align your prep with the loop you have scheduled — Amazon SDE3, Netflix ML, or Stripe Security.',
-    detail: 'Switch contexts without losing algorithm depth.',
+      'Start with Blind 75 (included) or unlock the 2,000+ premium library. Both options keep your progress synced.',
   },
   {
-    icon: Sparkles,
-    title: 'Generate an AlgoIRL prompt',
+    icon: Cpu,
+    title: 'Define company, role, and timeline',
     description:
-      'AlgoIRL rewrites the algorithm around the systems, constraints, and follow-ups unique to that team.',
-    detail: 'No two transformations are identical.',
+      'Pick the hiring panel you are targeting, set interview dates, and optionally dial in difficulty and topic focus.',
   },
   {
-    icon: CheckCircle2,
-    title: 'Practice with conviction',
+    icon: Layers,
+    title: 'AlgoIRL builds your blended plan',
     description:
-      'Walk into onsites ready to speak in the company’s language, backed by tangible metrics and trade-offs.',
-    detail: 'Confidence from context, not memorisation.',
+      'Our engine balances recently asked questions with predicted scenarios, adapting daily scope while tracking coverage.',
+  },
+  {
+    icon: LineChart,
+    title: 'Practise and track anywhere',
+    description:
+      'Work through hyperrealistic problems, update completion states, and resume from any device with one sign-in.',
   },
 ] as const;
 
 const FAQ_ITEMS = [
   {
-    question: 'What do I get on the free plan?',
+    question: 'What is included in the free plan?',
     answer:
-      'The free plan includes the full Blind 75 set with AlgoIRL transformations, adaptive study plans for short prep windows, and our privacy-first editor.',
+      'You get study plans powered by the Blind 75 dataset, company-aware transformations for those problems, and our privacy-first workspace — all synced across devices. No credit card required, no time limit.',
+  },
+  {
+    question: 'How does AlgoIRL source company and role intelligence?',
+    answer:
+      'We aggregate community-shared interview reports from Reddit, Blind, and Glassdoor, then combine that with detailed company product and architecture insights. Every transformation is scored across six quality metrics — company relevance, role alignment, scenario realism, technical fidelity, clarity, and parsing quality — before reaching you. We use LLM-as-judge evaluation to maintain high standards (0.784/1.0 average quality, 87.3% parsing success).',
   },
   {
     question: 'Why upgrade to the $5 comprehensive tier?',
     answer:
-      'Upgrading unlocks the 2,000+ problem dataset inside study plans. You keep the same experience, but AlgoIRL can pull from the full library when building long-form prep.',
+      'Premium unlocks study plans that draw from the full 2,000+ problem dataset (vs Blind 75\'s 75 problems). This means deeper topic coverage — for example, 50 graph problems instead of just 10 — and AI-predicted questions specifically tailored to your target company and role. Free tier is perfect for focused 4-6 week prep; comprehensive is for 2-3 month deep dives.',
   },
   {
-    question: 'How “real” are the company scenarios?',
+    question: 'How fresh is the data behind the recommendations?',
     answer:
-      'We interview engineers, hiring managers, and loop coordinators every quarter. Scenarios reflect current product priorities, architecture patterns, and role expectations.',
+      'We continuously refresh interview signals with new community reports, update company dossiers when products evolve, and re-score transformations using our internal evaluation pipeline. All data is hand-curated and verified against multiple sources (not just scraped) to ensure accuracy.',
   },
   {
-    question: 'Can I still use my existing LeetCode workflow?',
+    question: 'How does AlgoIRL handle sensitive company-specific details?',
     answer:
-      'Yes. Keep solving on LeetCode. AlgoIRL layers in the context you will reference during interviews, so your answers connect directly to the company’s stack.',
+      'Company intelligence lives in a cache-first data layer on our servers. We never store proprietary company data, and we never resell or expose transformation content outside your workspace. Your code and progress are encrypted at rest (AES-256) and in transit (TLS 1.3), stored on Google Cloud Firestore. We follow a privacy-first architecture — your data is yours.',
   },
   {
-    question: 'Do I need to share my code to use AlgoIRL?',
+    question: 'How is this platform different from the study plans created on LeetCode?',
     answer:
-      'No. Everything runs in your browser. If you opt into syncing, we encrypt your data and never resell or train third-party models on it.',
+      'AlgoIRL is complementary to LeetCode, not a replacement. LeetCode teaches algorithms generically (e.g., "Two Sum"). AlgoIRL transforms those same problems into company-specific scenarios (e.g., "Google: Cache Shard User Matching"). Use LeetCode to master algorithmic patterns first. Then use AlgoIRL 2-8 weeks before your interview to practice in company context. Our study plans intelligently select problems from our dataset and adapt them to your target company, role, and timeline — something generic LeetCode study plans can\'t do.',
   },
 ] as const;
 
-const FINAL_PROOF = [
-  'No credit card required to start',
-  'Context-rich prompts in under 10 seconds',
-  'Trusted by engineers preparing for the top 20 companies',
+const FINAL_HIGHLIGHTS = [
+  'Context-rich, hyperrealistic problems in under ten seconds',
+  'Study plans that balance recent loops with AI-predicted scenarios',
+  'Privacy-first experience with sync across every device',
 ] as const;
 
 function recordLandingEvent(eventName: string, payload?: Record<string, unknown>) {
@@ -261,70 +256,111 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
   const currentYear = new Date().getFullYear();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
-  const [heroCompanyIndex, setHeroCompanyIndex] = useState(0);
-  const [email, setEmail] = useState('');
+  const [featuredCompanies, setFeaturedCompanies] = useState<FeaturedCompany[]>([]);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [selectedProblem, setSelectedProblem] = useState<(typeof PROBLEM_OPTIONS)[number]['id']>('two-sum');
+  const [selectedCompany, setSelectedCompany] = useState<(typeof COMPANY_OPTIONS)[number]['id']>('amazon');
+  const [selectedRole, setSelectedRole] = useState<(typeof ROLE_OPTIONS)[number]['id']>('backend');
+  const [originalProblem, setOriginalProblem] = useState<{ title: string; description: string } | null>(ORIGINAL_PROBLEMS['two-sum']);
+  const [demoState, setDemoState] = useState<DemoState | null>(null);
+  const [demoError, setDemoError] = useState<string | null>(null);
+  const [isTransforming, setIsTransforming] = useState(false);
+
+  const activeRequestRef = useRef<AbortController | null>(null);
 
   const heroVariant = useMemo<HeroVariant>(() => {
-    const rawVariant = (import.meta.env.VITE_LANDING_HERO_VARIANT ?? '') as HeroVariant;
-    return rawVariant && rawVariant in HERO_VARIANTS ? rawVariant : 'fear';
+    const raw = (import.meta.env.VITE_LANDING_HERO_VARIANT ?? '') as HeroVariant;
+    return raw && raw in HERO_VARIANTS ? raw : 'analysis';
   }, []);
 
   const heroCopy = HERO_VARIANTS[heroVariant];
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      setHeroCompanyIndex((index) => (index + 1) % HERO_COMPANIES.length);
-    }, 2200);
+    if (typeof window === 'undefined') {
+      return;
+    }
 
-    return () => window.clearInterval(interval);
+    const loadCompanies = async () => {
+      try {
+        if (isCompaniesCacheValid()) {
+          const cached = getCachedCompanies();
+          if (cached && cached.length) {
+            setFeaturedCompanies(selectFeaturedCompanies(cached));
+            return;
+          }
+        }
+
+        const response = await fetchCompaniesAPI();
+        const list =
+          (response?.data && Array.isArray(response.data) && response.data) ||
+          (response?.companies && Array.isArray(response.companies) && response.companies) ||
+          (Array.isArray(response) && response) ||
+          [];
+
+        if (list.length) {
+          cacheCompanies(list);
+          setFeaturedCompanies(selectFeaturedCompanies(list));
+        }
+      } catch (error) {
+        console.error('[Landing] Unable to load companies', error);
+      }
+    };
+
+    loadCompanies();
   }, []);
 
-  const [selectedProblem, setSelectedProblem] = useState<(typeof PROBLEM_OPTIONS)[number]['id']>('two-sum');
-  const [selectedCompany, setSelectedCompany] = useState<(typeof COMPANY_OPTIONS)[number]['id']>('amazon');
-  const [selectedRole, setSelectedRole] = useState<(typeof ROLE_OPTIONS)[number]['id']>('backend');
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setHeroIndex((index) => (index + 1) % Math.max(featuredCompanies.length || 1, 1));
+    }, 2600);
+    return () => window.clearInterval(id);
+  }, [featuredCompanies.length]);
 
-  const [demoState, setDemoState] = useState<DemoState | null>(null);
-  const [demoError, setDemoError] = useState<string | null>(null);
-  const [isTransforming, setIsTransforming] = useState(false);
-
-  const activeTransformRequest = useRef<AbortController | null>(null);
+  const activeCompanyName =
+    featuredCompanies.length > 0 ? featuredCompanies[heroIndex % featuredCompanies.length].name : 'top tech companies';
 
   const handlePrimaryCta = useCallback(() => {
-    recordLandingEvent('landing_primary_cta', { variant: heroVariant });
+    recordLandingEvent('landing_primary_cta_click', { variant: heroVariant });
     onStartClick();
   }, [heroVariant, onStartClick]);
 
-  const handleSeeDemo = useCallback(() => {
-    recordLandingEvent('landing_scroll_demo');
-    document.getElementById('live-demo')?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
-
   const handleHeroSubmit = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
+    (event: FormEvent) => {
       event.preventDefault();
       handlePrimaryCta();
     },
     [handlePrimaryCta],
   );
 
+  const handleSeeDemo = useCallback(() => {
+    recordLandingEvent('landing_demo_scroll');
+    document.getElementById('algoirl-live-demo')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  const handleProblemChange = useCallback((problemId: typeof PROBLEM_OPTIONS[number]['id']) => {
+    setSelectedProblem(problemId);
+    setOriginalProblem(ORIGINAL_PROBLEMS[problemId] || null);
+    setDemoState(null); // Clear transformed version
+    setDemoError(null);
+  }, []);
+
   const handleTransform = useCallback(async () => {
     if (isTransforming) {
       return;
     }
 
-    recordLandingEvent('landing_demo_transform_request', {
+    recordLandingEvent('landing_demo_request', {
       problem: selectedProblem,
       company: selectedCompany,
       role: selectedRole,
     });
 
-    if (activeTransformRequest.current) {
-      activeTransformRequest.current.abort();
+    if (activeRequestRef.current) {
+      activeRequestRef.current.abort();
     }
 
     const controller = new AbortController();
-    activeTransformRequest.current = controller;
-
+    activeRequestRef.current = controller;
     setIsTransforming(true);
     setDemoError(null);
 
@@ -341,565 +377,643 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
         return;
       }
 
-      const problem = response.problem || {};
+      const problem = response?.problem ?? {};
       setDemoState({
         title: problem.title,
         background: problem.background,
-        problemStatement: problem.problemStatement || 'AlgoIRL is generating a contextualised prompt. Try again if nothing appears in a few seconds.',
+        problemStatement:
+          problem.problemStatement ?? 'AlgoIRL is compiling a hyperrealistic scenario. Try again if nothing appears.',
       });
-      setIsTransforming(false);
-      recordLandingEvent('landing_demo_transform_success', {
+      recordLandingEvent('landing_demo_success', {
         problem: selectedProblem,
         company: selectedCompany,
         role: selectedRole,
       });
     } catch (error) {
-      if (controller.signal.aborted) {
-        return;
+      if (!controller.signal.aborted) {
+        console.error('[Landing] prepareProblem failed', error);
+        setDemoError('We could not generate that scenario right now. Please try again or switch the company or role.');
+        recordLandingEvent('landing_demo_error', {
+          problem: selectedProblem,
+          company: selectedCompany,
+          role: selectedRole,
+        });
       }
-      console.error('[Landing Demo] prepareProblem failed', error);
-      setDemoError('We hit a snag generating that scenario. Try again or switch the company/role.');
-      setIsTransforming(false);
-      recordLandingEvent('landing_demo_transform_error', {
-        problem: selectedProblem,
-        company: selectedCompany,
-        role: selectedRole,
-      });
+    } finally {
+      if (!controller.signal.aborted) {
+        setIsTransforming(false);
+      }
     }
   }, [isTransforming, selectedCompany, selectedProblem, selectedRole]);
 
-  const activeHeroCompany = HERO_COMPANIES[heroCompanyIndex];
-
   return (
     <div className="bg-background text-content">
-      <section className="relative overflow-hidden border-b border-outline-subtle/40">
+      <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-24 left-1/2 h-96 w-[38rem] -translate-x-1/2 rounded-full bg-mint/15 blur-3xl dark:bg-mint/10" />
-          <div className="absolute bottom-10 right-6 h-72 w-72 rounded-full bg-navy/10 blur-3xl dark:bg-navy/20" />
+          <div className="absolute -top-40 left-1/2 h-[26rem] w-[42rem] -translate-x-1/2 rounded-full bg-mint/15 blur-3xl dark:bg-mint/10" />
+          <div className="absolute bottom-10 right-10 h-60 w-60 rounded-full bg-navy/10 blur-3xl dark:bg-navy/20" />
         </div>
-        <div className="relative mx-auto flex max-w-6xl flex-col gap-16 px-6 pb-24 pt-16 lg:flex-row lg:items-start lg:pb-28 lg:pt-24">
-          <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-2 rounded-full border border-outline-subtle/50 bg-surface/70 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-content-muted">
+
+        <SectionContainer className="relative">
+          <CardSlot className="px-6 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
+            {/* Eyebrow + Dark Mode Toggle */}
+            <div className="mb-6 flex items-center justify-between sm:mb-8">
+              <span className="inline-flex items-center gap-2 rounded-full border border-outline-subtle/40 bg-surface/70 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-content-muted">
                 <CircleDot className="h-3.5 w-3.5 text-mint" />
                 {heroCopy.eyebrow}
               </span>
               <button
                 type="button"
                 onClick={toggleDarkMode}
-                className="rounded-full border border-outline-subtle/50 bg-surface/70 px-4 py-2 text-xs font-medium text-content-muted transition hover:text-content"
+                className="rounded-full border border-outline-subtle/40 bg-surface/70 px-4 py-2 text-xs font-medium text-content-muted transition hover:text-content"
               >
                 {isDarkMode ? 'Light mode' : 'Dark mode'}
               </button>
             </div>
 
-            <h1 className="mt-8 text-4xl font-black tracking-tight text-content sm:text-5xl lg:text-[3.25rem]">
-              <span className="font-playfair text-slate-900 dark:text-slate-100">
-                AlgoIRL
-              </span>{' '}
-              {heroCopy.headline.replace('AlgoIRL ', '')}
-            </h1>
+            {/* Grid: Content + Sidebar */}
+            <div className="grid gap-8 lg:grid-cols-[1.5fr,1fr] lg:gap-12">
+              {/* Main Content Column */}
+              <div className="space-y-6 sm:space-y-8">
+                {/* Headline */}
+                <div>
+                  <h1 className="text-3xl font-black tracking-tight text-content sm:text-4xl lg:text-5xl">
+                    <span className="font-playfair text-slate-900 dark:text-slate-100">AlgoIRL</span>{' '}
+                    {heroCopy.headline.replace('{company}', activeCompanyName)}
+                  </h1>
+                  <p className="mt-4 text-base text-content-muted sm:text-lg lg:text-xl">
+                    {heroCopy.subheadline}
+                  </p>
+                </div>
 
-            <p className="mt-6 max-w-2xl text-lg text-content-muted sm:text-xl">
-              {heroCopy.subheadline}
-            </p>
+                {/* CTAs */}
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <CTAButton
+                    variant="primary"
+                    size="lg"
+                    onClick={handlePrimaryCta}
+                    icon={ArrowRightIcon}
+                    className="w-full sm:w-auto"
+                  >
+                    {heroCopy.primaryCta}
+                  </CTAButton>
+                  <CTAButton
+                    variant="secondary"
+                    size="md"
+                    onClick={handleSeeDemo}
+                    icon={Play}
+                    className="w-full sm:w-auto"
+                  >
+                    {heroCopy.secondaryCta}
+                  </CTAButton>
+                </div>
 
-            <form
-              onSubmit={handleHeroSubmit}
-              className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
-              aria-label="Start free with AlgoIRL"
-            >
-              <input
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                placeholder="Email (so we can save your progress)"
-                className="w-full rounded-2xl border border-outline-subtle/60 bg-surface/80 px-5 py-4 text-base text-content shadow-subtle transition focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint sm:w-72"
-              />
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-2xl border border-button-700 bg-button-600 px-6 py-4 text-base font-medium text-button-foreground shadow-[0_1px_2px_rgba(63,74,88,0.25)] transition hover:bg-button-500 active:scale-[0.98]"
-              >
-                {heroCopy.primaryCta}
-                <ArrowRightIcon className="ml-2 h-5 w-5" />
-              </button>
-            </form>
+                {/* Data Factors Card */}
+                <CardSlot variant="default" className="lg:mt-8">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-content-muted sm:text-sm">
+                    How AlgoIRL sources company intelligence
+                  </div>
+                  <div className="mt-4 grid gap-6 sm:grid-cols-3">
+                    {DATA_FACTORS.map((factor) => (
+                      <FeatureCard
+                        key={factor.title}
+                        icon={factor.icon}
+                        title={factor.title}
+                        description={factor.description}
+                      />
+                    ))}
+                  </div>
+                </CardSlot>
+              </div>
 
-            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-content-muted">
-              {heroCopy.proofPoints.map((point) => (
-                <span key={point} className="inline-flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-mint" />
-                  {point}
-                </span>
+              {/* Sidebar Column (hidden on mobile) */}
+              <aside className="hidden space-y-6 lg:block">
+                {/* Coverage Snapshot */}
+                <CardSlot variant="default">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-content-muted">
+                    Coverage snapshot
+                  </div>
+                  <div className="mt-2 text-2xl font-semibold text-content">
+                    {featuredCompanies.length > 0
+                      ? `Focused on ${featuredCompanies.length} hiring panels`
+                      : 'Focused on top hiring panels'}
+                  </div>
+                  <p className="mt-4 text-sm text-content-muted">
+                    Crafted for engineers targeting{' '}
+                    {featuredCompanies.length > 0
+                      ? `${featuredCompanies
+                          .slice(0, 5)
+                          .map((company) => company.name)
+                          .join(', ')}${featuredCompanies.length > 5 ? ' and more.' : '.'}`
+                      : 'leading product and infrastructure teams.'}
+                  </p>
+                </CardSlot>
+
+                {/* Why Choose AlgoIRL */}
+                <CardSlot variant="default">
+                  <div className="font-medium text-content">Why engineers choose AlgoIRL</div>
+                  <ul className="mt-4 space-y-3 text-sm text-content-muted">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
+                      Company and role knowledge continuously refreshed from community data.
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
+                      Study plans blend recent interview loops with AI-predicted questions.
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
+                      Privacy-first workspace with seamless sync across devices.
+                    </li>
+                  </ul>
+                </CardSlot>
+              </aside>
+            </div>
+          </CardSlot>
+        </SectionContainer>
+      </section>
+
+      <section>
+        <SectionContainer>
+          <CardSlot className="space-y-6">
+            <div className="flex flex-col gap-3 text-sm text-content-muted md:flex-row md:items-center md:justify-between">
+              <span className="font-semibold uppercase tracking-wide text-content-muted">Data-backed interview prep</span>
+              <div>
+                Our system cross-references curated company data, role patterns, and the latest community intel to prioritize what you should practice next.
+              </div>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <CardSlot variant="default" className="p-6">
+                <div className="text-sm font-semibold text-content">Without AlgoIRL</div>
+                <p className="mt-4 text-base text-content">
+                  Generic problem sets rarely match how interviewers frame questions today. Candidates spend hours guessing
+                  which scenarios still matter.
+                </p>
+                <ul className="mt-6 space-y-2 text-sm text-content-muted">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 text-mint">•</span>
+                    <span>Unclear which questions each company prioritizes</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 text-mint">•</span>
+                    <span>Difficulty mapping algorithms to real products</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 text-mint">•</span>
+                    <span>No signal on whether prep covers upcoming loops</span>
+                  </li>
+                </ul>
+              </CardSlot>
+
+              <CardSlot variant="default" className="p-6">
+                <div className="text-sm font-semibold text-content">With AlgoIRL</div>
+                <p className="mt-4 text-base text-content">
+                  Study plans blend hand-curated recent questions with AI-predicted scenarios, tuned to the company and role
+                  you selected.
+                </p>
+                <ul className="mt-6 space-y-2 text-sm text-content-muted">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 text-mint">•</span>
+                    <span>Ranked problems derived from verified community data</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 text-mint">•</span>
+                    <span>AI-predicted questions using proven evaluation methods</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 text-mint">•</span>
+                    <span>Ongoing quality scoring ensures scenarios stay technically accurate</span>
+                  </li>
+                </ul>
+              </CardSlot>
+            </div>
+          </CardSlot>
+        </SectionContainer>
+      </section>
+
+      <section id="algoirl-live-demo">
+        <SectionContainer>
+          <CardSlot className="space-y-8">
+            <div className="max-w-3xl">
+              <h2 className="text-3xl font-semibold text-content sm:text-4xl">Try it for yourself</h2>
+              <p className="mt-4 text-base text-content-muted sm:text-lg">
+                Pick a familiar problem, choose the company and role, then let AlgoIRL rewrite it with company-specific context. Run it again for a fresh take.
+              </p>
+            </div>
+
+            <div className="grid gap-8 lg:grid-cols-[420px,1fr]">
+              {/* Controls Column */}
+              <div className="space-y-6">
+                {/* Problem Selection */}
+                <CardSlot variant="default" className="p-6">
+                  <div className="mb-4 text-sm font-semibold text-content sm:text-base">Choose a problem</div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    {PROBLEM_OPTIONS.map((problem) => (
+                      <button
+                        key={problem.id}
+                        type="button"
+                        onClick={() => handleProblemChange(problem.id)}
+                        className={`min-h-[48px] rounded-full px-6 py-3 text-base font-medium transition ${
+                          selectedProblem === problem.id
+                            ? 'bg-mint text-slate-900'
+                            : 'border border-outline-subtle/40 bg-background text-content-muted hover:border-mint hover:text-content'
+                        }`}
+                      >
+                        {problem.label}
+                      </button>
+                    ))}
+                  </div>
+                </CardSlot>
+
+                {/* Company Selection */}
+                <CardSlot variant="default" className="p-6">
+                  <div className="mb-4 text-sm font-semibold text-content sm:text-base">Pick a company</div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    {COMPANY_OPTIONS.map((company) => (
+                      <button
+                        key={company.id}
+                        type="button"
+                        onClick={() => setSelectedCompany(company.id)}
+                        className={`min-h-[48px] rounded-full px-6 py-3 text-base font-medium transition ${
+                          selectedCompany === company.id
+                            ? 'bg-mint text-slate-900'
+                            : 'border border-outline-subtle/40 bg-background text-content-muted hover:border-mint hover:text-content'
+                        }`}
+                      >
+                        {company.label}
+                      </button>
+                    ))}
+                  </div>
+                </CardSlot>
+
+                {/* Role Selection */}
+                <CardSlot variant="default" className="p-6">
+                  <div className="mb-4 text-sm font-semibold text-content sm:text-base">Focus on a role</div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    {ROLE_OPTIONS.map((role) => (
+                      <button
+                        key={role.id}
+                        type="button"
+                        onClick={() => setSelectedRole(role.id)}
+                        className={`min-h-[48px] rounded-full px-6 py-3 text-base font-medium transition ${
+                          selectedRole === role.id
+                            ? 'bg-mint text-slate-900'
+                            : 'border border-outline-subtle/40 bg-background text-content-muted hover:border-mint hover:text-content'
+                        }`}
+                      >
+                        {role.label}
+                      </button>
+                    ))}
+                  </div>
+                </CardSlot>
+
+                {/* Generate Button */}
+                <CTAButton
+                  variant="primary"
+                  size="lg"
+                  onClick={handleTransform}
+                  disabled={isTransforming}
+                  icon={ArrowRightIcon}
+                  className="w-full"
+                >
+                  {isTransforming ? 'Generating scenario...' : 'Generate scenario'}
+                </CTAButton>
+
+                <p className="text-xs text-content-muted">
+                  AlgoIRL continuously refreshes the data behind each transformation. Run it again for a different scenario.
+                </p>
+              </div>
+
+              {/* Results Column */}
+              <div className="space-y-6">
+                {/* Original Problem (always visible when problem selected) */}
+                {originalProblem && (
+                  <div>
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-content-muted">
+                      Original LeetCode Problem
+                    </div>
+                    <CardSlot variant="default" className="bg-surface/50 p-6">
+                      <div className="prose prose-sm max-w-none text-content dark:prose-invert">
+                        <h3 className="text-lg font-semibold text-content">{originalProblem.title}</h3>
+                        <ReactMarkdown>{originalProblem.description}</ReactMarkdown>
+                      </div>
+                    </CardSlot>
+                  </div>
+                )}
+
+                {/* Arrow or spacing */}
+                {originalProblem && demoState && (
+                  <div className="flex items-center justify-center py-2">
+                    <div className="flex items-center gap-2 text-sm font-medium text-mint">
+                      <span>Transformed for {COMPANY_OPTIONS.find(c => c.id === selectedCompany)?.label}</span>
+                      <ArrowRightIcon className="h-4 w-4" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Transformed Problem */}
+                {isTransforming ? (
+                  <CardSlot variant="default" className="p-6">
+                    <div className="flex min-h-[200px] items-center justify-center">
+                      <div className="flex flex-col items-center gap-4 text-sm text-content-muted">
+                        <ThinkingIndicator
+                          states={[
+                            'Analyzing company patterns...',
+                            'Blending role-specific context...',
+                            'Crafting scenario...',
+                          ]}
+                          typingSpeed={70}
+                          deletingSpeed={45}
+                          pauseDuration={1200}
+                        />
+                        <span>Preparing a fresh scenario...</span>
+                      </div>
+                    </div>
+                  </CardSlot>
+                ) : demoError ? (
+                  <CardSlot variant="default" className="p-6">
+                    <div className="text-sm text-destructive">{demoError}</div>
+                  </CardSlot>
+                ) : demoState ? (
+                  <div>
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-mint">
+                      AlgoIRL Transformed
+                    </div>
+                    <CardSlot variant="highlighted" className="p-6">
+                      <div className="prose prose-sm max-w-none text-content dark:prose-invert">
+                        {demoState.title && <h3 className="text-lg font-semibold text-content">{demoState.title}</h3>}
+                        {demoState.background && <p className="text-content-muted">{demoState.background}</p>}
+                        <ReactMarkdown>{demoState.problemStatement}</ReactMarkdown>
+                      </div>
+                    </CardSlot>
+                  </div>
+                ) : originalProblem ? (
+                  <div className="rounded-2xl border border-dashed border-outline-subtle/60 bg-surface/30 p-8 text-center text-sm text-content-muted">
+                    Click "Generate scenario" to see how AlgoIRL transforms this problem for {COMPANY_OPTIONS.find(c => c.id === selectedCompany)?.label} {ROLE_OPTIONS.find(r => r.id === selectedRole)?.label} engineers.
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-outline-subtle/60 bg-surface/30 p-8 text-center text-sm text-content-muted">
+                    Select a problem to get started.
+                  </div>
+                )}
+
+                {/* Quality Metrics Note */}
+                {demoState && (
+                  <div className="rounded-2xl border border-dashed border-outline-subtle/60 bg-surface/70 p-4 text-xs text-content-muted">
+                    AlgoIRL evaluates every scenario across six quality metrics to keep company relevance and role accuracy high.
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardSlot>
+        </SectionContainer>
+      </section>
+
+      <section>
+        <SectionContainer>
+          <CardSlot className="space-y-8">
+            <div className="max-w-3xl">
+              <h2 className="text-3xl font-semibold text-content sm:text-4xl">
+                Study plans that adapt with your interview journey
+              </h2>
+              <p className="mt-4 text-base text-content-muted sm:text-lg">
+                AlgoIRL guides you from dataset selection to daily execution, balancing recently asked questions with
+                AI-predicted scenarios for the company and role you choose.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {STUDY_PLAN_STEPS.map((step) => (
+                <CardSlot key={step.title} variant="default" className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-mint/10">
+                      <step.icon className="h-5 w-5 text-mint" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-content">{step.title}</h3>
+                      <p className="mt-2 text-sm text-content-muted">{step.description}</p>
+                    </div>
+                  </div>
+                </CardSlot>
               ))}
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center gap-4 text-sm text-content-muted">
-              <button
-                type="button"
-                onClick={handleSeeDemo}
-                className="inline-flex items-center gap-2 rounded-full border border-outline-subtle/50 px-4 py-2 font-medium transition hover:border-mint hover:text-content"
-              >
-                <Play className="h-4 w-4" />
-                {heroCopy.secondaryCta}
-              </button>
-              <button
-                type="button"
-                onClick={handlePrimaryCta}
-                className="inline-flex items-center gap-2 text-sm font-medium text-mint transition hover:text-mint/80"
-              >
-                Explore Blind 75 contextualised
-                <ArrowRightIcon className="h-4 w-4" />
-              </button>
+            {/* Cross-device sync emphasis */}
+            <div className="rounded-2xl border border-dashed border-outline-subtle/40 bg-surface/30 p-6 text-center">
+              <p className="text-sm text-content-muted">
+                Your progress syncs automatically across desktop, tablet, and mobile. Start on your laptop, continue on your phone.
+              </p>
             </div>
-          </div>
-
-          <aside className="w-full max-w-lg rounded-3xl border border-outline-subtle/40 bg-surface/80 p-6 shadow-subtle">
-            <div className="text-xs font-semibold uppercase tracking-wide text-content-muted">
-              Today&apos;s spotlight
-            </div>
-            <div className="mt-2 text-2xl font-semibold text-content">
-              {activeHeroCompany}
-            </div>
-            <p className="mt-4 text-sm text-content-muted">
-              Every transformation pulls from our interview research, so
-              {` ${activeHeroCompany} `}
-              candidates reference the systems and stakeholders those teams care about.
-            </p>
-            <div className="mt-6 grid gap-4 rounded-2xl border border-outline-subtle/40 bg-background/50 p-6 text-sm text-content-muted">
-              <div className="font-medium text-content">Why AlgoIRL?</div>
-              <div className="flex items-start gap-3">
-                <Target className="mt-1 h-4 w-4 text-mint" />
-                <p>
-                  Tie classic algorithms back to the metrics, customer
-                  experiences, and service constraints {activeHeroCompany} focuses on.
-                </p>
-              </div>
-              <div className="flex items-start gap-3">
-                <Users className="mt-1 h-4 w-4 text-mint" />
-                <p>
-                  Reinforce judgement by referencing the cross-functional partners who join loop debriefs.
-                </p>
-              </div>
-              <div className="flex items-start gap-3">
-                <Lock className="mt-1 h-4 w-4 text-mint" />
-                <p>
-                  Privacy-first workspace, so experimenting with new answers never exposes your prep.
-                </p>
-              </div>
-            </div>
-          </aside>
-        </div>
+          </CardSlot>
+        </SectionContainer>
       </section>
 
-      <section className="border-b border-outline-subtle/40 bg-surface/70">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-12 lg:flex-row lg:items-center lg:justify-between">
-          <div className="text-sm font-semibold uppercase tracking-wider text-content-muted">
-            Built for engineers targeting
-          </div>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-content">
-            {HERO_COMPANIES.map((company) => (
-              <span
-                key={company}
-                className="rounded-full border border-outline-subtle/50 bg-background/80 px-4 py-2"
-              >
-                {company}
-              </span>
-            ))}
-          </div>
-          <div className="flex flex-col gap-3 text-sm text-content-muted lg:max-w-sm">
-            {TRUST_POINTS.map((point) => (
-              <div key={point.title}>
-                <span className="font-medium text-content">{point.title}</span>
-                <span className="block">{point.description}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-gradient-to-b from-background via-background to-cream/30 py-24">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="max-w-3xl">
-            <h2 className="text-3xl font-semibold text-content sm:text-4xl">
-              Why LeetCode mastery isn’t enough anymore
-            </h2>
-            <p className="mt-4 text-lg text-content-muted">
-              Hiring panels now evaluate how you reason about impact, trade-offs, and reliability in production. AlgoIRL
-              mirrors that shift.
-            </p>
-          </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            <div className="rounded-3xl border border-outline-subtle/50 bg-surface/80 p-6 shadow-subtle">
-              <div className="text-sm font-semibold text-content">Recurring challenge</div>
-              <p className="mt-4 text-base text-content">
-                “I solved this exact algorithm yesterday, but I freeze when asked how Amazon deploys it safely.”
-              </p>
-              <span className="mt-6 block text-xs uppercase tracking-wide text-content-muted">
-                Source: onsite retro interviews
-              </span>
-            </div>
-            <div className="rounded-3xl border border-outline-subtle/50 bg-surface/80 p-6 shadow-subtle">
-              <div className="text-sm font-semibold text-content">Panel expectation</div>
-              <p className="mt-4 text-base text-content">
-                Interviewers now ask for customer impact, systems impact, and associated metrics within the first follow-up.
-              </p>
-              <span className="mt-6 block text-xs uppercase tracking-wide text-content-muted">
-                Source: 2025 loop coordinator survey
-              </span>
-            </div>
-            <div className="rounded-3xl border border-outline-subtle/50 bg-surface/80 p-6 shadow-subtle">
-              <div className="text-sm font-semibold text-content">AlgoIRL solution</div>
-              <p className="mt-4 text-base text-content">
-                Every prompt includes the stakeholders, infrastructure, and measurable success criteria those teams look for.
-              </p>
-              <span className="mt-6 block text-xs uppercase tracking-wide text-content-muted">
-                Updated quarterly with real interviews
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="live-demo" className="bg-background py-24">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-            <div className="lg:w-[420px]">
+      <section>
+        <SectionContainer>
+          <CardSlot className="space-y-10">
+            <div className="max-w-3xl">
               <h2 className="text-3xl font-semibold text-content sm:text-4xl">
-                Try a transformation — no two are identical
+                Choose the plan that fits your depth of prep
               </h2>
-              <p className="mt-4 text-lg text-content-muted">
-                Pick a familiar problem, choose the company and role, then let AlgoIRL rewrite it using our research-backed
-                prompts. Run it again to see a fresh take.
+              <p className="mt-4 text-base text-content-muted sm:text-lg">
+                Both plans include the same interface and privacy-first experience. Upgrade when you need the full company and role dataset.
               </p>
-              <div className="mt-6 rounded-3xl border border-outline-subtle/40 bg-surface/80 p-6 shadow-subtle">
-                <div className="text-sm font-semibold text-content">1. Problem</div>
-                <div className="mt-3 grid gap-2">
-                  {PROBLEM_OPTIONS.map((problem) => (
-                    <button
-                      type="button"
-                      key={problem.id}
-                      onClick={() => setSelectedProblem(problem.id)}
-                      className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
-                        selectedProblem === problem.id
-                          ? 'border-mint bg-mint/10 text-content'
-                          : 'border-outline-subtle/50 text-content-muted hover:border-mint/80 hover:text-content'
-                      }`}
-                    >
-                      {problem.label}
-                    </button>
-                  ))}
-                </div>
+            </div>
 
-                <div className="mt-6 text-sm font-semibold text-content">2. Company</div>
-                <div className="mt-3 grid gap-2">
-                  {COMPANY_OPTIONS.map((company) => (
-                    <button
-                      type="button"
-                      key={company.id}
-                      onClick={() => setSelectedCompany(company.id)}
-                      className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
-                        selectedCompany === company.id
-                          ? 'border-mint bg-mint/10 text-content'
-                          : 'border-outline-subtle/50 text-content-muted hover:border-mint/80 hover:text-content'
-                      }`}
-                    >
-                      {company.label}
-                    </button>
-                  ))}
-                </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Free Tier */}
+              <CardSlot variant="default" className="flex flex-col p-8">
+                <div className="text-sm font-semibold uppercase tracking-wide text-content-muted">Free</div>
+                <div className="mt-3 text-3xl font-semibold text-content">$0</div>
+                <div className="text-sm text-content-muted">Always available</div>
 
-                <div className="mt-6 text-sm font-semibold text-content">3. Role</div>
-                <div className="mt-3 grid gap-2">
-                  {ROLE_OPTIONS.map((role) => (
-                    <button
-                      type="button"
-                      key={role.id}
-                      onClick={() => setSelectedRole(role.id)}
-                      className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
-                        selectedRole === role.id
-                          ? 'border-mint bg-mint/10 text-content'
-                          : 'border-outline-subtle/50 text-content-muted hover:border-mint/80 hover:text-content'
-                      }`}
-                    >
-                      {role.label}
-                    </button>
-                  ))}
-                </div>
+                <ul className="mt-6 flex-1 space-y-3 text-sm text-content">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
+                    <span>Study plans powered by the Blind 75 dataset</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
+                    <span>Company-aware transformations for every included problem</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
+                    <span>Progress sync across desktop and mobile</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
+                    <span>Full code editor with test case execution</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
+                    <span>All companies and roles supported</span>
+                  </li>
+                </ul>
 
-                <button
-                  type="button"
-                  onClick={handleTransform}
-                  className="mt-6 inline-flex w-full items-center justify-center rounded-2xl border border-button-700 bg-button-600 px-4 py-3 text-sm font-medium text-button-foreground transition hover:bg-button-500 active:scale-[0.98]"
-                  disabled={isTransforming}
+                <CTAButton
+                  variant="secondary"
+                  size="md"
+                  onClick={handlePrimaryCta}
+                  icon={ArrowRightIcon}
+                  className="mt-6 w-full"
                 >
-                  {isTransforming ? 'Generating...' : 'Transform this problem'}
-                  <Sparkles className="ml-2 h-4 w-4" />
-                </button>
-                <p className="mt-2 text-xs text-content-muted">
-                  We log anonymised demo usage to keep improving the onboarding flow.
-                </p>
-              </div>
+                  Start free today
+                </CTAButton>
+              </CardSlot>
+
+              {/* Comprehensive Tier */}
+              <CardSlot variant="highlighted" className="flex flex-col p-8">
+                <div className="text-sm font-semibold uppercase tracking-wide text-mint">Comprehensive</div>
+                <div className="mt-3 text-3xl font-semibold text-content">$5</div>
+                <div className="text-sm text-content-muted">Per month · cancel anytime</div>
+
+                <ul className="mt-6 flex-1 space-y-3 text-sm text-content">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
+                    <span>Everything in the free plan</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
+                    <span>Study plans that draw from the full 2,000+ problem dataset</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
+                    <span>AI-predicted scenarios tailored to your company and role</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
+                    <span>Deeper topic coverage (e.g., 50 graph problems vs Blind 75's 10)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
+                    <span>Priority support and early access to new features</span>
+                  </li>
+                </ul>
+
+                <CTAButton
+                  variant="primary"
+                  size="md"
+                  onClick={handlePrimaryCta}
+                  icon={ArrowRightIcon}
+                  className="mt-6 w-full"
+                >
+                  Unlock comprehensive plans
+                </CTAButton>
+              </CardSlot>
+            </div>
+          </CardSlot>
+        </SectionContainer>
+      </section>
+
+      <section>
+        <SectionContainer>
+          <CardSlot className="space-y-8">
+            <div className="max-w-3xl">
+              <h2 className="text-3xl font-semibold text-content sm:text-4xl">Frequently asked questions</h2>
+              <p className="mt-4 text-base text-content-muted sm:text-lg">
+                Answers to the questions engineers ask most when switching to context-smart prep.
+              </p>
             </div>
 
-            <div className="flex-1">
-              <div className="rounded-3xl border border-outline-subtle/40 bg-surface/80 p-6 shadow-subtle">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xs font-semibold uppercase tracking-wide text-content-muted">
-                      AlgoIRL Prompt
-                    </div>
-                    <div className="mt-1 text-lg font-semibold text-content">
-                      {demoState?.title ?? 'Ready when you are'}
-                    </div>
-                  </div>
-                  <Layers className="h-6 w-6 text-mint" />
-                </div>
-
-                <div className="mt-6 min-h-[220px] rounded-2xl border border-outline-subtle/40 bg-background/70 p-6">
-                  {isTransforming ? (
-                    <div className="flex h-full items-center justify-center">
-                      <div className="flex flex-col items-center gap-3 text-sm text-content-muted">
-                        <ThinkingIndicator
-                          states={[
-                            'Mapping company systems and stakeholders...',
-                            'Grounding prompts in real interview loops...',
-                            'Packaging the scenario for your next answer...',
-                          ]}
-                          typingSpeed={70}
-                          deletingSpeed={40}
-                          pauseDuration={1200}
-                        />
-                        <span>Shaping a fresh scenario for you...</span>
-                      </div>
-                    </div>
-                  ) : demoError ? (
-                    <div className="text-sm text-destructive">
-                      {demoError}
-                    </div>
-                  ) : demoState ? (
-                    <div className="space-y-4 text-sm leading-relaxed text-content">
-                      {demoState.background && (
-                        <p className="text-content-muted">{demoState.background}</p>
-                      )}
-                      <p>{demoState.problemStatement}</p>
-                    </div>
-                  ) : (
-                    <div className="text-sm text-content-muted">
-                      Select a combination and run the transformation to see how AlgoIRL reframes a familiar problem for
-                      a specific company and role.
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-6 flex flex-col gap-2 text-sm text-content-muted">
-                  <span className="font-medium text-content">Things to listen for:</span>
-                  <ul className="space-y-1">
-                    <li>• Stakeholders and metrics unique to the team</li>
-                    <li>• Infrastructure realities you should mention</li>
-                    <li>• Follow-up prompts you can prepare in advance</li>
-                  </ul>
-                </div>
-              </div>
+            <div className="space-y-4">
+              {FAQ_ITEMS.map((faq, index) => (
+                <details
+                  key={faq.question}
+                  className="group rounded-2xl border border-outline-subtle/40 bg-background/70 p-6"
+                  open={index === 0}
+                >
+                  <summary className="flex cursor-pointer list-none items-center justify-between text-left text-base font-semibold text-content sm:text-lg">
+                    {faq.question}
+                    <CircleDot className="h-5 w-5 flex-shrink-0 text-mint opacity-0 transition group-open:opacity-100" />
+                  </summary>
+                  <p className="mt-4 text-sm text-content-muted">{faq.answer}</p>
+                </details>
+              ))}
             </div>
-          </div>
-        </div>
+          </CardSlot>
+        </SectionContainer>
       </section>
 
-      <section className="bg-gradient-to-b from-background to-cream/30 py-24">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="max-w-3xl">
-            <h2 className="text-3xl font-semibold text-content sm:text-4xl">
-              Outcomes engineers feel after using AlgoIRL
-            </h2>
-            <p className="mt-4 text-lg text-content-muted">
-              We focus on the moment you speak with confidence in the interview room. Every capability supports that goal.
-            </p>
-          </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {BENEFITS.map((benefit) => (
-              <div
-                key={benefit.title}
-                className="flex h-full flex-col rounded-3xl border border-outline-subtle/40 bg-surface/80 p-6 shadow-subtle transition hover:-translate-y-1 hover:shadow-medium"
-              >
-                <benefit.icon className="h-8 w-8 text-mint" />
-                <h3 className="mt-6 text-xl font-semibold text-content">{benefit.title}</h3>
-                <p className="mt-4 text-sm text-content-muted">{benefit.description}</p>
-                <p className="mt-6 text-sm font-medium text-content">{benefit.footer}</p>
+      <section>
+        <SectionContainer>
+          <CardSlot className="text-center">
+            <div className="mx-auto max-w-3xl space-y-6">
+              <h2 className="text-3xl font-semibold text-content sm:text-4xl">
+                Build confidence with company-aware, role-specific practice
+              </h2>
+              <p className="text-base text-content-muted sm:text-lg">
+                Start for free, experience a live scenario, and upgrade when you are ready for the full dataset.
+              </p>
+
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-center sm:gap-6">
+                <CTAButton
+                  variant="primary"
+                  size="lg"
+                  onClick={handlePrimaryCta}
+                  icon={ArrowRightIcon}
+                  className="w-full sm:w-auto"
+                >
+                  Create my free account
+                </CTAButton>
+                <CTAButton
+                  variant="secondary"
+                  size="lg"
+                  onClick={handleSeeDemo}
+                  className="w-full sm:w-auto"
+                >
+                  Generate another scenario
+                </CTAButton>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      <section className="bg-background py-24">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="max-w-3xl text-center">
-            <h2 className="text-3xl font-semibold text-content sm:text-4xl">
-              Get to confident interviews in three focused steps
-            </h2>
-            <p className="mt-4 text-lg text-content-muted">
-              We engineered AlgoIRL to feel approachable from day one. Each step removes guesswork.
-            </p>
-          </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {STEPS.map((step, index) => (
-              <div
-                key={step.title}
-                className="relative flex h-full flex-col rounded-3xl border border-outline-subtle/40 bg-surface/80 p-6 shadow-subtle"
-              >
-                <div className="absolute -top-4 left-6 inline-flex h-9 w-9 items-center justify-center rounded-full border border-mint bg-background text-sm font-semibold text-mint">
-                  {index + 1}
-                </div>
-                <step.icon className="h-7 w-7 text-mint" />
-                <h3 className="mt-8 text-xl font-semibold text-content">{step.title}</h3>
-                <p className="mt-3 text-sm text-content-muted">{step.description}</p>
-                <p className="mt-6 text-sm font-medium text-content">{step.detail}</p>
+              <div className="flex flex-col gap-3 text-sm text-content-muted sm:flex-row sm:items-center sm:justify-center sm:gap-6">
+                {FINAL_HIGHLIGHTS.map((highlight) => (
+                  <span key={highlight} className="inline-flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-mint" />
+                    {highlight}
+                  </span>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      <section className="bg-gradient-to-b from-background to-cream/30 py-24">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="max-w-3xl">
-            <h2 className="text-3xl font-semibold text-content sm:text-4xl">
-              Choose the plan that matches your prep horizon
-            </h2>
-            <p className="mt-4 text-lg text-content-muted">
-              The only difference between plans is how deep your study plans can go. Everything else is included from day one.
-            </p>
-          </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-2">
-            <div className="flex h-full flex-col rounded-3xl border border-outline-subtle/50 bg-surface/80 p-8 shadow-subtle">
-              <div className="text-sm font-semibold uppercase tracking-wide text-content-muted">Free</div>
-              <div className="mt-3 text-3xl font-semibold text-content">$0</div>
-              <div className="text-sm text-content-muted">Always available</div>
-              <ul className="mt-6 space-y-3 text-sm text-content">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-[2px] h-4 w-4 text-mint" />
-                  Blind 75 transformed for 20 companies
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-[2px] h-4 w-4 text-mint" />
-                  Short-horizon study plans (2-6 weeks)
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-[2px] h-4 w-4 text-mint" />
-                  Privacy-first code editor and execution
-                </li>
-              </ul>
-              <button
-                type="button"
-                onClick={handlePrimaryCta}
-                className="mt-8 inline-flex items-center justify-center rounded-2xl border border-outline-subtle/60 px-5 py-3 text-sm font-medium text-content transition hover:border-mint hover:text-mint"
-              >
-                Start free today
-                <ArrowRightIcon className="ml-2 h-4 w-4" />
-              </button>
+              <footer className="pt-6 text-xs text-content-muted">
+                © {currentYear}{' '}
+                <span className="font-playfair font-semibold text-slate-900 dark:text-slate-100">AlgoIRL</span>. Interview prep
+                with company intelligence.
+              </footer>
             </div>
-
-            <div className="flex h-full flex-col rounded-3xl border border-mint bg-background p-8 shadow-subtle">
-              <div className="text-sm font-semibold uppercase tracking-wide text-mint">Comprehensive</div>
-              <div className="mt-3 text-3xl font-semibold text-content">$5</div>
-              <div className="text-sm text-content-muted">Per month · cancel anytime</div>
-              <ul className="mt-6 space-y-3 text-sm text-content">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-[2px] h-4 w-4 text-mint" />
-                  Everything in free
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-[2px] h-4 w-4 text-mint" />
-                  Study plans powered by the 2,000+ problem dataset
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-[2px] h-4 w-4 text-mint" />
-                  Extended guidance for 3-6 month prep horizons
-                </li>
-              </ul>
-              <button
-                type="button"
-                onClick={handlePrimaryCta}
-                className="mt-8 inline-flex items-center justify-center rounded-2xl border border-button-700 bg-button-600 px-5 py-3 text-sm font-medium text-button-foreground transition hover:bg-button-500 active:scale-[0.98]"
-              >
-                Unlock comprehensive prep
-                <ArrowRightIcon className="ml-2 h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="faq" className="bg-background py-24">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="max-w-3xl">
-            <h2 className="text-3xl font-semibold text-content sm:text-4xl">
-              Frequently asked before booking a plan
-            </h2>
-            <p className="mt-4 text-lg text-content-muted">
-              The short answers to the questions we hear most from engineers switching to context-first prep.
-            </p>
-          </div>
-          <div className="mt-10 space-y-4">
-            {FAQ_ITEMS.map((faq, index) => (
-              <details
-                key={faq.question}
-                className="group rounded-3xl border border-outline-subtle/40 bg-surface/80 p-6 shadow-subtle"
-                open={index === 0}
-              >
-                <summary className="flex cursor-pointer list-none items-center justify-between text-left text-lg font-semibold text-content">
-                  {faq.question}
-                  <Sparkles className="h-5 w-5 text-mint opacity-0 transition group-open:opacity-100" />
-                </summary>
-                <p className="mt-4 text-sm text-content-muted">{faq.answer}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-gradient-to-b from-cream/30 via-background to-background py-24">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <h2 className="text-3xl font-semibold text-content sm:text-4xl">
-            Take the guesswork out of company-specific prep
-          </h2>
-          <p className="mt-4 text-lg text-content-muted">
-            Start for free, see a tangible transformation, and expand to the full dataset when you need deeper coverage.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <button
-              type="button"
-              onClick={handlePrimaryCta}
-              className="inline-flex items-center justify-center rounded-2xl border border-button-700 bg-button-600 px-8 py-4 text-base font-medium text-button-foreground transition hover:bg-button-500 active:scale-[0.98]"
-            >
-              Create my free account
-              <ArrowRightIcon className="ml-2 h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={handleSeeDemo}
-              className="inline-flex items-center justify-center rounded-2xl border border-outline-subtle/50 px-8 py-4 text-base font-medium text-content transition hover:border-mint hover:text-mint"
-            >
-              Run another transformation
-            </button>
-          </div>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-content-muted">
-            {FINAL_PROOF.map((point) => (
-              <span key={point} className="inline-flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-mint" />
-                {point}
-              </span>
-            ))}
-          </div>
-          <footer className="mt-16 text-xs text-content-muted">
-            © {currentYear} <span className="font-playfair font-semibold text-slate-900 dark:text-slate-100">AlgoIRL</span>. Built for real interviews.
-          </footer>
-        </div>
+          </CardSlot>
+        </SectionContainer>
       </section>
     </div>
   );
+}
+
+function selectFeaturedCompanies(companies: Company[]): FeaturedCompany[] {
+  if (!companies.length) {
+    return [];
+  }
+
+  const uniqueMap = new Map<string, Company>();
+  companies.forEach((company) => {
+    if (company && company.id && company.name && !uniqueMap.has(company.id)) {
+      uniqueMap.set(company.id, company);
+    }
+  });
+
+  const uniqueCompanies = Array.from(uniqueMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+  const featured: FeaturedCompany[] = [];
+  const sampleCount = Math.min(uniqueCompanies.length, 8);
+  const usedIndexes = new Set<number>();
+
+  while (featured.length < sampleCount) {
+    const index = Math.floor(Math.random() * uniqueCompanies.length);
+    if (usedIndexes.has(index)) {
+      continue;
+    }
+    usedIndexes.add(index);
+    featured.push({ id: uniqueCompanies[index].id, name: uniqueCompanies[index].name });
+  }
+
+  return featured;
 }
