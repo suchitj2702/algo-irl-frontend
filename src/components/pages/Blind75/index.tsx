@@ -486,7 +486,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
             {(status === 'solved' || status === 'in_progress') && (
              <button
               onClick={() => handleActionClick(problem.slug, status)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-content bg-white/90 dark:bg-accent/10 hover:bg-white /15 border border-black/8 rounded-[12px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(200,216,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200 flex-shrink-0"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-content dark:text-navy-100 bg-white/90 dark:bg-panel-200/80 hover:bg-white/95 dark:hover:bg-panel-200/90 border border-black/8 dark:border-panel-400/60 rounded-[12px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(200,216,255,0.08)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.45),0_2px_30px_rgba(255,255,255,0.18)_inset] active:scale-[0.98] transition-all duration-200 flex-shrink-0"
              >
               {status === 'solved' ? (
                <>

@@ -10,12 +10,14 @@ import {
  CheckCircle2,
  BookOpenCheck,
  Check,
- AlertCircle
+ AlertCircle,
+ Play as PlayIcon
 } from 'lucide-react';
 import CodeEditor from './CodeEditor';
 import { executeCodeAndPoll, ExecutionResults } from '../utils/codeExecution';
 import { TestCase } from '../types';
 import { ThinkingIndicator } from './ThinkingIndicator';
+import { Button } from './ui/button';
 
 interface Problem {
  title: string;
@@ -711,16 +713,21 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
 
       {/* Right side: Action buttons */}
       <div className="flex space-x-3">
-       <button
+       <Button
+        type="button"
         onClick={handleRun}
         disabled={isLoadingRun || isLoadingSubmit || isLoading}
-        className="inline-flex items-center gap-2 px-3.5 py-1.5 text-[13px] font-medium text-gray-700 dark:text-slate-100 bg-white dark:bg-slate-600 hover:bg-gray-50 dark:hover:bg-slate-500 border border-gray-300 dark:border-slate-500 rounded-[10px] transition-all duration-200 active:scale-[0.98] disabled:opacity-40"
+        variant="run"
+        size="sm"
+        className="px-3.5 py-1.5 text-[13px] rounded-[10px] h-auto min-w-[84px]"
        >
-        {isLoadingRun && (
-         <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-gray-700 dark:border-slate-100"></div>
+        {isLoadingRun ? (
+         <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-button-foreground/55 border-l-transparent border-t-transparent dark:border-button-foreground/70" />
+        ) : (
+         <PlayIcon className="h-3.5 w-3.5 opacity-80" />
         )}
-        Run
-       </button>
+        <span>Run</span>
+       </Button>
        <button
         onClick={handleSubmit}
         disabled={isLoadingRun || isLoadingSubmit || isLoading}

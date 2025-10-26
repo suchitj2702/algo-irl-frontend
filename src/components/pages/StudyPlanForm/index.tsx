@@ -195,8 +195,8 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
            onClick={() => setCompanyId(company.id)}
            className={`py-2 px-2.5 text-xs font-medium transition-colors duration-150 rounded-[8px] ${
             companyId === company.id
-             ? 'bg-button-600 text-button-foreground border border-button-700 shadow-sm'
-             : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:text-cream-50 dark:border-panel-600 dark:hover:bg-panel-400'
+             ? 'bg-button-600 text-button-foreground border border-button-700 shadow-sm dark:bg-button-400 dark:border-button-500'
+             : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:border-panel-600 dark:hover:bg-panel-400'
            }`}
            disabled={isLoading}
           >
@@ -244,16 +244,16 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
          onClick={() => setDatasetType('blind75')}
          className={`py-2.5 px-3 text-xs font-medium transition-colors duration-150 rounded-[8px] text-left ${
           datasetType === 'blind75'
-           ? 'bg-button-500 text-button-foreground border border-button-600 shadow-sm'
-           : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:text-cream-50 dark:border-panel-600 dark:hover:bg-panel-400'
+           ? 'bg-button-500 text-button-foreground border border-button-600 shadow-sm dark:bg-button-400 dark:border-button-500'
+           : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:border-panel-600 dark:hover:bg-panel-400'
          }`}
          disabled={isLoading}
         >
          <div className="font-semibold text-xs mb-1">Blind 75</div>
          <div className={`text-[10px] leading-tight ${
           datasetType === 'blind75'
-           ? 'text-content-subtle dark:text-cream-200'
-           : 'text-content-muted dark:text-content-subtle'
+           ? 'text-content-subtle dark:text-white/90'
+           : 'text-content-muted'
          }`}>
           75 essential LeetCode problems covering all major data structures and algorithms patterns
          </div>
@@ -264,16 +264,16 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
          onClick={() => setDatasetType('full')}
          className={`py-2.5 px-3 text-xs font-medium transition-colors duration-150 rounded-[8px] text-left ${
           datasetType === 'full'
-           ? 'bg-button-500 text-button-foreground border border-button-600 shadow-sm'
-           : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:text-cream-50 dark:border-panel-600 dark:hover:bg-panel-400'
+           ? 'bg-button-500 text-button-foreground border border-button-600 shadow-sm dark:bg-button-400 dark:border-button-500'
+           : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:border-panel-600 dark:hover:bg-panel-400'
          }`}
          disabled={isLoading}
         >
          <div className="font-semibold text-xs mb-1">Full Dataset</div>
          <div className={`text-[10px] leading-tight ${
           datasetType === 'full'
-           ? 'text-content-subtle dark:text-cream-200'
-           : 'text-content-muted dark:text-content-subtle'
+           ? 'text-content-subtle dark:text-white/90'
+           : 'text-content-muted'
          }`}>
           2000+ comprehensive problems for more targeted practice
          </div>
@@ -297,16 +297,16 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
           onClick={() => setRoleFamily(role.id)}
           className={`py-2 px-2.5 text-xs font-medium transition-colors duration-150 rounded-[8px] text-left ${
            roleFamily === role.id
-            ? 'bg-button-500 text-button-foreground border border-button-600 shadow-sm'
-            : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:text-cream-50 dark:border-panel-600 dark:hover:bg-panel-400'
+            ? 'bg-button-500 text-button-foreground border border-button-600 shadow-sm dark:bg-button-400 dark:border-button-500'
+           : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:border-panel-600 dark:hover:bg-panel-400'
           }`}
           disabled={isLoading}
          >
           <div className="font-medium text-xs mb-0.5">{role.name}</div>
           <div className={`text-[10px] leading-tight ${
            roleFamily === role.id
-            ? 'text-content-subtle dark:text-cream-200'
-            : 'text-content-muted dark:text-content-subtle'
+            ? 'text-content-subtle dark:text-white/90'
+            : 'text-content-muted'
           }`}>
            {role.description}
           </div>
@@ -403,8 +403,8 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
           onClick={() => toggleDifficulty(diff)}
           className={`py-2 px-2.5 text-xs font-medium transition-colors duration-150 rounded-[8px] ${
            difficultyPreference[diff]
-            ? 'bg-button-600 text-button-foreground border border-button-700 shadow-sm'
-            : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:text-cream-50 dark:border-panel-600 dark:hover:bg-panel-400'
+            ? 'bg-button-600 text-button-foreground border border-button-700 shadow-sm dark:bg-button-400 dark:border-button-500'
+            : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:border-panel-600 dark:hover:bg-panel-400'
           }`}
           disabled={isLoading}
          >
@@ -432,7 +432,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
             onClick={() => toggleTopic(topic)}
             className={`px-2 py-1 rounded-[6px] text-[10px] font-medium transition-colors duration-150 ${
              isSelected
-              ? 'bg-mint-400 text-content border border-mint-500 dark:bg-mint-600 dark:text-cream-50 dark:border-mint-700'
+              ? 'bg-mint-400 text-content border border-mint-500 dark:bg-mint-600 dark:text-background dark:border-mint-700'
               : isDisabled
               ? 'bg-cream-200 dark:bg-panel-600 text-content-subtle dark:text-content-muted border border-cream-200 dark:border-panel-700 cursor-not-allowed'
               : 'bg-cream-100 dark:bg-panel-500 text-content border border-cream-200 dark:border-panel-600 hover:bg-cream-200 dark:hover:bg-panel-400'
