@@ -37,7 +37,7 @@ export function AuthModal({ isOpen, onClose, message }: AuthModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="relative w-full max-w-md rounded-2xl bg-white dark:bg-panel-500 shadow-xl p-6">
+      <div className="relative w-full max-w-md rounded-2xl bg-panel-50 dark:bg-panel-300 border border-outline-subtle shadow-xl p-6">
         <button
           type="button"
           onClick={onClose}

@@ -103,9 +103,9 @@ export function injectColorScales(palette: ColorPalette): void {
   root.style.setProperty('--surface-muted', dark ? palette.panel[200] : palette.panel[100]);
 
   // Borders - better visibility in dark mode
-  root.style.setProperty('--border', dark ? palette.panel[200] : palette.panel[200]);
+  root.style.setProperty('--border', palette.panel[200]);
   root.style.setProperty('--border-subtle', dark ? palette.panel[100] : palette.panel[200]);
-  root.style.setProperty('--border-strong', dark ? palette.panel[300] : palette.panel[300]);
+  root.style.setProperty('--border-strong', dark ? palette.panel[400] : palette.panel[300]);
 
   // Semantic scale generation
   const success = getCSSVariable('--success');

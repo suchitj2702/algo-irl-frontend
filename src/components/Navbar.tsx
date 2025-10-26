@@ -82,7 +82,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
   setIsMenuOpen(false);
  };
 
- return <header className="bg-surface/90 dark:bg-surface-elevated/80 backdrop-blur-lg shadow-subtle sticky top-0 z-10 transition-colors duration-200 border-b border-outline-subtle/40">
+return <header className="bg-surface/90 dark:bg-surface-elevated/80 backdrop-blur-lg shadow-subtle sticky top-0 z-10 transition-colors duration-200 border-b border-outline-subtle">
    <div className="mx-auto px-4 sm:px-6 lg:px-8">
     <div className="flex justify-between items-center h-14">
      <div className="flex-shrink-0">
@@ -96,21 +96,21 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
      <div className="hidden md:flex items-center space-x-2">
       <button
        onClick={handleStudyPlansClick}
-       className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-medium text-gray-700 dark:text-slate-100 bg-white dark:bg-slate-600 hover:bg-gray-50 dark:hover:bg-slate-500 border border-gray-300 dark:border-slate-500 rounded-[14px] transition-all duration-200 active:scale-[0.98]"
+       className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-medium text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.98]"
       >
        <Calendar className="h-4 w-4" />
        My Study Plans
       </button>
       <button
        onClick={handleBlind75Click}
-       className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-medium text-gray-700 dark:text-slate-100 bg-white dark:bg-slate-600 hover:bg-gray-50 dark:hover:bg-slate-500 border border-gray-300 dark:border-slate-500 rounded-[14px] transition-all duration-200 active:scale-[0.98]"
+       className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-medium text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.98]"
       >
        <TrendingUpIcon className="h-4 w-4" />
        Blind75 Progress
       </button>
       <button
        onClick={toggleDarkMode}
-       className="p-2.5 text-gray-700 dark:text-slate-100 bg-white dark:bg-slate-600 hover:bg-gray-50 dark:hover:bg-slate-500 border border-gray-300 dark:border-slate-500 rounded-[14px] transition-all duration-200 active:scale-[0.95]"
+       className="p-2.5 text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.95]"
        aria-label="Toggle dark mode"
       >
        {isDarkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
@@ -122,7 +122,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
         <div className="relative">
          <button
           onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-          className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-medium text-gray-700 dark:text-slate-100 bg-white dark:bg-slate-600 hover:bg-gray-50 dark:hover:bg-slate-500 border border-gray-300 dark:border-slate-500 rounded-[14px] transition-all duration-200 active:scale-[0.98]"
+          className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-medium text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.98]"
          >
           <User className="h-4 w-4" />
           <span className="max-w-[150px] truncate">{user.displayName || user.email || 'Account'}</span>
@@ -138,8 +138,8 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
            />
 
            {/* Dropdown menu */}
-           <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#1e293b] rounded-xl shadow-xl border border-gray-200 dark:border-slate-600 overflow-hidden z-20">
-            <div className="px-4 py-3 border-b border-gray-200 dark:border-slate-600">
+           <div className="absolute right-0 mt-2 w-64 bg-panel-50 dark:bg-panel-300 rounded-xl shadow-xl border border-outline-subtle overflow-hidden z-20">
+            <div className="px-4 py-3 border-b border-outline-subtle">
              <p className="text-sm font-medium text-content">{user.displayName || 'User'}</p>
              <p className="text-xs text-content-muted truncate">{user.email}</p>
             </div>
@@ -168,14 +168,14 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
      <div className="md:hidden flex items-center gap-2">
       <button
        onClick={handleBlind75Click}
-       className="p-2 text-gray-700 dark:text-slate-100 bg-white dark:bg-slate-600 hover:bg-gray-50 dark:hover:bg-slate-500 border border-gray-300 dark:border-slate-500 rounded-[12px] transition-all duration-200 active:scale-[0.95]"
+       className="p-2 text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[12px] transition-all duration-200 active:scale-[0.95]"
        aria-label="Blind75 Progress"
       >
        <TrendingUpIcon className="h-5 w-5" />
       </button>
       <button
        onClick={toggleDarkMode}
-       className="p-2 text-gray-700 dark:text-slate-100 bg-white dark:bg-slate-600 hover:bg-gray-50 dark:hover:bg-slate-500 border border-gray-300 dark:border-slate-500 rounded-[12px] transition-all duration-200 active:scale-[0.95]"
+       className="p-2 text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[12px] transition-all duration-200 active:scale-[0.95]"
        aria-label="Toggle dark mode"
       >
        {isDarkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
@@ -183,7 +183,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
       <button
        onClick={() => setIsMenuOpen(!isMenuOpen)}
        type="button"
-       className="p-2 text-gray-700 dark:text-slate-100 bg-white dark:bg-slate-600 hover:bg-gray-50 dark:hover:bg-slate-500 border border-gray-300 dark:border-slate-500 rounded-[12px] transition-all duration-200 active:scale-[0.95]"
+       className="p-2 text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[12px] transition-all duration-200 active:scale-[0.95]"
       >
        <span className="sr-only">Open main menu</span>
        {isMenuOpen ? <XIcon className="block h-6 w-6" aria-hidden="true" /> : <MenuIcon className="block h-6 w-6" aria-hidden="true" />}
@@ -195,14 +195,14 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
      <div className="pt-2 pb-3 space-y-2 px-4 sm:px-6 lg:px-8">
       <button
        onClick={handleStudyPlansClick}
-       className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-gray-700 dark:text-slate-100 bg-white dark:bg-slate-600 hover:bg-gray-50 dark:hover:bg-slate-500 border border-gray-300 dark:border-slate-500 rounded-[14px] transition-all duration-200 active:scale-[0.98]"
+       className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.98]"
       >
        <Calendar className="h-4 w-4" />
        My Study Plans
       </button>
       <button
        onClick={handleBlind75Click}
-       className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-gray-700 dark:text-slate-100 bg-white dark:bg-slate-600 hover:bg-gray-50 dark:hover:bg-slate-500 border border-gray-300 dark:border-slate-500 rounded-[14px] transition-all duration-200 active:scale-[0.98]"
+       className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.98]"
       >
        <TrendingUpIcon className="h-4 w-4" />
        Blind75 Progress
@@ -212,7 +212,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
       {!loading && (
        user ? (
         <>
-         <div className="flex items-center gap-2 px-4 py-2.5 text-[15px] text-gray-700 dark:text-slate-100 bg-white dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-[14px]">
+         <div className="flex items-center gap-2 px-4 py-2.5 text-[15px] text-content bg-panel-50 dark:bg-panel-300 border border-outline-subtle rounded-[14px]">
           <User className="h-4 w-4" />
           <div className="flex-1 min-w-0">
            <p className="text-sm font-medium truncate">{user.displayName || 'User'}</p>

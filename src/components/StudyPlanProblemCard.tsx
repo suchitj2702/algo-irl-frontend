@@ -69,7 +69,7 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
    case 'Hard':
     return 'bg-red-100 text-red-700 dark:bg-red-500/25 dark:text-red-200 border-red-200 dark:border-red-500/40';
    default:
-    return 'bg-gray-100 text-content-muted dark:bg-gray-700 dark:text-content-subtle border-gray-200 dark:border-gray-600';
+    return 'bg-panel-100 text-content-muted dark:bg-panel-400 dark:text-content-subtle border-outline-subtle dark:border-outline-subtle';
   }
  };
 
@@ -98,7 +98,7 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
     className={`rounded-lg p-4 transition-all duration-200 ${
      isCompleted
       ? 'bg-green-50/60 dark:bg-emerald-900/20 border border-green-200/50 dark:border-emerald-600/50 hover:shadow-lg hover:shadow-green-500/10'
-      : 'bg-white dark:bg-[#334155] border border-gray-200 dark:border-slate-600 hover:shadow-md'
+      : 'bg-panel-50 dark:bg-panel-300 border border-outline-subtle hover:shadow-md'
     } ${
      isHighlighted
       ? 'border-indigo-500 dark:border-indigo-400 ring-4 ring-indigo-500/20 dark:ring-indigo-400/20 shadow-lg shadow-indigo-500/10 dark:shadow-indigo-400/10'
@@ -114,7 +114,7 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
         className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border ${
          isCompleted
           ? 'bg-green-100 text-green-700 border-green-300 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-600'
-          : 'bg-gray-100 text-content-subtle border-gray-200 dark:bg-gray-800 dark:text-content-subtle dark:border-gray-700'
+          : 'bg-panel-100 text-content-subtle border-outline-subtle dark:bg-panel-400 dark:text-content-subtle dark:border-outline-subtle'
         }`}
        >
         {isCompleted ? (
@@ -141,7 +141,7 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
          className={`flex-shrink-0 ml-1 inline-flex items-center justify-center rounded-full border px-2 py-1 text-xs font-medium transition-colors ${
           isBookmarked
            ? 'border-amber-400 text-amber-700 bg-amber-50 dark:border-amber-500 dark:text-amber-300 dark:bg-amber-900/30'
-           : 'border-gray-200 text-content-subtle bg-gray-100 dark:border-gray-700 dark:text-content-subtle dark:bg-gray-800'
+           : 'border-outline-subtle text-content-subtle bg-panel-100 dark:border-outline-subtle dark:text-content-subtle dark:bg-panel-400'
          }`}
          aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark problem'}
         >
@@ -161,7 +161,7 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
         {displayTopics.map((topic, index) => (
          <span
           key={`${topic}-${index}`}
-          className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-content-muted dark:text-content-subtle rounded text-xs"
+          className="px-2 py-0.5 bg-panel-100 dark:bg-panel-400 text-content-muted dark:text-content-subtle rounded text-xs"
          >
           {topic}
          </span>
@@ -189,7 +189,7 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
         <span className="text-xs text-content-muted dark:text-content-subtle">
          {problem.roleRelevance}% role fit
         </span>
-        <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div className="w-16 h-1.5 rounded-full overflow-hidden bg-panel-100 dark:bg-panel-400">
          <div
           className="h-full bg-purple-500"
           style={{ width: `${problem.roleRelevance}%` }}

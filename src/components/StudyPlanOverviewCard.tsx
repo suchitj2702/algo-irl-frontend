@@ -99,7 +99,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
    : 'Today is the last scheduled day—finish strong!';
 
  return (
-  <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow-md border border-gray-200 dark:border-slate-700 p-4 sm:p-5">
+  <div className="rounded-xl border border-outline-subtle bg-panel-50 dark:bg-panel-200 shadow-md p-4 sm:p-5">
    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
     <div className="flex items-center gap-2">
      <h2 className="text-xl font-semibold text-content font-playfair">
@@ -134,7 +134,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
        {progressPercentage ?? 0}% • {completedCount}/{totalProgressProblems} problems
       </span>
      </div>
-     <div className="h-2 bg-gray-200 dark:bg-[#334155] rounded-full overflow-hidden">
+      <div className="h-2 bg-panel-100 dark:bg-panel-400 rounded-full overflow-hidden">
       <div
        className="h-full bg-mint-500 dark:bg-emerald-400 transition-all duration-500 ease-out"
        style={{ width: `${progressPercentage ?? 0}%` }}
@@ -152,7 +152,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
    )}
 
    {/* Stats Strip */}
-   <div className="mb-5 inline-flex max-w-full rounded-lg border border-emerald-200/70 dark:border-emerald-600/60 bg-white/90 dark:bg-[#334155] px-4 py-3">
+  <div className="mb-5 inline-flex max-w-full rounded-lg border border-emerald-200/70 dark:border-emerald-600/60 bg-panel-50/90 dark:bg-panel-300/80 px-4 py-3">
     <div className="flex flex-nowrap items-center divide-x divide-emerald-400/50 dark:divide-emerald-500/30">
      <div className="flex items-center gap-2 pr-3">
       <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100/80 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
@@ -345,7 +345,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
       </div>
 
       {/* Footer */}
-      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+    <div className="mt-6 pt-4 border-t border-outline-subtle">
        <button
         onClick={() => setShowUsageGuide(false)}
         className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"

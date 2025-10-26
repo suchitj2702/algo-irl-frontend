@@ -61,11 +61,11 @@ export function DayScheduleCard({
   : day.problems;
 
  return (
-  <div className="bg-white dark:bg-[#1e293b] rounded-lg shadow-md border border-gray-200 dark:border-slate-700 overflow-hidden transition-all duration-200 hover:shadow-lg">
+  <div className="rounded-lg border border-outline-subtle bg-panel-50 dark:bg-panel-200 shadow-md overflow-hidden transition-all duration-200 hover:shadow-lg">
    {/* Card Header - Always Visible */}
    <button
     onClick={onToggleExpand}
-    className="w-full px-6 py-4 flex items-center justify-between transition-colors hover:bg-gray-50 dark:hover:bg-[#334155]"
+    className="w-full px-6 py-4 flex items-center justify-between transition-colors hover:bg-panel-100 dark:hover:bg-panel-300"
    >
     <div className="flex items-center gap-4">
      {/* Day Info */}
@@ -110,7 +110,7 @@ export function DayScheduleCard({
 
    {/* Expanded Content - Problem List */}
    {isExpanded && (
-    <div className="border-t border-gray-200 dark:border-slate-700 px-6 py-4 space-y-3 bg-gray-50 dark:bg-[#0f172a]">
+    <div className="border-t border-outline-subtle px-6 py-4 space-y-3 bg-panel-100 dark:bg-panel-300">
      {/* Problems */}
      {visibleProblems.length === 0 && (
       <div className="rounded-lg border border-dashed border-panel-200 dark:border-panel-300 bg-panel-100 dark:bg-panel-300 px-4 py-6 text-center text-sm text-panel-strong dark:text-content">

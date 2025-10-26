@@ -155,15 +155,15 @@ export function generatePanelScale(background: string, foreground: string, isDar
   if (isDark) {
     return {
       50: background,                          // Same as background
-      100: blend(background, foreground, 0.05), // Very subtle
-      200: blend(background, foreground, 0.10),
-      300: blend(background, foreground, 0.15), // Base panel color
-      400: blend(background, foreground, 0.25),
-      500: blend(background, foreground, 0.35),
-      600: blend(background, foreground, 0.45),
-      700: blend(background, foreground, 0.55),
-      800: blend(background, foreground, 0.65),
-      900: blend(background, foreground, 0.75),
+      100: blend(background, foreground, 0.02), // Barely lifted surface
+      200: blend(background, foreground, 0.04),
+      300: blend(background, foreground, 0.07), // Base panel color
+      400: blend(background, foreground, 0.12),
+      500: blend(background, foreground, 0.18),
+      600: blend(background, foreground, 0.28),
+      700: blend(background, foreground, 0.40),
+      800: blend(background, foreground, 0.52),
+      900: blend(background, foreground, 0.64),
     };
   } else {
     return {
