@@ -9,7 +9,8 @@ import {
   getCSSVariable,
   isDarkMode,
   blend,
-  type ColorScale
+  type ColorScale,
+  hexToRgbString
 } from './colorUtils';
 
 interface ColorPalette {
@@ -98,9 +99,18 @@ export function injectColorScales(palette: ColorPalette): void {
   root.style.setProperty('--text-inverse', getCSSVariable('--background'));
 
   // Surface colors - brighter elevated surfaces in dark mode
-  root.style.setProperty('--surface-primary', getCSSVariable('--background'));
-  root.style.setProperty('--surface-elevated', dark ? palette.panel[100] : '#ffffff');
-  root.style.setProperty('--surface-muted', dark ? palette.panel[200] : palette.panel[100]);
+  const surfacePrimary = getCSSVariable('--background');
+  const surfaceElevated = dark ? palette.panel[100] : '#ffffff';
+  const surfaceMuted = dark ? palette.panel[200] : palette.panel[100];
+
+  root.style.setProperty('--surface-primary', surfacePrimary);
+  root.style.setProperty('--surface-elevated', surfaceElevated);
+  root.style.setProperty('--surface-muted', surfaceMuted);
+
+  // Provide RGB channels for surfaces so Tailwind opacity modifiers work
+  root.style.setProperty('--surface-primary-rgb', hexToRgbString(surfacePrimary));
+  root.style.setProperty('--surface-elevated-rgb', hexToRgbString(surfaceElevated));
+  root.style.setProperty('--surface-muted-rgb', hexToRgbString(surfaceMuted));
 
   // Borders - better visibility in dark mode
   root.style.setProperty('--border', palette.panel[200]);

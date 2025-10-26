@@ -73,9 +73,9 @@ export default {
 
         // Surfaces
         surface: {
-          DEFAULT: 'var(--surface-primary)',
-          elevated: 'var(--surface-elevated)',
-          muted: 'var(--surface-muted)',
+          DEFAULT: 'rgb(var(--surface-primary-rgb) / <alpha-value>)',
+          elevated: 'rgb(var(--surface-elevated-rgb) / <alpha-value>)',
+          muted: 'rgb(var(--surface-muted-rgb) / <alpha-value>)',
         },
 
         // Borders

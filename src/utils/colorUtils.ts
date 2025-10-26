@@ -29,6 +29,15 @@ function rgbToHex(r: number, g: number, b: number): string {
 }
 
 /**
+ * Convert hex to space-separated RGB channels for CSS rgb(var(--token))
+ */
+export function hexToRgbString(hex: string): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return '0 0 0';
+  return `${rgb.r} ${rgb.g} ${rgb.b}`;
+}
+
+/**
  * Lighten a color by a percentage
  * @param color - Hex color
  * @param percent - Amount to lighten (0-100)

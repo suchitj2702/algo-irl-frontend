@@ -82,7 +82,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
   setIsMenuOpen(false);
  };
 
-return <header className="bg-surface/90 dark:bg-surface-elevated/80 backdrop-blur-lg shadow-subtle sticky top-0 z-10 transition-colors duration-200 border-b border-outline-subtle">
+return <header className="bg-surface/50 dark:bg-surface-elevated/60 backdrop-blur-lg shadow-subtle sticky top-0 z-10 transition-colors duration-200 border-b border-outline-subtle">
    <div className="mx-auto px-4 sm:px-6 lg:px-8">
     <div className="flex justify-between items-center h-14">
      <div className="flex-shrink-0">
@@ -191,7 +191,7 @@ return <header className="bg-surface/90 dark:bg-surface-elevated/80 backdrop-blu
      </div>
     </div>
    </div>
-   {isMenuOpen && <div className="md:hidden bg-surface/95 dark:bg-surface-elevated/95 border-t border-outline-subtle/40">
+   {isMenuOpen && <div className="md:hidden bg-surface/65 dark:bg-surface-elevated/70 border-t border-outline-subtle/40">
      <div className="pt-2 pb-3 space-y-2 px-4 sm:px-6 lg:px-8">
       <button
        onClick={handleStudyPlansClick}
