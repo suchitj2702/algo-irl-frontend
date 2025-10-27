@@ -7,29 +7,22 @@ import {
 } from 'react';
 import {
   Activity,
-  ArrowRightIcon,
   BarChart4,
   Building2,
   CheckCircle2,
-  CircleDot,
   Cpu,
   Layers,
   LineChart,
   Target,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../../DarkModeContext';
 import { ThinkingIndicator } from '../../ThinkingIndicator';
 import {
   prepareProblem,
 } from '../../../utils/api-service';
 import SectionContainer from './components/SectionContainer';
-import CTAButton from './components/CTAButton';
-
-interface IntroSectionProps {
-  onStartClick: () => void;
-}
-
 
 const PROBLEM_OPTIONS = [
   { id: 'two-sum', label: 'Two Sum' },
@@ -229,7 +222,7 @@ const FAQ_ITEMS = [
 
 const FINAL_HIGHLIGHTS = [
   'Context-rich, hyperrealistic problems in under ten seconds',
-  'Study plans that balance recent loops with AI-predicted scenarios',
+  'Personalized study plans tailored to your company, role, and timeline',
   'Privacy-first experience with sync across every device',
 ] as const;
 
@@ -252,9 +245,10 @@ function recordLandingEvent(eventName: string, payload?: Record<string, unknown>
   }
 }
 
-export function IntroSection({ onStartClick }: IntroSectionProps) {
+export function IntroSection() {
   const currentYear = new Date().getFullYear();
   const { isDarkMode } = useDarkMode();
+  const navigate = useNavigate();
 
   const [selectedProblem, setSelectedProblem] = useState<(typeof PROBLEM_OPTIONS)[number]['id']>('two-sum');
   const [selectedCompany, setSelectedCompany] = useState<(typeof COMPANY_OPTIONS)[number]['id']>('google');
@@ -264,12 +258,21 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
   const [demoError, setDemoError] = useState<string | null>(null);
   const [isTransforming, setIsTransforming] = useState(false);
 
+  const planButtonBaseClasses =
+    'mt-6 inline-flex w-full items-center justify-center rounded-full px-6 py-2.5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint/40 active:scale-[0.98]';
+  const finalCtaClasses =
+    'inline-flex items-center justify-center rounded-full px-8 py-3 text-base font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint/40 active:scale-[0.98]';
+
   const activeRequestRef = useRef<AbortController | null>(null);
 
   const handleSeeDemo = useCallback(() => {
     recordLandingEvent('landing_demo_scroll');
     document.getElementById('algoirl-live-demo')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
+
+  const handlePlansRedirect = useCallback(() => {
+    navigate('/my-study-plans');
+  }, [navigate]);
 
   const handleProblemChange = useCallback((problemId: typeof PROBLEM_OPTIONS[number]['id']) => {
     setSelectedProblem(problemId);
@@ -659,64 +662,60 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
                 <div className="mt-3 text-3xl font-semibold text-content">$0</div>
                 <div className="text-sm text-content-muted">Always available</div>
                 <ul className="mt-6 flex-1 space-y-3 text-sm text-content">
-                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
-                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
-                    <span>Study plans powered by the Blind 75 dataset</span>
+                  <li className="flex items-start gap-3 text-left">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                    <span className="leading-snug">Study plans powered by the Blind 75 dataset</span>
                   </li>
-                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
-                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
-                    <span>Company-aware transformations for every included problem</span>
+                  <li className="flex items-start gap-3 text-left">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                    <span className="leading-snug">Company-aware transformations for every included problem</span>
                   </li>
-                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
-                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
-                    <span>Progress sync across desktop and mobile</span>
+                  <li className="flex items-start gap-3 text-left">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                    <span className="leading-snug">Progress sync across desktop and mobile</span>
                   </li>
-                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
-                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
-                    <span>Full code editor with test case execution</span>
+                  <li className="flex items-start gap-3 text-left">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                    <span className="leading-snug">Full code editor with test case execution</span>
                   </li>
-                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
-                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
-                    <span>All companies and roles supported</span>
+                  <li className="flex items-start gap-3 text-left">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                    <span className="leading-snug">All companies and roles supported</span>
                   </li>
                 </ul>
-                <CTAButton
-                  variant="secondary"
-                  size="md"
-                  onClick={onStartClick}
-                  icon={ArrowRightIcon}
-                  className="mt-6 w-full"
+                <button
+                  type="button"
+                  onClick={handlePlansRedirect}
+                  className={`${planButtonBaseClasses} border border-outline-subtle/40 bg-background text-content shadow-sm hover:border-mint/60 hover:text-mint hover:shadow-md`}
                 >
                   Start free today
-                </CTAButton>
+                </button>
               </div>
               <div className="flex flex-col rounded-3xl border border-mint/60 bg-background p-8 text-center sm:text-left">
                 <div className="text-sm font-semibold uppercase tracking-wide text-mint">Comprehensive</div>
                 <div className="mt-3 text-3xl font-semibold text-content">$5</div>
                 <div className="text-sm text-content-muted">Per month · cancel anytime</div>
                 <ul className="mt-6 flex-1 space-y-3 text-sm text-content">
-                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
-                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
-                    <span>Everything in the free plan</span>
+                  <li className="flex items-start gap-3 text-left">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                    <span className="leading-snug">Everything in the free plan</span>
                   </li>
-                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
-                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
-                    <span>Study plans that draw from the full 2,000+ problem dataset</span>
+                  <li className="flex items-start gap-3 text-left">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                    <span className="leading-snug">Study plans that draw from the full 2,000+ problem dataset</span>
                   </li>
-                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
-                    <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
-                    <span>Deeper topic coverage (e.g., 50 graph problems vs Blind 75's 10)</span>
+                  <li className="flex items-start gap-3 text-left">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                    <span className="leading-snug">Deeper topic coverage (e.g., 50 graph problems vs Blind 75's 10)</span>
                   </li>
                 </ul>
-                <CTAButton
-                  variant="primary"
-                  size="md"
-                  onClick={onStartClick}
-                  icon={ArrowRightIcon}
-                  className="mt-6 w-full"
+                <button
+                  type="button"
+                  onClick={handlePlansRedirect}
+                  className={`${planButtonBaseClasses} bg-gradient-to-r from-mint-600 to-mint-700 text-white shadow-md hover:-translate-y-0.5 hover:from-mint-700 hover:to-mint-800 hover:shadow-lg`}
                 >
                   Unlock comprehensive plans
-                </CTAButton>
+                </button>
               </div>
             </div>
           </div>
@@ -725,24 +724,31 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
 
       <section className="border-b border-outline-subtle/20">
         <SectionContainer className="py-16 sm:py-20">
-          <div className="space-y-8 text-center sm:text-left">
+          <div className="space-y-8 text-left">
             <div className="max-w-3xl mx-auto space-y-4 text-center">
               <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Frequently asked questions</h2>
             </div>
-            <div className="space-y-4 text-center sm:text-left">
-              {FAQ_ITEMS.map((faq, index) => (
-                <details
-                  key={faq.question}
-                  className="group rounded-3xl border border-outline-subtle/25 bg-background p-6"
-                  open={index === 0}
-                >
-                  <summary className="flex flex-col cursor-pointer list-none items-center justify-center gap-2 text-center text-base font-semibold text-content sm:flex-row sm:justify-between sm:text-left sm:text-lg">
-                    {faq.question}
-                    <CircleDot className="h-5 w-5 flex-shrink-0 text-mint opacity-0 transition group-open:opacity-100" />
-                  </summary>
-                  <p className="mt-4 text-sm text-content-muted text-center sm:text-left">{faq.answer}</p>
-                </details>
-              ))}
+            <div className="mx-auto max-w-3xl">
+              <div className="overflow-hidden rounded-2xl border border-outline-subtle/25 bg-background/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] dark:shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
+                {FAQ_ITEMS.map((faq) => (
+                  <details
+                    key={faq.question}
+                    className="group relative border-t border-outline-subtle/20 transition-colors first:border-t-0 open:bg-panel-50/60 dark:open:bg-panel-200/30"
+                  >
+                    <summary className="flex w-full cursor-pointer list-none items-start justify-between gap-4 px-6 py-5 text-left text-base font-medium leading-snug text-content transition-colors duration-200 sm:text-lg">
+                      <span className="flex-1 tracking-tight">{faq.question}</span>
+                      <span className="relative mt-1 flex h-5 w-5 items-center justify-center">
+                        <span className="absolute block h-px w-4 bg-content transition-transform duration-200 ease-out group-open:rotate-90" />
+                        <span className="block h-4 w-px bg-content transition-opacity duration-200 ease-out group-open:opacity-0" />
+                      </span>
+                    </summary>
+                    <div className="px-6 pb-6 pt-1 text-sm leading-relaxed text-content-muted sm:text-base">
+                      {faq.answer}
+                    </div>
+                    <span className="pointer-events-none absolute left-0 top-0 h-full w-[3px] bg-mint/50 opacity-0 transition-opacity duration-200 ease-out group-open:opacity-100" />
+                  </details>
+                ))}
+              </div>
             </div>
           </div>
         </SectionContainer>
@@ -751,32 +757,22 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
       <section>
         <SectionContainer className="py-16 sm:py-20">
           <div className="mx-auto max-w-3xl space-y-6 text-center">
-            <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Build confidence with company-aware, role-specific practice</h2>
+            <h2 className="text-3xl font-semibold text-content sm:text-4xl">Build confidence with company-aware, role-specific practice powered by AI</h2>
             <p className="text-base text-content-muted sm:text-lg">
-              Start for free, experience a live scenario, and upgrade when you are ready for the full dataset.
+              Start for free and upgrade when you are ready for comprehensive study plans
             </p>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-center sm:gap-6">
-              <CTAButton
-                variant="primary"
-                size="lg"
-                onClick={onStartClick}
-                icon={ArrowRightIcon}
-                className="w-full sm:w-auto"
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
+              <button
+                type="button"
+                onClick={handlePlansRedirect}
+                className={`${finalCtaClasses} w-full bg-gradient-to-r from-mint-600 to-mint-700 text-white shadow-md hover:-translate-y-0.5 hover:from-mint-700 hover:to-mint-800 hover:shadow-lg sm:w-auto`}
               >
                 Create my free account
-              </CTAButton>
-              <CTAButton
-                variant="secondary"
-                size="lg"
-                onClick={handleSeeDemo}
-                className="w-full sm:w-auto"
-              >
-                Generate another scenario
-              </CTAButton>
+              </button>
             </div>
             <div className="flex flex-col gap-3 text-sm text-content-muted sm:flex-row sm:items-center sm:justify-center sm:gap-6">
               {FINAL_HIGHLIGHTS.map((highlight) => (
-                <span key={highlight} className="inline-flex items-center justify-center gap-2">
+                <span key={highlight} className="inline-flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-mint" />
                   {highlight}
                 </span>

@@ -307,13 +307,7 @@ export function AppRouter() {
   syncPlanStructures();
  }, [studyPlanResponse, syncPlanStructures]);
 
- // Navigation handlers
- const handleStartClick = () => {
-  setIsCompanyContextFlow(false);
-  navigate('/form');
- };
-
- const handleHomeClick = () => navigate('/');
+const handleHomeClick = () => navigate('/');
  const handleBlind75Click = () => navigate('/blind75');
  const handleStudyPlansClick = () => navigate('/my-study-plans');
 
@@ -1695,7 +1689,7 @@ export function AppRouter() {
      )}
 
      <Routes>
-     <Route path="/" element={<IntroSection onStartClick={handleStartClick} />} />
+    <Route path="/" element={<IntroSection />} />
 
      <Route path="/my-study-plans" element={
       <PremiumGate feature="My Study Plans">
