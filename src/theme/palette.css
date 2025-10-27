@@ -31,6 +31,11 @@
                  special notifications, feature indicators */
   --accent: #ffffff;
 
+  /* Inline code tokens (light mode) */
+  --code-inline-bg: var(--accent);
+  --code-inline-text: var(--foreground);
+  --code-inline-border: transparent;
+
   /* Background
      Used in: Main page background, base surface color
      Components: All pages base background */
@@ -96,6 +101,11 @@
      Used in: Special accents, bright highlights in dark mode
      Slightly adjusted for better readability */
   --accent: #e0e8ff;
+
+  /* Inline code tokens (dark mode) */
+  --code-inline-bg: #253257;
+  --code-inline-text: #f3f6ff;
+  --code-inline-border: #3d4b7a;
 
   /* Background
      Used in: Main dark background, deepest surface

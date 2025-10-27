@@ -279,7 +279,7 @@ export default {
             '--tw-prose-headings': 'var(--foreground)',
             '--tw-prose-bold': 'var(--foreground)',
             '--tw-prose-links': 'var(--primary)',
-            '--tw-prose-code': 'var(--foreground)',
+            '--tw-prose-code': 'var(--code-inline-text)',
             color: 'var(--foreground)',
             maxWidth: 'none',
             h1: {
@@ -306,11 +306,12 @@ export default {
               fontWeight: '600',
             },
             code: {
-              color: 'var(--foreground)',
-              backgroundColor: 'var(--accent)',
+              color: 'var(--code-inline-text)',
+              backgroundColor: 'var(--code-inline-bg)',
               padding: '0.125rem 0.25rem',
               borderRadius: '0.25rem',
               fontWeight: '400',
+              border: '1px solid var(--code-inline-border)',
             },
             'code::before': {
               content: '""',
@@ -333,7 +334,7 @@ export default {
             '--tw-prose-headings': 'var(--foreground)',
             '--tw-prose-bold': 'var(--foreground)',
             '--tw-prose-links': 'var(--primary)',
-            '--tw-prose-code': 'var(--foreground)',
+            '--tw-prose-code': 'var(--code-inline-text)',
           },
         },
       },

@@ -22,7 +22,7 @@ import { ThinkingIndicator } from '../../ThinkingIndicator';
 import {
   prepareProblem,
 } from '../../../utils/api-service';
-import SectionContainer from './components/SectionContainer';
+import SectionBlock from './components/SectionBlock';
 
 const PROBLEM_OPTIONS = [
   { id: 'two-sum', label: 'Two Sum' },
@@ -364,426 +364,404 @@ export function IntroSection() {
 
   return (
     <div className="bg-background text-content">
-      <section className="border-b border-outline-subtle/20">
-        <SectionContainer className="py-16 sm:py-20 lg:py-24">
-          {/* Large centered AlgoIRL logo and hero content */}
-          <div className="max-w-4xl mx-auto text-center space-y-8">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-thin text-content font-playfair">
-              AlgoIRL
-            </h1>
+      <SectionBlock surface="base">
+        <div className="max-w-4xl mx-auto text-center space-y-8">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-thin text-content font-playfair">
+            AlgoIRL
+          </h1>
 
-            <p className="text-base text-content-muted sm:text-lg lg:text-xl">
-              A hyperrealistic interview simulator, designed to bridge the gap between your coding interview preparation and how companies actually frame problems in the interview
-            </p>
+          <p className="text-base text-content-muted sm:text-lg lg:text-xl">
+            A hyperrealistic interview simulator, designed to bridge the gap between your coding interview preparation and how companies actually frame problems in the interview
+          </p>
 
-            {/* Single CTA button - sleek design */}
-            <div>
-              <button
-                onClick={handleSeeDemo}
-                className="inline-flex items-center justify-center px-8 py-3 text-base font-medium text-white bg-gradient-to-r from-mint-600 to-mint-700 hover:from-mint-700 hover:to-mint-800 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-              >
-                See it in action
-              </button>
-            </div>
+          <div>
+            <button
+              onClick={handleSeeDemo}
+              className="inline-flex items-center justify-center px-8 py-3 text-base font-medium text-white bg-gradient-to-r from-mint-600 to-mint-700 hover:from-mint-700 hover:to-mint-800 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              See it in action
+            </button>
           </div>
-          <div className="mt-12 grid gap-6 pt-6 text-sm text-content-muted text-center sm:text-left sm:grid-cols-3">
-            {DATA_FACTORS.map((factor) => (
-              <div key={factor.title} className="space-y-2">
-                <div className="text-sm font-semibold text-content">{factor.title}</div>
-                <p>{factor.description}</p>
+        </div>
+        <div className="grid gap-6 text-sm text-content-muted text-center sm:grid-cols-3">
+          {DATA_FACTORS.map((factor) => (
+            <div key={factor.title} className="space-y-2">
+              <div className="text-sm font-semibold text-content">{factor.title}</div>
+              <p>{factor.description}</p>
+            </div>
+          ))}
+        </div>
+      </SectionBlock>
+
+      <SectionBlock surface="tinted">
+        <div className="max-w-3xl mx-auto text-center space-y-3">
+          <h2 className="text-3xl font-thin text-content font-playfair text-center sm:text-4xl">Data-backed interview prep</h2>
+          <p className="text-base text-content-muted sm:text-lg">
+            Our system cross-references curated company data, role patterns, and the latest community intel to prioritize what you should practice next.
+          </p>
+        </div>
+
+        <div className="max-w-4xl mx-auto space-y-4 text-content-muted text-center">
+          <p className="text-base sm:text-lg">
+            Studies show that{' '}
+            <a
+              href="https://www.carejobz.com.au/i-froze-completely-interview-response-uncovered/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-content underline decoration-mint/50 hover:decoration-mint transition-colors"
+            >
+              62% of professionals have frozen at least once in an interview
+            </a>
+            , often on problems they mastered during practice. This isn't about skill—it's about stress. When{' '}
+            <a
+              href="https://resources.biginterview.com/interviews-101/interview-anxiety/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-content underline decoration-mint/50 hover:decoration-mint transition-colors"
+            >
+              93% of candidates experience interview anxiety
+            </a>
+            , even familiar algorithms feel unrecognizable when wrapped in company-specific jargon and framed through a product lens you've never encountered.
+          </p>
+          <p className="text-base sm:text-lg">
+            The freeze response isn't rare.{' '}
+            <a
+              href="https://www.tandfonline.com/doi/full/10.1080/10253890.2024.2364333"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-content underline decoration-mint/50 hover:decoration-mint transition-colors"
+            >
+              Research indicates that interview stress impairs working memory, problem-solving, and pattern recognition
+            </a>
+            —the exact skills you need most. Candidates spend an average of 5-10 minutes wrestling with problems they could solve instantly in practice, simply because the real interview presents them differently.
+          </p>
+          <p className="text-base sm:text-lg">
+            <strong className="text-content">Why this happens:</strong> Your brain trained on "Two Sum." The interviewer asks about "cache shard user matching" at Google or "content recommendation deduplication" at Netflix. Same algorithm, completely different context. This gap between practice and reality is where preparation breaks down.
+          </p>
+        </div>
+
+        <div className="grid gap-6 text-center md:grid-cols-2">
+          <div className="space-y-4 rounded-3xl border border-outline-subtle/25 bg-background p-6 text-center">
+            <div className="text-sm font-semibold text-content">Without AlgoIRL</div>
+            <p className="text-base text-content">
+              Generic problem sets that don't match how your target company frames questions. When interview stress hits, familiar patterns become unrecognizable.
+            </p>
+            <ul className="space-y-2 text-sm text-content-muted">
+              <li>Practice builds algorithmic skill but not recognition under pressure</li>
+              <li>No exposure to product-specific context that appears in real interviews</li>
+              <li>Freeze on problems you already know when they're presented differently</li>
+            </ul>
+          </div>
+          <div className="space-y-4 rounded-3xl border border-outline-subtle/25 bg-background p-6 text-center">
+            <div className="text-sm font-semibold text-content">With AlgoIRL</div>
+            <p className="text-base text-content">
+              Train with hyperrealistic scenarios tailored to your company's products, tech stack, and interview style. Build the muscle to recognize familiar patterns in company-specific context.
+            </p>
+            <ul className="space-y-2 text-sm text-content-muted">
+              <li>Practice the same recognition skill you'll need when anxiety strikes mid-interview</li>
+              <li>Study plans intelligently match problems from our 2,000+ curated dataset to your target profile and interview timeline</li>
+            </ul>
+          </div>
+        </div>
+      </SectionBlock>
+
+      <SectionBlock
+        id="algoirl-live-demo"
+        surface="muted"
+        containerClassName="text-center"
+      >
+        <div className="max-w-3xl mx-auto space-y-4 text-center">
+          <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Try it for yourself</h2>
+          <p className="text-base text-content-muted sm:text-lg">
+            Pick a familiar problem, choose the company and role, then let AlgoIRL do its magic
+          </p>
+        </div>
+        <div className="grid gap-6 sm:gap-8 text-center lg:grid-cols-[minmax(0,320px),1fr]">
+          <div className="space-y-3 rounded-3xl border border-outline-subtle/25 bg-background p-4 text-center">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-content">Select problem</label>
+              <select
+                value={selectedProblem}
+                onChange={(event) => handleProblemChange(event.target.value as (typeof PROBLEM_OPTIONS)[number]['id'])}
+                className="w-full rounded-xl border border-outline-subtle/25 bg-background px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
+              >
+                {PROBLEM_OPTIONS.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-content-muted">Company</label>
+                <select
+                  value={selectedCompany}
+                  onChange={(event) => setSelectedCompany(event.target.value as (typeof COMPANY_OPTIONS)[number]['id'])}
+                  className="w-full rounded-xl border border-outline-subtle/25 bg-background px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
+                >
+                  {COMPANY_OPTIONS.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-content-muted">Role</label>
+                <select
+                  value={selectedRole}
+                  onChange={(event) => setSelectedRole(event.target.value as (typeof ROLE_OPTIONS)[number]['id'])}
+                  className="w-full rounded-xl border border-outline-subtle/25 bg-background px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
+                >
+                  {ROLE_OPTIONS.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <p className="text-xs text-content-muted">
+              Run it again for a fresh take (no two problems are exactly same!)
+            </p>
+          </div>
+          <div className="space-y-4 sm:space-y-6 text-center">
+            {originalProblem && (
+              <div className="space-y-3 sm:space-y-4">
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-content-muted">
+                    Original LeetCode problem
+                  </div>
+                  <div className="rounded-3xl border border-outline-subtle/25 bg-background p-6">
+                    <div className="prose prose-sm max-w-none text-content dark:prose-invert text-left">
+                      <h3 className="text-lg font-thin text-content font-playfair">{originalProblem.title}</h3>
+                      <ReactMarkdown>{originalProblem.description}</ReactMarkdown>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={handleTransform}
+                  disabled={isTransforming}
+                  className="w-full inline-flex items-center justify-center px-5 py-2 text-sm font-medium rounded-xl transition duration-200 bg-button-600 hover:bg-button-500 border border-button-700 text-button-foreground shadow-sm hover:shadow active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isTransforming ? 'Contextualizing...' : 'Contextualize'}
+                </button>
+              </div>
+            )}
+            {isTransforming ? (
+              <div className="rounded-3xl border border-outline-subtle/25 bg-background p-6">
+                <div className="flex min-h-[100px] items-start justify-start">
+                  <ThinkingIndicator
+                    states={[
+                      'Thinking...',
+                      'Analyzing...',
+                      'Generating...',
+                      'Processing...',
+                      'Computing...',
+                    ]}
+                    typingSpeed={80}
+                    deletingSpeed={40}
+                    pauseDuration={1500}
+                  />
+                </div>
+              </div>
+            ) : demoError ? (
+              <div className="rounded-3xl border border-outline-subtle/25 bg-background p-6">
+                <div className="text-sm text-destructive">{demoError}</div>
+              </div>
+            ) : demoState ? (
+              <div className="space-y-4">
+                <div className="space-y-2" ref={contextualizedResultRef}>
+                  <div className="text-xs font-medium text-mint">
+                    Contextualized by AlgoIRL for {COMPANY_OPTIONS.find((company) => company.id === selectedCompany)?.label}{' '}
+                    {ROLE_OPTIONS.find((role) => role.id === selectedRole)?.label} role
+                  </div>
+                  <div className="rounded-3xl border border-mint/60 bg-background p-6">
+                    <div className="prose prose-sm max-w-none text-content dark:prose-invert text-left">
+                      {demoState.title && <h3 className="text-lg font-thin text-content font-playfair">{demoState.title}</h3>}
+                      {demoState.background && <p className="text-content-muted">{demoState.background}</p>}
+                      <ReactMarkdown>{demoState.problemStatement}</ReactMarkdown>
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-dashed border-outline-subtle/40 bg-background/70 p-4 text-xs text-content-muted">
+                  <strong>Does this look similar to what you've seen in real interviews?</strong> Our LLM has been trained to provide hyperrealistic interviewing scenarios tailored to each company's style, products, and tech stack, combined with role-specific insights. AlgoIRL evaluates every scenario across six quality metrics to maintain high company relevance and role accuracy.
+                </div>
+              </div>
+            ) : originalProblem ? (
+              <div className="rounded-3xl border border-dashed border-outline-subtle/40 bg-background/70 p-8 text-center text-sm text-content-muted">
+                Click "Contextualize" to see how AlgoIRL transforms this problem for {COMPANY_OPTIONS.find((company) => company.id === selectedCompany)?.label}{' '}
+                {ROLE_OPTIONS.find((role) => role.id === selectedRole)?.label} role.
+              </div>
+            ) : (
+              <div className="rounded-3xl border border-dashed border-outline-subtle/40 bg-background/70 p-8 text-center text-sm text-content-muted">
+                Select a problem to get started.
+              </div>
+            )}
+          </div>
+        </div>
+      </SectionBlock>
+
+      <SectionBlock surface="base" containerClassName="text-center">
+        <div className="max-w-3xl mx-auto space-y-4 text-center">
+          <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">
+            Study plans tailored to your timeline, role, and target company
+          </h2>
+          <p className="text-base text-content-muted sm:text-lg">
+            Tell AlgoIRL your target company, role, and interview timeline. Our algorithm designs a custom study plan matched to your goals. We've collected company-specific interview data and role-specific patterns through thousands of community reports on Reddit, Blind, and Glassdoor, then manually verified and organized them into our 2,000+ problem dataset. Our matching algorithm intelligently selects the most relevant problems for your specific company and role profile, ranking recently asked questions higher. The data is continuously refreshed and re-scored to ensure you're practicing what's most likely to appear in your actual interview.
+          </p>
+        </div>
+        <ol className="space-y-4 text-center">
+          {STUDY_PLAN_STEPS.map((step, index) => (
+            <li
+              key={step.title}
+              className="flex flex-col items-center gap-4 rounded-3xl border border-outline-subtle/25 bg-background p-6 text-center sm:flex-row sm:items-start"
+            >
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-outline-subtle/25 text-sm font-semibold text-mint">
+                {String(index + 1).padStart(2, '0')}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-center gap-3 text-center sm:justify-between">
+                  <h3 className="text-lg font-thin text-content font-playfair">{step.title}</h3>
+                  <step.icon className="h-5 w-5 text-mint" />
+                </div>
+                <p className="mt-2 text-sm text-content-muted">{step.description}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </SectionBlock>
+
+      <SectionBlock surface="tinted" containerClassName="text-center">
+        <div className="max-w-3xl mx-auto space-y-4 text-center">
+          <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">
+            Choose the plan that fits your depth of prep
+          </h2>
+          <p className="text-base text-content-muted sm:text-lg">
+            Both plans include the same interface and privacy-first experience. Upgrade when you need the full company and role dataset.
+          </p>
+        </div>
+        <div className="grid gap-6 text-center md:grid-cols-2">
+          <div className="flex flex-col rounded-3xl border border-outline-subtle/25 bg-background p-8 text-center">
+            <div className="text-sm font-semibold uppercase tracking-wide text-content-muted">Free</div>
+            <div className="mt-3 text-3xl font-semibold text-content">$0</div>
+            <div className="text-sm text-content-muted">Always available</div>
+            <ul className="mt-6 flex-1 space-y-3 text-sm text-content">
+              <li className="flex items-start gap-3 text-left">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                <span className="leading-snug">Study plans powered by the Blind 75 dataset</span>
+              </li>
+              <li className="flex items-start gap-3 text-left">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                <span className="leading-snug">Company-aware transformations for every included problem</span>
+              </li>
+              <li className="flex items-start gap-3 text-left">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                <span className="leading-snug">Progress sync across desktop and mobile</span>
+              </li>
+              <li className="flex items-start gap-3 text-left">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                <span className="leading-snug">Full code editor with test case execution</span>
+              </li>
+              <li className="flex items-start gap-3 text-left">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                <span className="leading-snug">All companies and roles supported</span>
+              </li>
+            </ul>
+            <button
+              type="button"
+              onClick={handlePlansRedirect}
+              className={`${planButtonBaseClasses} border border-outline-subtle/40 bg-background text-content shadow-sm hover:border-mint/60 hover:text-mint hover:shadow-md`}
+            >
+              Start free today
+            </button>
+          </div>
+          <div className="flex flex-col rounded-3xl border border-mint/60 bg-background p-8 text-center">
+            <div className="text-sm font-semibold uppercase tracking-wide text-mint">Comprehensive</div>
+            <div className="mt-3 text-3xl font-semibold text-content">$5</div>
+            <div className="text-sm text-content-muted">Per month · cancel anytime</div>
+            <ul className="mt-6 flex-1 space-y-3 text-sm text-content">
+              <li className="flex items-start gap-3 text-left">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                <span className="leading-snug">Everything in the free plan</span>
+              </li>
+              <li className="flex items-start gap-3 text-left">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                <span className="leading-snug">Study plans that draw from the full 2,000+ problem dataset</span>
+              </li>
+              <li className="flex items-start gap-3 text-left">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                <span className="leading-snug">Deeper topic coverage (e.g., 50 graph problems vs Blind 75's 10)</span>
+              </li>
+            </ul>
+            <button
+              type="button"
+              onClick={handlePlansRedirect}
+              className={`${planButtonBaseClasses} bg-gradient-to-r from-mint-600 to-mint-700 text-white shadow-md hover:-translate-y-0.5 hover:from-mint-700 hover:to-mint-800 hover:shadow-lg`}
+            >
+              Unlock comprehensive plans
+            </button>
+          </div>
+        </div>
+      </SectionBlock>
+
+      <SectionBlock surface="muted" containerClassName="text-left">
+        <div className="max-w-3xl mx-auto space-y-4 text-center">
+          <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Frequently asked questions</h2>
+        </div>
+        <div className="mx-auto max-w-3xl">
+          <div className="overflow-hidden rounded-2xl border border-outline-subtle/25 bg-background/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] dark:shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
+            {FAQ_ITEMS.map((faq) => (
+              <details
+                key={faq.question}
+                className="group relative border-t border-outline-subtle/20 transition-colors first:border-t-0 open:bg-panel-50/60 dark:open:bg-panel-200/30"
+              >
+                <summary className="flex w-full cursor-pointer list-none items-start justify-between gap-4 px-6 py-5 text-left text-base font-medium leading-snug text-content transition-colors duration-200 sm:text-lg">
+                  <span className="flex-1 tracking-tight">{faq.question}</span>
+                  <span className="relative mt-1 flex h-5 w-5 items-center justify-center">
+                    <span className="absolute block h-px w-4 bg-content transition-transform duration-200 ease-out group-open:rotate-90" />
+                    <span className="block h-4 w-px bg-content transition-opacity duration-200 ease-out group-open:opacity-0" />
+                  </span>
+                </summary>
+                <div className="px-6 pb-6 pt-1 text-sm leading-relaxed text-content-muted sm:text-base">
+                  {faq.answer}
+                </div>
+                <span className="pointer-events-none absolute left-0 top-0 h-full w-[3px] bg-mint/50 opacity-0 transition-opacity duration-200 ease-out group-open:opacity-100" />
+              </details>
             ))}
           </div>
-        </SectionContainer>
-      </section>
+        </div>
+      </SectionBlock>
 
-      <section className="border-b border-outline-subtle/20">
-        <SectionContainer className="py-16 sm:py-20">
-          <div className="space-y-8 text-center sm:text-left">
-            <div className="max-w-3xl mx-auto text-center space-y-3">
-              <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Data-backed interview prep</h2>
-              <p className="text-base text-content-muted sm:text-lg">
-                Our system cross-references curated company data, role patterns, and the latest community intel to prioritize what you should practice next.
-              </p>
-            </div>
-
-            <div className="max-w-4xl mx-auto space-y-4 text-content-muted text-center sm:text-left">
-              <p className="text-base sm:text-lg">
-                Studies show that{' '}
-                <a
-                  href="https://www.carejobz.com.au/i-froze-completely-interview-response-uncovered/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-content underline decoration-mint/50 hover:decoration-mint transition-colors"
-                >
-                  62% of professionals have frozen at least once in an interview
-                </a>
-                , often on problems they mastered during practice. This isn't about skill—it's about stress. When{' '}
-                <a
-                  href="https://resources.biginterview.com/interviews-101/interview-anxiety/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-content underline decoration-mint/50 hover:decoration-mint transition-colors"
-                >
-                  93% of candidates experience interview anxiety
-                </a>
-                , even familiar algorithms feel unrecognizable when wrapped in company-specific jargon and framed through a product lens you've never encountered.
-              </p>
-              <p className="text-base sm:text-lg">
-                The freeze response isn't rare.{' '}
-                <a
-                  href="https://www.tandfonline.com/doi/full/10.1080/10253890.2024.2364333"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-content underline decoration-mint/50 hover:decoration-mint transition-colors"
-                >
-                  Research indicates that interview stress impairs working memory, problem-solving, and pattern recognition
-                </a>
-                —the exact skills you need most. Candidates spend an average of 5-10 minutes wrestling with problems they could solve instantly in practice, simply because the real interview presents them differently.
-              </p>
-              <p className="text-base sm:text-lg">
-                <strong className="text-content">Why this happens:</strong> Your brain trained on "Two Sum." The interviewer asks about "cache shard user matching" at Google or "content recommendation deduplication" at Netflix. Same algorithm, completely different context. This gap between practice and reality is where preparation breaks down.
-              </p>
-            </div>
-
-            <div className="grid gap-6 text-center sm:text-left md:grid-cols-2">
-              <div className="space-y-4 rounded-3xl border border-outline-subtle/25 bg-background p-6 text-center sm:text-left">
-                <div className="text-sm font-semibold text-content">Without AlgoIRL</div>
-                <p className="text-base text-content">
-                  Generic problem sets that don't match how your target company frames questions. When interview stress hits, familiar patterns become unrecognizable.
-                </p>
-                <ul className="space-y-2 text-sm text-content-muted">
-                  <li>Practice builds algorithmic skill but not recognition under pressure</li>
-                  <li>No exposure to product-specific context that appears in real interviews</li>
-                  <li>Freeze on problems you already know when they're presented differently</li>
-                </ul>
-              </div>
-              <div className="space-y-4 rounded-3xl border border-outline-subtle/25 bg-background p-6 text-center sm:text-left">
-                <div className="text-sm font-semibold text-content">With AlgoIRL</div>
-                <p className="text-base text-content">
-                  Train with hyperrealistic scenarios tailored to your company's products, tech stack, and interview style. Build the muscle to recognize familiar patterns in company-specific context.
-                </p>
-                <ul className="space-y-2 text-sm text-content-muted">
-                  <li>Practice the same recognition skill you'll need when anxiety strikes mid-interview</li>
-                  <li>Study plans intelligently match problems from our 2,000+ curated dataset to your target profile and interview timeline</li>
-                </ul>
-              </div>
-            </div>
+      <SectionBlock surface="base" containerClassName="text-center">
+        <div className="mx-auto max-w-3xl space-y-6 text-center">
+          <h2 className="text-3xl font-semibold text-content sm:text-4xl">Build confidence with company-aware, role-specific practice powered by AI</h2>
+          <p className="text-base text-content-muted sm:text-lg">
+            Start for free and upgrade when you are ready for comprehensive study plans
+          </p>
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
+            <button
+              type="button"
+              onClick={handlePlansRedirect}
+              className={`${finalCtaClasses} w-full bg-gradient-to-r from-mint-600 to-mint-700 text-white shadow-md hover:-translate-y-0.5 hover:from-mint-700 hover:to-mint-800 hover:shadow-lg sm:w-auto`}
+            >
+              Create my free account
+            </button>
           </div>
-        </SectionContainer>
-      </section>
-
-      <section id="algoirl-live-demo" className="border-b border-outline-subtle/30">
-        <SectionContainer className="py-16 sm:py-20">
-          <div className="space-y-6 sm:space-y-10 text-center sm:text-left">
-            <div className="max-w-3xl mx-auto space-y-4 text-center">
-              <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Try it for yourself</h2>
-              <p className="text-base text-content-muted sm:text-lg">
-                Pick a familiar problem, choose the company and role, then let AlgoIRL do its magic
-              </p>
-            </div>
-            <div className="grid gap-6 sm:gap-8 text-center sm:text-left lg:grid-cols-[minmax(0,320px),1fr]">
-              <div className="space-y-3 rounded-3xl border border-outline-subtle/25 bg-background p-4 text-center sm:text-left">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-content">Select problem</label>
-                  <select
-                    value={selectedProblem}
-                    onChange={(event) => handleProblemChange(event.target.value as (typeof PROBLEM_OPTIONS)[number]['id'])}
-                    className="w-full rounded-xl border border-outline-subtle/25 bg-background px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
-                  >
-                    {PROBLEM_OPTIONS.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-content-muted">Company</label>
-                    <select
-                      value={selectedCompany}
-                      onChange={(event) => setSelectedCompany(event.target.value as (typeof COMPANY_OPTIONS)[number]['id'])}
-                      className="w-full rounded-xl border border-outline-subtle/25 bg-background px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
-                    >
-                      {COMPANY_OPTIONS.map((option) => (
-                        <option key={option.id} value={option.id}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                    <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-content-muted">Role</label>
-                    <select
-                      value={selectedRole}
-                      onChange={(event) => setSelectedRole(event.target.value as (typeof ROLE_OPTIONS)[number]['id'])}
-                      className="w-full rounded-xl border border-outline-subtle/25 bg-background px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
-                    >
-                      {ROLE_OPTIONS.map((option) => (
-                        <option key={option.id} value={option.id}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <p className="text-xs text-content-muted">
-                  Run it again for a fresh take (no two problems are exactly same!)
-                </p>
-              </div>
-              <div className="space-y-4 sm:space-y-6 text-center sm:text-left">
-                {originalProblem && (
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="space-y-2">
-                      <div className="text-xs font-medium text-content-muted">
-                        Original LeetCode problem
-                      </div>
-                      <div className="rounded-3xl border border-outline-subtle/25 bg-background p-6">
-                        <div className="prose prose-sm max-w-none text-content dark:prose-invert text-left">
-                          <h3 className="text-lg font-thin text-content font-playfair">{originalProblem.title}</h3>
-                          <ReactMarkdown>{originalProblem.description}</ReactMarkdown>
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleTransform}
-                      disabled={isTransforming}
-                      className="w-full inline-flex items-center justify-center px-5 py-2 text-sm font-medium rounded-xl transition duration-200 bg-button-600 hover:bg-button-500 border border-button-700 text-button-foreground shadow-sm hover:shadow active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isTransforming ? 'Contextualizing...' : 'Contextualize'}
-                    </button>
-                  </div>
-                )}
-                {isTransforming ? (
-                  <div className="rounded-3xl border border-outline-subtle/25 bg-background p-6">
-                    <div className="flex min-h-[100px] items-start justify-start">
-                      <ThinkingIndicator
-                        states={[
-                          'Thinking...',
-                          'Analyzing...',
-                          'Generating...',
-                          'Processing...',
-                          'Computing...',
-                        ]}
-                        typingSpeed={80}
-                        deletingSpeed={40}
-                        pauseDuration={1500}
-                      />
-                    </div>
-                  </div>
-                ) : demoError ? (
-                  <div className="rounded-3xl border border-outline-subtle/25 bg-background p-6">
-                    <div className="text-sm text-destructive">{demoError}</div>
-                  </div>
-                ) : demoState ? (
-                  <div className="space-y-4">
-                    <div className="space-y-2" ref={contextualizedResultRef}>
-                      <div className="text-xs font-medium text-mint">
-                        Contextualized by AlgoIRL for {COMPANY_OPTIONS.find((company) => company.id === selectedCompany)?.label}{' '}
-                        {ROLE_OPTIONS.find((role) => role.id === selectedRole)?.label} role
-                      </div>
-                      <div className="rounded-3xl border border-mint/60 bg-background p-6">
-                        <div className="prose prose-sm max-w-none text-content dark:prose-invert text-left">
-                          {demoState.title && <h3 className="text-lg font-thin text-content font-playfair">{demoState.title}</h3>}
-                          {demoState.background && <p className="text-content-muted">{demoState.background}</p>}
-                          <ReactMarkdown>{demoState.problemStatement}</ReactMarkdown>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="rounded-2xl border border-dashed border-outline-subtle/40 bg-background/70 p-4 text-xs text-content-muted">
-                      <strong>Does this look similar to what you've seen in real interviews?</strong> Our LLM has been trained to provide hyperrealistic interviewing scenarios tailored to each company's style, products, and tech stack, combined with role-specific insights. AlgoIRL evaluates every scenario across six quality metrics to maintain high company relevance and role accuracy.
-                    </div>
-                  </div>
-                ) : originalProblem ? (
-                  <div className="rounded-3xl border border-dashed border-outline-subtle/40 bg-background/70 p-8 text-center text-sm text-content-muted">
-                    Click "Contextualize" to see how AlgoIRL transforms this problem for {COMPANY_OPTIONS.find((company) => company.id === selectedCompany)?.label}{' '}
-                    {ROLE_OPTIONS.find((role) => role.id === selectedRole)?.label} role.
-                  </div>
-                ) : (
-                  <div className="rounded-3xl border border-dashed border-outline-subtle/40 bg-background/70 p-8 text-center text-sm text-content-muted">
-                    Select a problem to get started.
-                  </div>
-                )}
-              </div>
-            </div>
+          <div className="flex flex-col gap-3 text-sm text-content-muted sm:flex-row sm:items-center sm:justify-center sm:gap-6">
+            {FINAL_HIGHLIGHTS.map((highlight) => (
+              <span key={highlight} className="inline-flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-mint" />
+                {highlight}
+              </span>
+            ))}
           </div>
-        </SectionContainer>
-      </section>
-
-      <section className="border-b border-outline-subtle/20">
-        <SectionContainer className="py-16 sm:py-20">
-          <div className="space-y-8 text-center sm:text-left">
-            <div className="max-w-3xl mx-auto space-y-4 text-center sm:text-left">
-              <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">
-                Study plans tailored to your timeline, role, and target company
-              </h2>
-              <p className="text-base text-content-muted sm:text-lg">
-                Tell AlgoIRL your target company, role, and interview timeline. Our algorithm designs a custom study plan matched to your goals. We've collected company-specific interview data and role-specific patterns through thousands of community reports on Reddit, Blind, and Glassdoor, then manually verified and organized them into our 2,000+ problem dataset. Our matching algorithm intelligently selects the most relevant problems for your specific company and role profile, ranking recently asked questions higher. The data is continuously refreshed and re-scored to ensure you're practicing what's most likely to appear in your actual interview.
-              </p>
-            </div>
-            <ol className="space-y-4 text-center sm:text-left">
-              {STUDY_PLAN_STEPS.map((step, index) => (
-                <li
-                  key={step.title}
-                  className="flex flex-col items-center gap-4 rounded-3xl border border-outline-subtle/25 bg-background p-6 text-center sm:flex-row sm:items-start sm:text-left"
-                >
-                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-outline-subtle/25 text-sm font-semibold text-mint">
-                    {String(index + 1).padStart(2, '0')}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-center gap-3 text-center sm:justify-between sm:text-left">
-                      <h3 className="text-lg font-thin text-content font-playfair">{step.title}</h3>
-                      <step.icon className="h-5 w-5 text-mint" />
-                    </div>
-                    <p className="mt-2 text-sm text-content-muted">{step.description}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </SectionContainer>
-      </section>
-
-      <section className="border-b border-outline-subtle/20">
-        <SectionContainer className="py-16 sm:py-20">
-          <div className="space-y-8 text-center sm:text-left">
-            <div className="max-w-3xl mx-auto space-y-4 text-center sm:text-left">
-              <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">
-                Choose the plan that fits your depth of prep
-              </h2>
-              <p className="text-base text-content-muted sm:text-lg">
-                Both plans include the same interface and privacy-first experience. Upgrade when you need the full company and role dataset.
-              </p>
-            </div>
-            <div className="grid gap-6 text-center sm:text-left md:grid-cols-2">
-              <div className="flex flex-col rounded-3xl border border-outline-subtle/25 bg-background p-8 text-center sm:text-left">
-                <div className="text-sm font-semibold uppercase tracking-wide text-content-muted">Free</div>
-                <div className="mt-3 text-3xl font-semibold text-content">$0</div>
-                <div className="text-sm text-content-muted">Always available</div>
-                <ul className="mt-6 flex-1 space-y-3 text-sm text-content">
-                  <li className="flex items-start gap-3 text-left">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
-                    <span className="leading-snug">Study plans powered by the Blind 75 dataset</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-left">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
-                    <span className="leading-snug">Company-aware transformations for every included problem</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-left">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
-                    <span className="leading-snug">Progress sync across desktop and mobile</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-left">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
-                    <span className="leading-snug">Full code editor with test case execution</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-left">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
-                    <span className="leading-snug">All companies and roles supported</span>
-                  </li>
-                </ul>
-                <button
-                  type="button"
-                  onClick={handlePlansRedirect}
-                  className={`${planButtonBaseClasses} border border-outline-subtle/40 bg-background text-content shadow-sm hover:border-mint/60 hover:text-mint hover:shadow-md`}
-                >
-                  Start free today
-                </button>
-              </div>
-              <div className="flex flex-col rounded-3xl border border-mint/60 bg-background p-8 text-center sm:text-left">
-                <div className="text-sm font-semibold uppercase tracking-wide text-mint">Comprehensive</div>
-                <div className="mt-3 text-3xl font-semibold text-content">$5</div>
-                <div className="text-sm text-content-muted">Per month · cancel anytime</div>
-                <ul className="mt-6 flex-1 space-y-3 text-sm text-content">
-                  <li className="flex items-start gap-3 text-left">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
-                    <span className="leading-snug">Everything in the free plan</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-left">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
-                    <span className="leading-snug">Study plans that draw from the full 2,000+ problem dataset</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-left">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
-                    <span className="leading-snug">Deeper topic coverage (e.g., 50 graph problems vs Blind 75's 10)</span>
-                  </li>
-                </ul>
-                <button
-                  type="button"
-                  onClick={handlePlansRedirect}
-                  className={`${planButtonBaseClasses} bg-gradient-to-r from-mint-600 to-mint-700 text-white shadow-md hover:-translate-y-0.5 hover:from-mint-700 hover:to-mint-800 hover:shadow-lg`}
-                >
-                  Unlock comprehensive plans
-                </button>
-              </div>
-            </div>
-          </div>
-        </SectionContainer>
-      </section>
-
-      <section className="border-b border-outline-subtle/20">
-        <SectionContainer className="py-16 sm:py-20">
-          <div className="space-y-8 text-left">
-            <div className="max-w-3xl mx-auto space-y-4 text-center">
-              <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Frequently asked questions</h2>
-            </div>
-            <div className="mx-auto max-w-3xl">
-              <div className="overflow-hidden rounded-2xl border border-outline-subtle/25 bg-background/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] dark:shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
-                {FAQ_ITEMS.map((faq) => (
-                  <details
-                    key={faq.question}
-                    className="group relative border-t border-outline-subtle/20 transition-colors first:border-t-0 open:bg-panel-50/60 dark:open:bg-panel-200/30"
-                  >
-                    <summary className="flex w-full cursor-pointer list-none items-start justify-between gap-4 px-6 py-5 text-left text-base font-medium leading-snug text-content transition-colors duration-200 sm:text-lg">
-                      <span className="flex-1 tracking-tight">{faq.question}</span>
-                      <span className="relative mt-1 flex h-5 w-5 items-center justify-center">
-                        <span className="absolute block h-px w-4 bg-content transition-transform duration-200 ease-out group-open:rotate-90" />
-                        <span className="block h-4 w-px bg-content transition-opacity duration-200 ease-out group-open:opacity-0" />
-                      </span>
-                    </summary>
-                    <div className="px-6 pb-6 pt-1 text-sm leading-relaxed text-content-muted sm:text-base">
-                      {faq.answer}
-                    </div>
-                    <span className="pointer-events-none absolute left-0 top-0 h-full w-[3px] bg-mint/50 opacity-0 transition-opacity duration-200 ease-out group-open:opacity-100" />
-                  </details>
-                ))}
-              </div>
-            </div>
-          </div>
-        </SectionContainer>
-      </section>
-
-      <section>
-        <SectionContainer className="py-16 sm:py-20">
-          <div className="mx-auto max-w-3xl space-y-6 text-center">
-            <h2 className="text-3xl font-semibold text-content sm:text-4xl">Build confidence with company-aware, role-specific practice powered by AI</h2>
-            <p className="text-base text-content-muted sm:text-lg">
-              Start for free and upgrade when you are ready for comprehensive study plans
-            </p>
-            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
-              <button
-                type="button"
-                onClick={handlePlansRedirect}
-                className={`${finalCtaClasses} w-full bg-gradient-to-r from-mint-600 to-mint-700 text-white shadow-md hover:-translate-y-0.5 hover:from-mint-700 hover:to-mint-800 hover:shadow-lg sm:w-auto`}
-              >
-                Create my free account
-              </button>
-            </div>
-            <div className="flex flex-col gap-3 text-sm text-content-muted sm:flex-row sm:items-center sm:justify-center sm:gap-6">
-              {FINAL_HIGHLIGHTS.map((highlight) => (
-                <span key={highlight} className="inline-flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-mint" />
-                  {highlight}
-                </span>
-              ))}
-            </div>
-            <footer className="pt-6 text-xs text-content-muted">
-              © {currentYear} AlgoIRL. All rights reserved.
-            </footer>
-          </div>
-        </SectionContainer>
-      </section>
+          <footer className="pt-6 text-xs text-content-muted">
+            © {currentYear} AlgoIRL. All rights reserved.
+          </footer>
+        </div>
+      </SectionBlock>
     </div>
   );
 }
