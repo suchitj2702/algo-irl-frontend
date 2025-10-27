@@ -1674,15 +1674,14 @@ export function AppRouter() {
  return (
   <DarkModeProvider>
    <ErrorBoundary>
-    <div className="min-h-screen font-sans text-content-subtle bg-surface dark:bg-surface transition-colors duration-200">
-     {location.pathname !== '/' && (
+     <div className="min-h-screen font-sans text-content-subtle bg-surface dark:bg-surface transition-colors duration-200">
       <Navbar
        onHomeClick={handleHomeClick}
        onBlind75Click={handleBlind75Click}
        onStudyPlansClick={handleStudyPlansClick}
        onBeforeSignOut={handleBeforeSignOut}
+       hideLogo={location.pathname === '/'}
       />
-     )}
 
      {/* Duplicate Warning Modal */}
      {duplicateStudyPlan && (

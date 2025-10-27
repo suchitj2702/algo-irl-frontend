@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MenuIcon, XIcon, SunIcon, MoonIcon, TrendingUpIcon, Calendar, LogIn, User, LogOut, ChevronDown } from 'lucide-react';
+import { MenuIcon, XIcon, SunIcon, MoonIcon, User, LogOut, ChevronDown } from 'lucide-react';
 import { useDarkMode } from './DarkModeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useAuthDialog } from '../contexts/AuthDialogContext';
@@ -10,9 +10,10 @@ interface NavbarProps {
  onBlind75Click?: () => void;
  onStudyPlansClick?: () => void;
  onBeforeSignOut?: () => Promise<void>;
+ hideLogo?: boolean;
 }
 
-export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBeforeSignOut }: NavbarProps) {
+export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBeforeSignOut, hideLogo }: NavbarProps) {
  const [isMenuOpen, setIsMenuOpen] = useState(false);
  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
  const navigate = useNavigate();
@@ -78,39 +79,40 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
  };
 
  const handleSignInClick = () => {
- openAuthDialog({
-  intent: 'navbar',
-  title: 'Sign in to access your study plans',
-  description: 'Save study plans, sync your progress, and access premium prep tools across every device.',
+  openAuthDialog({
+   intent: 'navbar',
+   title: 'Sign in to access your study plans',
+   description: 'Save study plans, sync your progress, and access premium prep tools across every device.'
   });
   setIsMenuOpen(false);
  };
 
-return <header className="bg-surface/50 dark:bg-surface-elevated/60 backdrop-blur-lg shadow-subtle sticky top-0 z-10 transition-colors duration-200 border-b border-outline-subtle">
+ return <header className="bg-surface/50 dark:bg-surface-elevated/60 backdrop-blur-lg shadow-subtle sticky top-0 z-10 transition-colors duration-200 border-b border-outline-subtle">
    <div className="mx-auto px-4 sm:px-6 lg:px-8">
     <div className="flex justify-between items-center h-14">
-     <div className="flex-shrink-0">
-      <button
-       onClick={handleHomeClick}
-       className="text-xl font-medium text-content hover:text-content-muted dark:hover:text-neutral-200 transition-colors font-playfair"
-      >
-       AlgoIRL
-      </button>
-     </div>
+     {!hideLogo && (
+      <div className="flex-shrink-0">
+       <button
+        onClick={handleHomeClick}
+        className="text-xl font-medium text-content hover:text-content-muted dark:hover:text-neutral-200 transition-colors font-playfair"
+       >
+        AlgoIRL
+       </button>
+      </div>
+     )}
+     {hideLogo && <div className="flex-shrink-0"></div>}
      <div className="hidden md:flex items-center space-x-2">
       <button
        onClick={handleStudyPlansClick}
        className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-medium text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.98]"
       >
-       <Calendar className="h-4 w-4" />
-       My Study Plans
+       Study Plans
       </button>
       <button
        onClick={handleBlind75Click}
-       className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-medium text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.98]"
+       className="inline-flex items-center px-4 py-2 text-[15px] font-medium text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.98]"
       >
-       <TrendingUpIcon className="h-4 w-4" />
-       Blind75 Progress
+       Practice Blind 75
       </button>
       <button
        onClick={toggleDarkMode}
@@ -162,9 +164,8 @@ return <header className="bg-surface/50 dark:bg-surface-elevated/60 backdrop-blu
         !navSignInHidden && (
          <button
           onClick={handleSignInClick}
-          className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-medium text-white bg-mint-600 hover:bg-mint-700 backdrop-blur-xl border border-mint-700 rounded-[14px] transition-all duration-200 active:scale-[0.98] shadow-[0_1px_2px_rgba(16,185,129,0.3),0_1px_20px_rgba(16,185,129,0.2)_inset] hover:shadow-[0_1px_3px_rgba(16,185,129,0.4),0_2px_30px_rgba(16,185,129,0.3)_inset]"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-medium text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.98]"
          >
-          <LogIn className="h-4 w-4" />
           Sign In
          </button>
         )
@@ -172,13 +173,6 @@ return <header className="bg-surface/50 dark:bg-surface-elevated/60 backdrop-blu
       )}
      </div>
      <div className="md:hidden flex items-center gap-2">
-      <button
-       onClick={handleBlind75Click}
-       className="p-2 text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[12px] transition-all duration-200 active:scale-[0.95]"
-       aria-label="Blind75 Progress"
-      >
-       <TrendingUpIcon className="h-5 w-5" />
-      </button>
       <button
        onClick={toggleDarkMode}
        className="p-2 text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[12px] transition-all duration-200 active:scale-[0.95]"
@@ -203,15 +197,13 @@ return <header className="bg-surface/50 dark:bg-surface-elevated/60 backdrop-blu
        onClick={handleStudyPlansClick}
        className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.98]"
       >
-       <Calendar className="h-4 w-4" />
-       My Study Plans
+       Study Plans
       </button>
       <button
        onClick={handleBlind75Click}
-       className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.98]"
+       className="flex items-center w-full px-4 py-2.5 text-[15px] font-medium text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.98]"
       >
-       <TrendingUpIcon className="h-4 w-4" />
-       Blind75 Progress
+       Practice Blind 75
       </button>
 
       {/* Mobile Auth */}
@@ -237,9 +229,8 @@ return <header className="bg-surface/50 dark:bg-surface-elevated/60 backdrop-blu
         !navSignInHidden && (
          <button
           onClick={handleSignInClick}
-          className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-white bg-mint-600 hover:bg-mint-700 border border-mint-700 rounded-[14px] transition-all duration-200 active:scale-[0.98] shadow-[0_1px_2px_rgba(16,185,129,0.3),0_1px_20px_rgba(16,185,129,0.2)_inset]"
+          className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.98]"
          >
-          <LogIn className="h-4 w-4" />
           Sign In
          </button>
         )
