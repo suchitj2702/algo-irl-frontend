@@ -963,7 +963,7 @@ export function AppRouter() {
  };
 
  const handleStudyPlanFormCancel = () => {
-  navigate('/');
+  navigate('/my-study-plans');
  };
 
  const handleBackToStudyPlanForm = () => {

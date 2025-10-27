@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { CheckCircleIcon, ClockIcon, TrashIcon, AlertTriangleIcon, XIcon } from 'lucide-react';
+import { CheckCircleIcon, ClockIcon, AlertTriangleIcon, XIcon } from 'lucide-react';
 import { getAllCachedProblems, CachedProblem, clearCache } from '../../../utils/cache';
 import { blind75Data } from '../../../constants/blind75';
 import { Blind75ViewState } from '../../../utils/blind75ViewState';
@@ -236,22 +236,22 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
     </div>
 
     {/* Cool Progress Stats */}
-    <div className="bg-gradient-to-br from-panel-muted via-panel-100 to-panel-accent dark:from-gray-800 dark:via-gray-850 dark:to-indigo-900/20 rounded-xl shadow-lg border border-panel-200 dark:border-gray-700/50 p-6 mb-8 backdrop-blur-sm">
+    <div className="bg-gradient-to-br from-panel-muted via-panel-100 to-panel-accent dark:from-gray-800 dark:via-gray-850 dark:to-indigo-900/20 rounded-xl shadow-lg border border-panel-200 dark:border-gray-700/50 p-5 sm:p-6 mb-8 backdrop-blur-sm">
      {/* Main Progress Circle and Stats */}
-     <div className="flex items-center justify-between mb-6">
+     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
       {/* Animated Progress Circle */}
       <div className="relative">
-       <div className="flex items-center gap-6">
+       <div className="flex items-center gap-4 sm:gap-6">
         {/* Large Progress Circle */}
-        <div className="relative w-24 h-24">
-         <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
+        <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+         <svg className="w-20 h-20 sm:w-24 sm:h-24 transform -rotate-90" viewBox="0 0 100 100">
           {/* Background circle */}
           <circle
            cx="50"
            cy="50"
            r="40"
            stroke="currentColor"
-           strokeWidth="8"
+           strokeWidth="7"
            fill="none"
            className="text-panel-accent dark:text-content-muted"
           />
@@ -261,7 +261,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
            cy="50"
            r="40"
            stroke="url(#progressGradient)"
-           strokeWidth="8"
+           strokeWidth="7"
            fill="none"
            strokeLinecap="round"
            strokeDasharray={`${2 * Math.PI * 40}`}
@@ -282,26 +282,26 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
          {/* Center content */}
          <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-           <div className="text-2xl font-bold bg-gradient-to-r from-mint via-slate to-navy bg-clip-text text-transparent">
-            {Math.round((stats.total.solved / stats.total.total) * 100)}%
-           </div>
-           <div className="text-xs text-content-muted/70 dark:text-content-subtle">
-            Complete
-           </div>
+          <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-mint via-slate to-navy bg-clip-text text-transparent">
+           {Math.round((stats.total.solved / stats.total.total) * 100)}%
+          </div>
+          <div className="text-[11px] sm:text-xs text-content-muted/70 dark:text-content-subtle">
+           Complete
+          </div>
           </div>
          </div>
         </div>
 
         {/* Stats Display */}
         <div className="space-y-2">
-         <div className="flex items-baseline gap-2">
-          <span className="text-4xl font-bold bg-gradient-to-r from-mint via-slate to-navy bg-clip-text text-transparent">
+         <div className="flex items-baseline gap-1.5 sm:gap-2">
+          <span className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-mint via-slate to-navy bg-clip-text text-transparent leading-none">
            {stats.total.solved}
           </span>
-          <span className="text-xl text-content-muted/60 dark:text-content-subtle font-medium">
+          <span className="text-lg sm:text-xl text-content-muted/60 dark:text-content-subtle font-medium leading-none">
            / {stats.total.total}
           </span>
-          <span className="text-sm text-content-muted dark:text-content-subtle ml-2">
+          <span className="text-xs sm:text-sm text-content-muted dark:text-content-subtle sm:ml-2">
            problems solved
           </span>
          </div>
@@ -309,7 +309,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
          {stats.total.inProgress > 0 && (
           <div className="flex items-center gap-2">
            <div className="w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-pulse"></div>
-           <span className="text-sm text-yellow-600 dark:text-yellow-400 font-medium">
+           <span className="text-xs sm:text-sm text-yellow-600 dark:text-yellow-400 font-medium">
             {stats.total.inProgress} in progress
            </span>
           </div>
@@ -318,7 +318,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
          {stats.total.solved === stats.total.total && (
           <div className="flex items-center gap-2">
            <div className="w-2 h-2 bg-gradient-to-r from-sage to-teal rounded-full animate-pulse"></div>
-           <span className="text-sm text-mint-dark dark:text-emerald-400 font-medium">
+           <span className="text-xs sm:text-sm text-mint-dark dark:text-emerald-400 font-medium">
             🎉 All problems completed!
            </span>
           </div>
@@ -331,22 +331,21 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
       {(stats.total.solved > 0 || stats.total.inProgress > 0) && (
        <button
         onClick={() => setShowResetConfirmation(true)}
-        className="inline-flex items-center gap-2 px-5 py-2.5 text-[15px] font-medium text-red-600 dark:text-red-400 bg-white/90 dark:bg-accent/10 hover:bg-white /15 border border-red-500/20 dark:border-red-400/20 rounded-[14px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(200,216,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200"
+        className="self-start sm:self-auto inline-flex justify-center px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 bg-white/90 dark:bg-accent/10 hover:bg-white/95 dark:hover:bg-accent/20 border border-red-500/20 dark:border-red-400/25 rounded-xl backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3)] active:scale-[0.98] transition-all duration-200"
         title="Reset all progress"
        >
-        <TrashIcon className="w-4 h-4" />
         Reset Progress
        </button>
       )}
      </div>
 
      {/* Difficulty Breakdown with Mini Progress Bars */}
-     <div className="grid grid-cols-3 gap-4">
+     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
       {/* Easy */}
-      <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-4 backdrop-blur-sm border border-sage/40 dark:border-green-800/30">
+      <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 sm:p-4 backdrop-blur-sm border border-sage/40 dark:border-green-800/30">
        <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-mint-dark dark:text-green-300">Easy</span>
-        <span className="text-xs text-mint-dark dark:text-green-400 font-mono">
+        <span className="text-xs sm:text-sm font-medium text-mint-dark dark:text-green-300">Easy</span>
+        <span className="text-[11px] sm:text-xs text-mint-dark dark:text-green-400 font-mono">
          {stats.easy.solved}/{stats.easy.total}
         </span>
        </div>
@@ -357,17 +356,17 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
         ></div>
        </div>
        <div className="text-right mt-1">
-        <span className="text-xs text-mint-dark dark:text-green-400 font-medium">
+        <span className="text-[11px] sm:text-xs text-mint-dark dark:text-green-400 font-medium">
          {Math.round((stats.easy.solved / stats.easy.total) * 100)}%
         </span>
        </div>
       </div>
 
       {/* Medium */}
-      <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-4 backdrop-blur-sm border border-mint/40 dark:border-yellow-800/30">
+      <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 sm:p-4 backdrop-blur-sm border border-mint/40 dark:border-yellow-800/30">
        <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-teal-dark dark:text-yellow-300">Medium</span>
-        <span className="text-xs text-teal-dark dark:text-yellow-400 font-mono">
+        <span className="text-xs sm:text-sm font-medium text-teal-dark dark:text-yellow-300">Medium</span>
+        <span className="text-[11px] sm:text-xs text-teal-dark dark:text-yellow-400 font-mono">
          {stats.medium.solved}/{stats.medium.total}
         </span>
        </div>
@@ -378,17 +377,17 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
         ></div>
        </div>
        <div className="text-right mt-1">
-        <span className="text-xs text-teal-dark dark:text-yellow-400 font-medium">
+        <span className="text-[11px] sm:text-xs text-teal-dark dark:text-yellow-400 font-medium">
          {Math.round((stats.medium.solved / stats.medium.total) * 100)}%
         </span>
        </div>
       </div>
 
       {/* Hard */}
-      <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-4 backdrop-blur-sm border border-slate/40 dark:border-red-800/30">
+      <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 sm:p-4 backdrop-blur-sm border border-slate/40 dark:border-red-800/30">
        <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-content">Hard</span>
-        <span className="text-xs text-content font-mono">
+        <span className="text-xs sm:text-sm font-medium text-content">Hard</span>
+        <span className="text-[11px] sm:text-xs text-content font-mono">
          {stats.hard.solved}/{stats.hard.total}
         </span>
        </div>
@@ -399,7 +398,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
         ></div>
        </div>
        <div className="text-right mt-1">
-        <span className="text-xs text-content font-medium">
+        <span className="text-[11px] sm:text-xs text-content font-medium">
          {Math.round((stats.hard.solved / stats.hard.total) * 100)}%
         </span>
        </div>
@@ -429,7 +428,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
           <div
            key={problem.slug}
            ref={(el) => { problemRefs.current[problem.slug] = el; }}
-           className={`flex items-center justify-between p-3 rounded-md border transition-all duration-200 ${
+           className={`flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 rounded-md border transition-all duration-200 ${
             highlightedProblem === problem.slug
              ? 'border-indigo-500 dark:border-indigo-400 ring-4 ring-indigo-500/20 dark:ring-indigo-400/20 shadow-lg shadow-indigo-500/10 dark:shadow-indigo-400/10'
              : status === 'solved'
@@ -448,7 +447,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
            }`}
           >
            <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
              <span className="font-medium text-content truncate">
               {slugToTitle(problem.slug)}
              </span>
@@ -465,7 +464,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
             
             {/* Company Context for Both Solved and In-Progress Problems */}
             {(status === 'solved' || status === 'in_progress') && companies.length > 0 && (
-             <div className="mt-1 flex items-center gap-1">
+             <div className="mt-1 flex flex-wrap items-center gap-1.5">
               <span className="text-xs text-content-muted/70 dark:text-content-subtle">
                Recent:
               </span>
@@ -481,12 +480,12 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
             )}
            </div>
            
-           <div className="flex items-center gap-2 ml-3">
+           <div className="flex flex-wrap gap-2 w-full sm:w-auto sm:flex-nowrap items-center justify-start sm:justify-end sm:ml-3">
             {/* Resume/See Solution Button */}
             {(status === 'solved' || status === 'in_progress') && (
              <button
               onClick={() => handleActionClick(problem.slug, status)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-content dark:text-navy-100 bg-white/90 dark:bg-panel-200/80 hover:bg-white/95 dark:hover:bg-panel-200/90 border border-black/8 dark:border-panel-400/60 rounded-[12px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(200,216,255,0.08)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.45),0_2px_30px_rgba(255,255,255,0.18)_inset] active:scale-[0.98] transition-all duration-200 flex-shrink-0"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-content dark:text-navy-100 bg-white/90 dark:bg-panel-200/80 hover:bg-white/95 dark:hover:bg-panel-200/90 border border-black/8 dark:border-panel-400/60 rounded-[12px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05),0_1px_20px_rgba(255,255,255,0.3)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(200,216,255,0.08)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.08),0_2px_30px_rgba(255,255,255,0.4)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.45),0_2px_30px_rgba(255,255,255,0.18)_inset] active:scale-[0.98] transition-all duration-200 flex-shrink-0 w-full sm:w-auto justify-center"
              >
               {status === 'solved' ? (
                <>
@@ -504,7 +503,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
             {/* Practice Button */}
             <button
              onClick={() => onPracticeWithContext(problem.slug)}
-             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-[12px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_1px_20px_rgba(0,0,0,0.3)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.15),0_2px_30px_rgba(0,0,0,0.4)_inset] active:scale-[0.98] transition-all duration-200 flex-shrink-0"
+             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-[12px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_1px_20px_rgba(0,0,0,0.3)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.15),0_2px_30px_rgba(0,0,0,0.4)_inset] active:scale-[0.98] transition-all duration-200 flex-shrink-0 w-full sm:w-auto justify-center"
             >
              Practice
             </button>

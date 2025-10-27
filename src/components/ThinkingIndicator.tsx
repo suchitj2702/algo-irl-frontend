@@ -59,7 +59,7 @@ export function ThinkingIndicator({
   }, [currentStateIndex, displayedText, isDeleting, isPaused, states, typingSpeed, pauseDuration, deletingSpeed]);
 
   return (
-    <div className="p-6">
+    <div>
       {title && (
         <h2 className="text-2xl font-bold mb-6 text-content dark:text-content-subtle font-playfair">
           {title}
@@ -67,7 +67,7 @@ export function ThinkingIndicator({
       )}
 
       <div className="inline-flex items-center">
-        <span className="text-base font-medium text-content-muted dark:text-content-subtle font-mono">
+        <span className="text-base text-content-muted dark:text-content-subtle">
           {displayedText}
           <span className="inline-block w-0.5 h-5 bg-mint-600 dark:bg-mint-400 ml-0.5 animate-blink" />
         </span>

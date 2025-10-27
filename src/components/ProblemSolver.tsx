@@ -597,7 +597,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
    <div className="flex flex-1 flex-col md:flex-row md:overflow-hidden">
     <div className="w-full md:w-1/2 md:h-full flex flex-col bg-white dark:bg-neutral-850 border-r border-gray-200 dark:border-neutral-700">
      <div className="flex-1 md:overflow-y-auto">
-      <div className="px-6 pt-3 pb-6">
+      <div className="px-4 md:px-6 pt-3 pb-6">
        {isLoading ? (
         <ThinkingIndicator states={THINKING_STATES} />
        ) : problem && problem.title ? (
@@ -612,7 +612,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
       </div>
      </div>
     </div>
-    <div className={`w-full md:w-1/2 md:h-full flex flex-col bg-white dark:bg-neutral-900 transition-all duration-500 transform ${showEditor ? 'translate-x-0 opacity-100' : 'md:translate-x-8 md:opacity-0'}`}>
+    <div className={`w-full md:w-1/2 md:h-full flex flex-col bg-white dark:bg-neutral-900 transition-all duration-500 transform ${showEditor ? 'translate-x-0 opacity-100' : 'md:translate-x-8 md:opacity-0'} ${isLoading ? 'hidden md:flex' : ''}`}>
      <div className="flex-shrink-0 p-3 bg-white dark:bg-neutral-800 flex justify-between items-center border-b border-gray-200 dark:border-neutral-700"><div className="flex items-center"><h3 className="font-medium text-button-foreground">Solution Editor</h3><div className="ml-3 flex items-center text-xs text-content-muted/70 border-l border-neutral-600 pl-3"><InfoIcon className="h-3 w-3 mr-1 flex-shrink-0" /><span>{codeDetails?.language || 'python'}</span><div className="ml-2 text-xs text-content-muted/70">(support for more languages coming soon)</div></div></div><button onClick={handleReset} disabled={isLoadingRun || isLoadingSubmit || isLoading} className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(255,255,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"><RotateCcwIcon className="w-4 h-4" /> Reset</button></div>
      <div className="flex-1 flex flex-col md:overflow-hidden">
       <div className={`${showResultsPanel ? 'h-96 md:h-3/4' : 'h-96 md:h-full'} bg-white dark:bg-neutral-900 md:overflow-hidden transition-all duration-300`}>

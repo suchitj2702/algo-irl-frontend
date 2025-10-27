@@ -1,7 +1,6 @@
 import type { FormEvent } from 'react';
 import {
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -36,64 +35,73 @@ const PROBLEM_OPTIONS = [
   { id: 'two-sum', label: 'Two Sum' },
   { id: 'contains-duplicate', label: 'Contains Duplicate' },
   { id: 'valid-anagram', label: 'Valid Anagram' },
+  { id: 'best-time-to-buy-and-sell-stock', label: 'Best Time to Buy and Sell Stock' },
+  { id: 'merge-two-sorted-lists', label: 'Merge Two Sorted Lists' },
+  { id: 'maximum-subarray', label: 'Maximum Subarray' },
+  { id: 'climbing-stairs', label: 'Climbing Stairs' },
+  { id: 'reverse-linked-list', label: 'Reverse Linked List' },
+  { id: 'invert-binary-tree', label: 'Invert Binary Tree' },
 ] as const;
 
 const COMPANY_OPTIONS = [
+  { id: 'google', label: 'Google' },
+  { id: 'meta', label: 'Meta' },
   { id: 'amazon', label: 'Amazon' },
+  { id: 'apple', label: 'Apple' },
   { id: 'netflix', label: 'Netflix' },
+  { id: 'uber', label: 'Uber' },
+  { id: 'lyft', label: 'Lyft' },
+  { id: 'doordash', label: 'DoorDash' },
+  { id: 'airbnb', label: 'Airbnb' },
+  { id: 'coinbase', label: 'Coinbase' },
+  { id: 'dropbox', label: 'Dropbox' },
   { id: 'stripe', label: 'Stripe' },
 ] as const;
 
 const ROLE_OPTIONS = [
   { id: 'backend', label: 'Backend' },
+  { id: 'frontend', label: 'Frontend' },
   { id: 'ml', label: 'ML' },
+  { id: 'infrastructure', label: 'Infrastructure' },
   { id: 'security', label: 'Security' },
 ] as const;
 
 const ORIGINAL_PROBLEMS: Record<string, { title: string; description: string }> = {
   'two-sum': {
     title: 'Two Sum',
-    description: `Given an array of integers \`nums\` and an integer \`target\`, return indices of the two numbers such that they add up to target.
-
-**Example:**
-\`\`\`
-Input: nums = [2,7,11,15], target = 9
-Output: [0,1]
-Explanation: nums[0] + nums[1] == 9, so we return [0, 1].
-\`\`\`
-
-**Constraints:**
-- 2 <= nums.length <= 10^4
-- -10^9 <= nums[i] <= 10^9
-- Only one valid answer exists.`
+    description: `Given an array of integers \`nums\` and an integer \`target\`, return indices of the two numbers such that they add up to target.`
   },
   'contains-duplicate': {
     title: 'Contains Duplicate',
-    description: `Given an integer array \`nums\`, return \`true\` if any value appears at least twice in the array, and return \`false\` if every element is distinct.
-
-**Example:**
-\`\`\`
-Input: nums = [1,2,3,1]
-Output: true
-\`\`\`
-
-**Constraints:**
-- 1 <= nums.length <= 10^5
-- -10^9 <= nums[i] <= 10^9`
+    description: `Given an integer array \`nums\`, return \`true\` if any value appears at least twice in the array, and return \`false\` if every element is distinct.`
   },
   'valid-anagram': {
     title: 'Valid Anagram',
-    description: `Given two strings \`s\` and \`t\`, return \`true\` if \`t\` is an anagram of \`s\`, and \`false\` otherwise.
-
-**Example:**
-\`\`\`
-Input: s = "anagram", t = "nagaram"
-Output: true
-\`\`\`
-
-**Constraints:**
-- 1 <= s.length, t.length <= 5 * 10^4
-- s and t consist of lowercase English letters.`
+    description: `Given two strings \`s\` and \`t\`, return \`true\` if \`t\` is an anagram of \`s\`, and \`false\` otherwise.`
+  },
+  'best-time-to-buy-and-sell-stock': {
+    title: 'Best Time to Buy and Sell Stock',
+    description: `You are given an array \`prices\` where \`prices[i]\` is the price of a given stock on the ith day. You want to maximize your profit by choosing a single day to buy one stock and choosing a different day in the future to sell that stock. Return the maximum profit you can achieve from this transaction.`
+  },
+  'merge-two-sorted-lists': {
+    title: 'Merge Two Sorted Lists',
+    description: `You are given the heads of two sorted linked lists \`list1\` and \`list2\`. Merge the two lists into one sorted list by splicing together the nodes of the first two lists. Return the head of the merged linked list.`
+  },
+  'maximum-subarray': {
+    title: 'Maximum Subarray',
+    description: `Given an integer array \`nums\`, find the contiguous subarray which has the largest sum and return its sum.`
+  },
+  'climbing-stairs': {
+    title: 'Climbing Stairs',
+    description: `You are climbing a staircase. It takes \`n\` steps to reach the top. Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?`
+  },
+  'reverse-linked-list': {
+    title: 'Reverse Linked List',
+    description: `Given the head of a singly linked list, reverse the list, and return the reversed list.`
+  },
+  'invert-binary-tree': {
+    title: 'Invert Binary Tree',
+    description: `Given the root of a binary tree, invert the tree, and return its root.`
   }
 };
 
@@ -135,7 +143,7 @@ const STUDY_PLAN_STEPS = [
     icon: Cpu,
     title: 'Define company, role, and timeline',
     description:
-      'Select your target company from the 20 tracked companies (more companies coming soon), specify your role (Backend, ML, Frontend, Infrastructure, Security), set your interview timeline, and optionally filter by difficulty or focus topics—the algorithm uses all this to match you with the most relevant problems.',
+      'Select your target company from the 20 tracked companies (more companies coming soon), specify your role (Backend, ML, Frontend, Infrastructure, Security), set your interview timeline, and optionally filter by difficulty or focus topics, the algorithm uses all this to match you with the most relevant problems.',
   },
   {
     icon: Layers,
@@ -145,9 +153,9 @@ const STUDY_PLAN_STEPS = [
   },
   {
     icon: LineChart,
-    title: 'practice and track anywhere',
+    title: 'Practice and track anywhere',
     description:
-      'Solve company-contextualized problems with real-time code execution, mark progress as you go, and seamlessly resume from laptop, tablet, or phone—everything syncs automatically via our dual-layer persistence system.',
+      'Solve company-contextualized problems with real-time code execution, mark progress as you go, and seamlessly resume from laptop, tablet, or phone, everything syncs automatically via our dual-layer persistence system.',
   },
 ] as const;
 
@@ -249,7 +257,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
   const { isDarkMode } = useDarkMode();
 
   const [selectedProblem, setSelectedProblem] = useState<(typeof PROBLEM_OPTIONS)[number]['id']>('two-sum');
-  const [selectedCompany, setSelectedCompany] = useState<(typeof COMPANY_OPTIONS)[number]['id']>('amazon');
+  const [selectedCompany, setSelectedCompany] = useState<(typeof COMPANY_OPTIONS)[number]['id']>('google');
   const [selectedRole, setSelectedRole] = useState<(typeof ROLE_OPTIONS)[number]['id']>('backend');
   const [originalProblem, setOriginalProblem] = useState<{ title: string; description: string } | null>(ORIGINAL_PROBLEMS['two-sum']);
   const [demoState, setDemoState] = useState<DemoState | null>(null);
@@ -269,6 +277,8 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
     setDemoState(null); // Clear transformed version
     setDemoError(null);
   }, []);
+
+  const contextualizedResultRef = useRef<HTMLDivElement | null>(null);
 
   const handleTransform = useCallback(async () => {
     if (isTransforming) {
@@ -310,11 +320,28 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
         problemStatement:
           problem.problemStatement ?? 'AlgoIRL is compiling a hyperrealistic scenario. Try again if nothing appears.',
       });
+
       recordLandingEvent('landing_demo_success', {
         problem: selectedProblem,
         company: selectedCompany,
         role: selectedRole,
       });
+
+      // Auto-scroll to contextualized result on mobile
+      if (window.innerWidth < 1024) {
+        setTimeout(() => {
+          if (contextualizedResultRef.current) {
+            const navbarHeight = 64; // Approximate navbar height
+            const elementPosition = contextualizedResultRef.current.getBoundingClientRect().top + window.scrollY;
+            const offsetPosition = elementPosition - navbarHeight - 5; // 5px additional padding
+
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth',
+            });
+          }
+        }, 100);
+      }
     } catch (error) {
       if (!controller.signal.aborted) {
         console.error('[Landing] prepareProblem failed', error);
@@ -338,7 +365,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
         <SectionContainer className="py-16 sm:py-20 lg:py-24">
           {/* Large centered AlgoIRL logo and hero content */}
           <div className="max-w-4xl mx-auto text-center space-y-8">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-content font-playfair">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-thin text-content font-playfair">
               AlgoIRL
             </h1>
 
@@ -356,7 +383,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
               </button>
             </div>
           </div>
-          <div className="mt-12 grid gap-6 pt-6 text-sm text-content-muted sm:grid-cols-3">
+          <div className="mt-12 grid gap-6 pt-6 text-sm text-content-muted text-center sm:text-left sm:grid-cols-3">
             {DATA_FACTORS.map((factor) => (
               <div key={factor.title} className="space-y-2">
                 <div className="text-sm font-semibold text-content">{factor.title}</div>
@@ -369,15 +396,15 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
 
       <section className="border-b border-outline-subtle/20">
         <SectionContainer className="py-16 sm:py-20">
-          <div className="space-y-8">
+          <div className="space-y-8 text-center sm:text-left">
             <div className="max-w-3xl mx-auto text-center space-y-3">
-              <h2 className="text-3xl font-semibold text-content sm:text-4xl">Data-backed interview prep</h2>
+              <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Data-backed interview prep</h2>
               <p className="text-base text-content-muted sm:text-lg">
                 Our system cross-references curated company data, role patterns, and the latest community intel to prioritize what you should practice next.
               </p>
             </div>
 
-            <div className="max-w-4xl mx-auto space-y-4 text-content-muted">
+            <div className="max-w-4xl mx-auto space-y-4 text-content-muted text-center sm:text-left">
               <p className="text-base sm:text-lg">
                 Studies show that{' '}
                 <a
@@ -416,8 +443,8 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
               </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-4 rounded-3xl border border-outline-subtle/25 bg-background p-6">
+            <div className="grid gap-6 text-center sm:text-left md:grid-cols-2">
+              <div className="space-y-4 rounded-3xl border border-outline-subtle/25 bg-background p-6 text-center sm:text-left">
                 <div className="text-sm font-semibold text-content">Without AlgoIRL</div>
                 <p className="text-base text-content">
                   Generic problem sets that don't match how your target company frames questions. When interview stress hits, familiar patterns become unrecognizable.
@@ -428,7 +455,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
                   <li>Freeze on problems you already know when they're presented differently</li>
                 </ul>
               </div>
-              <div className="space-y-4 rounded-3xl border border-outline-subtle/25 bg-background p-6">
+              <div className="space-y-4 rounded-3xl border border-outline-subtle/25 bg-background p-6 text-center sm:text-left">
                 <div className="text-sm font-semibold text-content">With AlgoIRL</div>
                 <p className="text-base text-content">
                   Train with hyperrealistic scenarios tailored to your company's products, tech stack, and interview style. Build the muscle to recognize familiar patterns in company-specific context.
@@ -445,37 +472,32 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
 
       <section id="algoirl-live-demo" className="border-b border-outline-subtle/30">
         <SectionContainer className="py-16 sm:py-20">
-          <div className="space-y-10">
-            <div className="max-w-3xl space-y-4">
-              <h2 className="text-3xl font-semibold text-content sm:text-4xl">Try it for yourself</h2>
+          <div className="space-y-6 sm:space-y-10 text-center sm:text-left">
+            <div className="max-w-3xl mx-auto space-y-4 text-center">
+              <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Try it for yourself</h2>
               <p className="text-base text-content-muted sm:text-lg">
-                Pick a familiar problem, choose the company and role, then let AlgoIRL rewrite it with company-specific context. Run it again for a fresh take.
+                Pick a familiar problem, choose the company and role, then let AlgoIRL do its magic
               </p>
             </div>
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,360px),1fr]">
-              <div className="space-y-6 rounded-3xl border border-outline-subtle/25 bg-background p-6">
-                <div className="space-y-3">
-                  <label className="text-sm font-medium text-content">Original problem</label>
-                  <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-6 sm:gap-8 text-center sm:text-left lg:grid-cols-[minmax(0,320px),1fr]">
+              <div className="space-y-3 rounded-3xl border border-outline-subtle/25 bg-background p-4 text-center sm:text-left">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-content">Select problem</label>
+                  <select
+                    value={selectedProblem}
+                    onChange={(event) => handleProblemChange(event.target.value as (typeof PROBLEM_OPTIONS)[number]['id'])}
+                    className="w-full rounded-xl border border-outline-subtle/25 bg-background px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
+                  >
                     {PROBLEM_OPTIONS.map((option) => (
-                      <button
-                        key={option.id}
-                        type="button"
-                        onClick={() => handleProblemChange(option.id)}
-                        className={`rounded-xl border px-3 py-2 text-sm font-medium transition ${
-                          selectedProblem === option.id
-                            ? 'border-mint bg-mint/10 text-content'
-                            : 'border-outline-subtle/25 bg-background text-content-muted hover:text-content'
-                        }`}
-                      >
+                      <option key={option.id} value={option.id}>
                         {option.label}
-                      </button>
+                      </option>
                     ))}
-                  </div>
+                  </select>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                    <label className="text-xs font-semibold uppercase tracking-wide text-content-muted">Company</label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-content-muted">Company</label>
                     <select
                       value={selectedCompany}
                       onChange={(event) => setSelectedCompany(event.target.value as (typeof COMPANY_OPTIONS)[number]['id'])}
@@ -488,8 +510,8 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
                       ))}
                     </select>
                   </div>
-                    <div className="space-y-2">
-                    <label className="text-xs font-semibold uppercase tracking-wide text-content-muted">Role</label>
+                    <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-content-muted">Role</label>
                     <select
                       value={selectedRole}
                       onChange={(event) => setSelectedRole(event.target.value as (typeof ROLE_OPTIONS)[number]['id'])}
@@ -503,64 +525,48 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
                     </select>
                   </div>
                 </div>
-                <CTAButton
-                  variant="primary"
-                  size="md"
-                  onClick={handleTransform}
-                  disabled={isTransforming}
-                  icon={ArrowRightIcon}
-                  className="w-full"
-                >
-                  {isTransforming ? 'Generating scenario...' : 'Generate scenario'}
-                </CTAButton>
                 <p className="text-xs text-content-muted">
-                  AlgoIRL continuously refreshes the data behind each transformation. Run it again for a different scenario.
+                  Run it again for a fresh take (no two problems are exactly same!)
                 </p>
-                {demoState && (
-                  <div className="rounded-2xl border border-dashed border-outline-subtle/40 bg-background/70 p-4 text-xs text-content-muted">
-                    AlgoIRL evaluates every scenario across six quality metrics to keep company relevance and role accuracy high.
-                  </div>
-                )}
               </div>
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6 text-center sm:text-left">
                 {originalProblem && (
-                  <div className="space-y-2">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-content-muted">
-                      Original LeetCode Problem
-                    </div>
-                    <div className="rounded-3xl border border-outline-subtle/25 bg-background p-6">
-                      <div className="prose prose-sm max-w-none text-content dark:prose-invert">
-                        <h3 className="text-lg font-semibold text-content">{originalProblem.title}</h3>
-                        <ReactMarkdown>{originalProblem.description}</ReactMarkdown>
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="space-y-2">
+                      <div className="text-xs font-medium text-content-muted">
+                        Original LeetCode problem
+                      </div>
+                      <div className="rounded-3xl border border-outline-subtle/25 bg-background p-6">
+                        <div className="prose prose-sm max-w-none text-content dark:prose-invert text-left">
+                          <h3 className="text-lg font-thin text-content font-playfair">{originalProblem.title}</h3>
+                          <ReactMarkdown>{originalProblem.description}</ReactMarkdown>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-                {originalProblem && demoState && (
-                  <div className="flex items-center gap-2 text-sm font-medium text-mint">
-                    <ArrowRightIcon className="h-4 w-4" />
-                    <span>
-                      Transformed for {COMPANY_OPTIONS.find((company) => company.id === selectedCompany)?.label}{' '}
-                      {ROLE_OPTIONS.find((role) => role.id === selectedRole)?.label} engineers
-                    </span>
+                    <button
+                      onClick={handleTransform}
+                      disabled={isTransforming}
+                      className="w-full inline-flex items-center justify-center px-5 py-2 text-sm font-medium rounded-xl transition duration-200 bg-button-600 hover:bg-button-500 border border-button-700 text-button-foreground shadow-sm hover:shadow active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isTransforming ? 'Contextualizing...' : 'Contextualize'}
+                    </button>
                   </div>
                 )}
                 {isTransforming ? (
                   <div className="rounded-3xl border border-outline-subtle/25 bg-background p-6">
-                    <div className="flex min-h-[200px] items-center justify-center">
-                      <div className="flex flex-col items-center gap-4 text-sm text-content-muted">
-                        <ThinkingIndicator
-                          states={[
-                            'Analyzing company patterns...',
-                            'Blending role-specific context...',
-                            'Crafting scenario...',
-                          ]}
-                          typingSpeed={70}
-                          deletingSpeed={45}
-                          pauseDuration={1200}
-                        />
-                        <span>Preparing a fresh scenario...</span>
-                      </div>
+                    <div className="flex min-h-[100px] items-start justify-start">
+                      <ThinkingIndicator
+                        states={[
+                          'Thinking...',
+                          'Analyzing...',
+                          'Generating...',
+                          'Processing...',
+                          'Computing...',
+                        ]}
+                        typingSpeed={80}
+                        deletingSpeed={40}
+                        pauseDuration={1500}
+                      />
                     </div>
                   </div>
                 ) : demoError ? (
@@ -568,22 +574,28 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
                     <div className="text-sm text-destructive">{demoError}</div>
                   </div>
                 ) : demoState ? (
-                  <div className="space-y-2">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-mint">
-                      AlgoIRL Transformed
-                    </div>
-                    <div className="rounded-3xl border border-mint/60 bg-background p-6">
-                      <div className="prose prose-sm max-w-none text-content dark:prose-invert">
-                        {demoState.title && <h3 className="text-lg font-semibold text-content">{demoState.title}</h3>}
-                        {demoState.background && <p className="text-content-muted">{demoState.background}</p>}
-                        <ReactMarkdown>{demoState.problemStatement}</ReactMarkdown>
+                  <div className="space-y-4">
+                    <div className="space-y-2" ref={contextualizedResultRef}>
+                      <div className="text-xs font-medium text-mint">
+                        Contextualized by AlgoIRL for {COMPANY_OPTIONS.find((company) => company.id === selectedCompany)?.label}{' '}
+                        {ROLE_OPTIONS.find((role) => role.id === selectedRole)?.label} role
                       </div>
+                      <div className="rounded-3xl border border-mint/60 bg-background p-6">
+                        <div className="prose prose-sm max-w-none text-content dark:prose-invert text-left">
+                          {demoState.title && <h3 className="text-lg font-thin text-content font-playfair">{demoState.title}</h3>}
+                          {demoState.background && <p className="text-content-muted">{demoState.background}</p>}
+                          <ReactMarkdown>{demoState.problemStatement}</ReactMarkdown>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-dashed border-outline-subtle/40 bg-background/70 p-4 text-xs text-content-muted">
+                      <strong>Does this look similar to what you've seen in real interviews?</strong> Our LLM has been trained to provide hyperrealistic interviewing scenarios tailored to each company's style, products, and tech stack, combined with role-specific insights. AlgoIRL evaluates every scenario across six quality metrics to maintain high company relevance and role accuracy.
                     </div>
                   </div>
                 ) : originalProblem ? (
                   <div className="rounded-3xl border border-dashed border-outline-subtle/40 bg-background/70 p-8 text-center text-sm text-content-muted">
-                    Click "Generate scenario" to see how AlgoIRL transforms this problem for {COMPANY_OPTIONS.find((company) => company.id === selectedCompany)?.label}{' '}
-                    {ROLE_OPTIONS.find((role) => role.id === selectedRole)?.label} engineers.
+                    Click "Contextualize" to see how AlgoIRL transforms this problem for {COMPANY_OPTIONS.find((company) => company.id === selectedCompany)?.label}{' '}
+                    {ROLE_OPTIONS.find((role) => role.id === selectedRole)?.label} role.
                   </div>
                 ) : (
                   <div className="rounded-3xl border border-dashed border-outline-subtle/40 bg-background/70 p-8 text-center text-sm text-content-muted">
@@ -598,27 +610,27 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
 
       <section className="border-b border-outline-subtle/20">
         <SectionContainer className="py-16 sm:py-20">
-          <div className="space-y-8">
-            <div className="max-w-3xl space-y-4">
-              <h2 className="text-3xl font-semibold text-content sm:text-4xl">
+          <div className="space-y-8 text-center sm:text-left">
+            <div className="max-w-3xl mx-auto space-y-4 text-center sm:text-left">
+              <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">
                 Study plans tailored to your timeline, role, and target company
               </h2>
               <p className="text-base text-content-muted sm:text-lg">
-                Tell AlgoIRL your target company, role, and interview timeline—our algorithm designs a custom study plan matched to your goals. We've collected company-specific interview data and role-specific patterns through thousands of community reports on Reddit, Blind, and Glassdoor, then manually verified and organized them into our 2,000+ problem dataset. Our matching algorithm intelligently selects the most relevant problems for your specific company and role profile, ranking recently asked questions higher. The data is continuously refreshed and re-scored to ensure you're practicing what's most likely to appear in your actual interview.
+                Tell AlgoIRL your target company, role, and interview timeline. Our algorithm designs a custom study plan matched to your goals. We've collected company-specific interview data and role-specific patterns through thousands of community reports on Reddit, Blind, and Glassdoor, then manually verified and organized them into our 2,000+ problem dataset. Our matching algorithm intelligently selects the most relevant problems for your specific company and role profile, ranking recently asked questions higher. The data is continuously refreshed and re-scored to ensure you're practicing what's most likely to appear in your actual interview.
               </p>
             </div>
-            <ol className="space-y-4">
+            <ol className="space-y-4 text-center sm:text-left">
               {STUDY_PLAN_STEPS.map((step, index) => (
                 <li
                   key={step.title}
-                  className="flex items-start gap-4 rounded-3xl border border-outline-subtle/25 bg-background p-6"
+                  className="flex flex-col items-center gap-4 rounded-3xl border border-outline-subtle/25 bg-background p-6 text-center sm:flex-row sm:items-start sm:text-left"
                 >
                   <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-outline-subtle/25 text-sm font-semibold text-mint">
                     {String(index + 1).padStart(2, '0')}
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="text-lg font-semibold text-content">{step.title}</h3>
+                    <div className="flex items-center justify-center gap-3 text-center sm:justify-between sm:text-left">
+                      <h3 className="text-lg font-thin text-content font-playfair">{step.title}</h3>
                       <step.icon className="h-5 w-5 text-mint" />
                     </div>
                     <p className="mt-2 text-sm text-content-muted">{step.description}</p>
@@ -632,38 +644,38 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
 
       <section className="border-b border-outline-subtle/20">
         <SectionContainer className="py-16 sm:py-20">
-          <div className="space-y-8">
-            <div className="max-w-3xl space-y-4">
-              <h2 className="text-3xl font-semibold text-content sm:text-4xl">
+          <div className="space-y-8 text-center sm:text-left">
+            <div className="max-w-3xl mx-auto space-y-4 text-center sm:text-left">
+              <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">
                 Choose the plan that fits your depth of prep
               </h2>
               <p className="text-base text-content-muted sm:text-lg">
                 Both plans include the same interface and privacy-first experience. Upgrade when you need the full company and role dataset.
               </p>
             </div>
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="flex flex-col rounded-3xl border border-outline-subtle/25 bg-background p-8">
+            <div className="grid gap-6 text-center sm:text-left md:grid-cols-2">
+              <div className="flex flex-col rounded-3xl border border-outline-subtle/25 bg-background p-8 text-center sm:text-left">
                 <div className="text-sm font-semibold uppercase tracking-wide text-content-muted">Free</div>
                 <div className="mt-3 text-3xl font-semibold text-content">$0</div>
                 <div className="text-sm text-content-muted">Always available</div>
                 <ul className="mt-6 flex-1 space-y-3 text-sm text-content">
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
                     <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
                     <span>Study plans powered by the Blind 75 dataset</span>
                   </li>
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
                     <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
                     <span>Company-aware transformations for every included problem</span>
                   </li>
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
                     <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
                     <span>Progress sync across desktop and mobile</span>
                   </li>
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
                     <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
                     <span>Full code editor with test case execution</span>
                   </li>
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
                     <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
                     <span>All companies and roles supported</span>
                   </li>
@@ -678,20 +690,20 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
                   Start free today
                 </CTAButton>
               </div>
-              <div className="flex flex-col rounded-3xl border border-mint/60 bg-background p-8">
+              <div className="flex flex-col rounded-3xl border border-mint/60 bg-background p-8 text-center sm:text-left">
                 <div className="text-sm font-semibold uppercase tracking-wide text-mint">Comprehensive</div>
                 <div className="mt-3 text-3xl font-semibold text-content">$5</div>
                 <div className="text-sm text-content-muted">Per month · cancel anytime</div>
                 <ul className="mt-6 flex-1 space-y-3 text-sm text-content">
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
                     <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
                     <span>Everything in the free plan</span>
                   </li>
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
                     <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
                     <span>Study plans that draw from the full 2,000+ problem dataset</span>
                   </li>
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left">
                     <CheckCircle2 className="mt-[2px] h-4 w-4 flex-shrink-0 text-mint" />
                     <span>Deeper topic coverage (e.g., 50 graph problems vs Blind 75's 10)</span>
                   </li>
@@ -713,22 +725,22 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
 
       <section className="border-b border-outline-subtle/20">
         <SectionContainer className="py-16 sm:py-20">
-          <div className="space-y-8">
-            <div className="max-w-3xl space-y-4">
-              <h2 className="text-3xl font-semibold text-content sm:text-4xl">Frequently asked questions</h2>
+          <div className="space-y-8 text-center sm:text-left">
+            <div className="max-w-3xl mx-auto space-y-4 text-center">
+              <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Frequently asked questions</h2>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 text-center sm:text-left">
               {FAQ_ITEMS.map((faq, index) => (
                 <details
                   key={faq.question}
                   className="group rounded-3xl border border-outline-subtle/25 bg-background p-6"
                   open={index === 0}
                 >
-                  <summary className="flex cursor-pointer list-none items-center justify-between text-left text-base font-semibold text-content sm:text-lg">
+                  <summary className="flex flex-col cursor-pointer list-none items-center justify-center gap-2 text-center text-base font-semibold text-content sm:flex-row sm:justify-between sm:text-left sm:text-lg">
                     {faq.question}
                     <CircleDot className="h-5 w-5 flex-shrink-0 text-mint opacity-0 transition group-open:opacity-100" />
                   </summary>
-                  <p className="mt-4 text-sm text-content-muted">{faq.answer}</p>
+                  <p className="mt-4 text-sm text-content-muted text-center sm:text-left">{faq.answer}</p>
                 </details>
               ))}
             </div>
@@ -739,9 +751,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
       <section>
         <SectionContainer className="py-16 sm:py-20">
           <div className="mx-auto max-w-3xl space-y-6 text-center">
-            <h2 className="text-3xl font-semibold text-content sm:text-4xl">
-              Build confidence with company-aware, role-specific practice
-            </h2>
+            <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Build confidence with company-aware, role-specific practice</h2>
             <p className="text-base text-content-muted sm:text-lg">
               Start for free, experience a live scenario, and upgrade when you are ready for the full dataset.
             </p>
@@ -766,7 +776,7 @@ export function IntroSection({ onStartClick }: IntroSectionProps) {
             </div>
             <div className="flex flex-col gap-3 text-sm text-content-muted sm:flex-row sm:items-center sm:justify-center sm:gap-6">
               {FINAL_HIGHLIGHTS.map((highlight) => (
-                <span key={highlight} className="inline-flex items-center gap-2">
+                <span key={highlight} className="inline-flex items-center justify-center gap-2">
                   <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-mint" />
                   {highlight}
                 </span>

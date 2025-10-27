@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MenuIcon, XIcon, SunIcon, MoonIcon, User, LogOut, ChevronDown } from 'lucide-react';
+import { MenuIcon, XIcon, SunIcon, MoonIcon, User, ChevronDown } from 'lucide-react';
 import { useDarkMode } from './DarkModeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useAuthDialog } from '../contexts/AuthDialogContext';
@@ -88,7 +88,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
  };
 
  return <header className="bg-surface/50 dark:bg-surface-elevated/60 backdrop-blur-lg shadow-subtle sticky top-0 z-10 transition-colors duration-200 border-b border-outline-subtle">
-   <div className="mx-auto px-4 sm:px-6 lg:px-8">
+   <div className="mx-auto px-4 lg:px-6">
     <div className="flex justify-between items-center h-14">
      {!hideLogo && (
       <div className="flex-shrink-0">
@@ -153,7 +153,6 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
              onClick={handleSignOut}
              className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
-             <LogOut className="h-4 w-4" />
              Sign Out
             </button>
            </div>
@@ -192,7 +191,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
     </div>
    </div>
    {isMenuOpen && <div className="md:hidden bg-surface/65 dark:bg-surface-elevated/70 border-t border-outline-subtle/40">
-     <div className="pt-2 pb-3 space-y-2 px-4 sm:px-6 lg:px-8">
+     <div className="pt-2 pb-3 space-y-2 px-4 lg:px-6">
       <button
        onClick={handleStudyPlansClick}
        className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-content bg-panel-50 dark:bg-panel-300 hover:bg-panel-100 dark:hover:bg-panel-400 border border-outline-subtle rounded-[14px] transition-all duration-200 active:scale-[0.98]"
@@ -221,7 +220,6 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
           onClick={handleSignOut}
           className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-[14px] transition-all duration-200 active:scale-[0.98]"
          >
-          <LogOut className="h-4 w-4" />
           Sign Out
          </button>
         </>
