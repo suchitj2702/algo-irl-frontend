@@ -38,6 +38,9 @@ export function generatePalette(): ColorPalette {
   const foreground = getCSSVariable('--foreground');
   const muted = getCSSVariable('--muted');
 
+  // Maintain a consistent secondary/mint scale across themes
+  const mintScale = generateColorScale(secondary, false);
+
   // Generate scales for each color family
   const palette: ColorPalette = {
     // Navy scale - based on primary color
@@ -47,7 +50,7 @@ export function generatePalette(): ColorPalette {
     slate: generateColorScale(muted, dark),
 
     // Mint scale - based on secondary color
-    mint: generateColorScale(secondary, dark),
+    mint: mintScale,
 
     // Cream scale - based on accent color
     cream: generateColorScale(accent, dark),

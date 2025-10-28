@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Check, ShieldCheck, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { AuthProviderList } from "./AuthProviderList";
 
@@ -59,36 +59,10 @@ export function AuthModal({
           <X className="w-5 h-5" />
         </button>
 
-        <div className="text-center space-y-6">
-          <div className="relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-button-600 via-primary to-mint-500 shadow-[0_12px_24px_rgba(79,70,229,0.25)]">
-            <div className="absolute inset-0 rounded-2xl bg-white/10 dark:bg-white/5" />
-            <ShieldCheck className="relative h-7 w-7 text-white" />
-          </div>
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <h2 className="text-xl font-semibold text-content font-playfair">
-                {title || "Sign in to access your study plans"}
-              </h2>
-              <p className="text-sm text-content-muted dark:text-content-subtle">
-                {description ||
-                  "Sync your personalized study plans, saved solutions, and premium guidance across every device."}
-              </p>
-            </div>
-            <ul className="space-y-2 text-left text-sm text-content-muted dark:text-content-subtle">
-              <li className="flex items-start gap-3">
-                <Check className="mt-0.5 h-[18px] w-[18px] flex-shrink-0 text-mint-500" />
-                <span>Resume study plans right where you left off.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Check className="mt-0.5 h-[18px] w-[18px] flex-shrink-0 text-mint-500" />
-                <span>Keep premium problem bookmarks and status synced automatically.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Check className="mt-0.5 h-[18px] w-[18px] flex-shrink-0 text-mint-500" />
-                <span>Store solution drafts safely with cloud backups.</span>
-              </li>
-            </ul>
-          </div>
+        <div className="space-y-6">
+          <h2 className="text-xl text-content text-center">
+            <span className="font-normal">Log in to</span> <span className="font-semibold font-playfair">AlgoIRL</span>
+          </h2>
 
           <AuthProviderList
             inModal

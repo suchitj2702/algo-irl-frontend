@@ -317,7 +317,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
          
          {stats.total.solved === stats.total.total && (
           <div className="flex items-center gap-2">
-           <div className="w-2 h-2 bg-gradient-to-r from-sage to-teal rounded-full animate-pulse"></div>
+           <div className="w-2 h-2 bg-gradient-to-r from-sage to-mint rounded-full animate-pulse"></div>
            <span className="text-xs sm:text-sm text-mint-dark dark:text-emerald-400 font-medium">
             🎉 All problems completed!
            </span>

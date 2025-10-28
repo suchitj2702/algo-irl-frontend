@@ -543,7 +543,7 @@ export function IntroSection() {
                 <button
                   onClick={handleTransform}
                   disabled={isTransforming}
-                  className="w-full inline-flex items-center justify-center px-5 py-2 text-sm font-medium rounded-xl transition duration-200 bg-button-600 hover:bg-button-500 border border-button-700 text-button-foreground shadow-sm hover:shadow active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full inline-flex items-center justify-center px-5 py-2 text-sm font-medium rounded-xl transition duration-200 bg-gradient-to-r from-mint-600 to-mint-700 text-white shadow-md hover:-translate-y-0.5 hover:from-mint-700 hover:to-mint-800 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint/40 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isTransforming ? 'Contextualizing...' : 'Contextualize'}
                 </button>
@@ -612,17 +612,17 @@ export function IntroSection() {
             Tell AlgoIRL your target company, role, and interview timeline. Our algorithm designs a custom study plan matched to your goals. We've collected company-specific interview data and role-specific patterns through thousands of community reports on Reddit, Blind, and Glassdoor, then manually verified and organized them into our 2,000+ problem dataset. Our matching algorithm intelligently selects the most relevant problems for your specific company and role profile, ranking recently asked questions higher. The data is continuously refreshed and re-scored to ensure you're practicing what's most likely to appear in your actual interview.
           </p>
         </div>
-        <ol className="space-y-4 text-center">
+        <ol className="space-y-4">
           {STUDY_PLAN_STEPS.map((step, index) => (
             <li
               key={step.title}
-              className="flex flex-col items-center gap-4 rounded-3xl border border-outline-subtle/25 bg-background p-6 text-center sm:flex-row sm:items-start"
+              className="flex flex-col items-center gap-4 rounded-3xl border border-outline-subtle/25 bg-background p-6 sm:flex-row sm:items-start"
             >
               <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-outline-subtle/25 text-sm font-semibold text-mint">
                 {String(index + 1).padStart(2, '0')}
               </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-center gap-3 text-center sm:justify-between">
+              <div className="flex-1 text-left">
+                <div className="flex items-center justify-between gap-3">
                   <h3 className="text-lg font-thin text-content font-playfair">{step.title}</h3>
                   <step.icon className="h-5 w-5 text-mint" />
                 </div>
@@ -710,21 +710,21 @@ export function IntroSection() {
         <div className="max-w-3xl mx-auto space-y-4 text-center">
           <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Frequently asked questions</h2>
         </div>
-        <div className="mx-auto max-w-3xl">
-          <div className="overflow-hidden rounded-2xl border border-outline-subtle/25 bg-background/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] dark:shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
+        <div className="mx-auto w-full max-w-3xl px-1">
+          <div className="w-full overflow-hidden rounded-2xl border border-outline-subtle/25 bg-background/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] dark:shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
             {FAQ_ITEMS.map((faq) => (
               <details
                 key={faq.question}
                 className="group relative border-t border-outline-subtle/20 transition-colors first:border-t-0 open:bg-panel-50/60 dark:open:bg-panel-200/30"
               >
-                <summary className="flex w-full cursor-pointer list-none items-start justify-between gap-4 px-6 py-5 text-left text-base font-medium leading-snug text-content transition-colors duration-200 sm:text-lg">
+                <summary className="flex w-full cursor-pointer list-none items-start justify-between gap-4 py-5 pl-6 pr-6 text-left text-base font-medium leading-snug text-content transition-colors duration-200 sm:text-lg">
                   <span className="flex-1 tracking-tight">{faq.question}</span>
-                  <span className="relative mt-1 flex h-5 w-5 items-center justify-center">
+                  <span className="relative mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center">
                     <span className="absolute block h-px w-4 bg-content transition-transform duration-200 ease-out group-open:rotate-90" />
                     <span className="block h-4 w-px bg-content transition-opacity duration-200 ease-out group-open:opacity-0" />
                   </span>
                 </summary>
-                <div className="px-6 pb-6 pt-1 text-sm leading-relaxed text-content-muted sm:text-base">
+                <div className="pb-6 pl-6 pr-6 pt-1 text-sm leading-relaxed text-content-muted sm:text-base">
                   {faq.answer}
                 </div>
                 <span className="pointer-events-none absolute left-0 top-0 h-full w-[3px] bg-mint/50 opacity-0 transition-opacity duration-200 ease-out group-open:opacity-100" />

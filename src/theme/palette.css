@@ -94,8 +94,8 @@
 
   /* Secondary
      Used in: Secondary actions, highlights in dark mode
-     Vivid mint/teal for visual interest matching day mode energy */
-  --secondary: #5cd8b0;
+     Aligns with light mode blue for cohesive theming */
+  --secondary: #bbd0fa;
 
   /* Accent
      Used in: Special accents, bright highlights in dark mode

@@ -349,7 +349,7 @@ export function ProblemForm({
            }
           }}
           disabled={isLoading || otherCompanies.length === 0}
-          className="block w-full rounded-lg border border-teal/40 dark:border-neutral-700 bg-cream dark:bg-neutral-800 text-content shadow-sm focus:border-teal focus:ring-2 focus:ring-teal-light dark:focus:ring-indigo-700/50 sm:text-sm px-4 py-3 pr-10 transition-all duration-200 appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="block w-full rounded-lg border border-mint/40 dark:border-neutral-700 bg-cream dark:bg-neutral-800 text-content shadow-sm focus:border-mint focus:ring-2 focus:ring-mint-light dark:focus:ring-indigo-700/50 sm:text-sm px-4 py-3 pr-10 transition-all duration-200 appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
          >
           <option value="">
            {otherCompanies.length > 0
@@ -369,7 +369,7 @@ export function ProblemForm({
 
       {isLoadingCompanies && (
        <div className="text-center py-2">
-        <div className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-teal"></div>
+        <div className="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-mint"></div>
         <p className="text-xs text-content-muted dark:text-content-subtle mt-1">Loading companies...</p>
        </div>
       )}

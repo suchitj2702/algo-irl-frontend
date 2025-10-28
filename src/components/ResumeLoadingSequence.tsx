@@ -92,7 +92,7 @@ export function ResumeLoadingSequence({
     
     <div className="space-y-6">
      <div className="transition-all duration-500 flex items-start animate-pulse text-content-muted dark:text-content-subtle">
-      <div className="mr-3 p-1 rounded-full bg-mint-500/20 text-teal-600 dark:text-teal-400 animate-pulse">
+      <div className="mr-3 p-1 rounded-full bg-mint-500/20 text-mint-600 dark:text-mint-300 animate-pulse">
        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
        </svg>
@@ -109,7 +109,7 @@ export function ResumeLoadingSequence({
      <div className="relative w-16 h-16">
       <div className="absolute inset-0 rounded-full border-4 border-t-mint-600 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
       <div className="absolute inset-0 rounded-full border-4 border-t-transparent border-r-mint-400 border-b-transparent border-l-transparent animate-spin" style={{ animationDuration: '1.5s' }}></div>
-      <div className="absolute inset-0 rounded-full border-4 border-t-transparent border-r-transparent border-b-teal-500 border-l-transparent animate-spin" style={{ animationDuration: '2s' }}></div>
+      <div className="absolute inset-0 rounded-full border-4 border-t-transparent border-r-transparent border-b-mint-400 border-l-transparent animate-spin" style={{ animationDuration: '2s' }}></div>
      </div>
     </div>
    </div>

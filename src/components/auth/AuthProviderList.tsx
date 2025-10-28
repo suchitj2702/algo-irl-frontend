@@ -22,15 +22,6 @@ export function AuthProviderList({
 }: AuthProviderListProps) {
   return (
     <div className="w-full space-y-4">
-      <div className="space-y-1 text-left">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-content-muted">
-          {title}
-        </h3>
-        <p className="text-xs text-content-muted/80 dark:text-content-subtle/90">
-          {description}
-        </p>
-      </div>
-
       <div className="space-y-3">
         <AuthProviderButton
           provider="google"
@@ -47,13 +38,6 @@ export function AuthProviderList({
           }`}
         >
           Secure OAuth via Google • AlgoIRL never stores your password.
-        </p>
-        <p
-          className={`text-[11px] text-content-muted/70 ${
-            inModal ? "text-center" : "text-left"
-          }`}
-        >
-          Blind 75 progress currently stays on this device (cloud sync coming soon).
         </p>
 
         {footer}

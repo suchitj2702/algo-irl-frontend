@@ -13,7 +13,7 @@ export function DatasetSelector({
     Problem Dataset
    </label>
    <div className="flex items-center">
-    <input id="dataset-blind75" name="dataset" type="radio" checked={true} className="h-4 w-4 text-teal-600 border-slate-300 focus:ring-teal-500" readOnly />
+    <input id="dataset-blind75" name="dataset" type="radio" checked={true} className="h-4 w-4 text-mint-600 border-slate-300 focus:ring-mint-500" readOnly />
     <label htmlFor="dataset-blind75" className="ml-3">
      <span className="block text-sm font-medium text-content-subtle">
       Blind 75
