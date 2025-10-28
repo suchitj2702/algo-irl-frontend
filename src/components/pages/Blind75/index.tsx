@@ -226,11 +226,14 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
       Blind 75
      </h1>
      <p className="text-content-muted dark:text-content-subtle text-sm mb-2">
-      Master the most important coding interview problems
+      Master the most important coding interview problems (no login required)
      </p>
      <div className="max-w-2xl mx-auto">
       <p className="text-sm text-content-muted dark:text-content-subtle bg-mint-light/30 dark:bg-blue-900/20 border border-mint/30 dark:border-blue-800/30 rounded-lg p-3">
        💡 <strong>What is Blind 75?</strong> A curated list of 75 essential LeetCode problems covering all major data structures and algorithms patterns. Created by a Facebook engineer, this list is designed to help you efficiently prepare for technical interviews at top tech companies.
+      </p>
+      <p className="mt-3 text-xs text-content-muted dark:text-content-subtle">
+       Note: Your Blind 75 progress lives in this browser and will not sync across other devices.
       </p>
      </div>
     </div>

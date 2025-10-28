@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
-import { Crown, Check, Clock, ShieldCheck } from "lucide-react";
+import { Crown, Check, Clock } from "lucide-react";
 import { useFeatureFlags } from "../contexts/FeatureFlagsContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useSubscription } from "../hooks/useSubscription";
@@ -64,15 +64,14 @@ export function PremiumGate({
               className="pointer-events-none absolute inset-x-16 -top-24 h-48 rounded-full bg-mint-100/60 dark:bg-mint-500/10 blur-3xl"
               aria-hidden="true"
             />
-            <div className="relative flex flex-col items-center gap-6 px-8 py-10 text-center">
-              <span className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-button-600 via-primary to-mint-500 shadow-[0_12px_24px_rgba(79,70,229,0.25)]">
-                <div className="absolute inset-0 rounded-2xl bg-white/10 dark:bg-white/5" />
-                <ShieldCheck className="relative h-9 w-9 text-white" />
-              </span>
+            <div className="relative flex flex-col items-center gap-5 px-8 py-10 text-center">
               <div className="space-y-2">
-                <h3 className="text-2xl font-bold text-content font-playfair">Sign in to access your study plans</h3>
+                <h3 className="text-2xl font-semibold text-content">
+                  <span className="font-normal">Log in to</span>{" "}
+                  <span className="font-playfair font-semibold">AlgoIRL</span>
+                </h3>
                 <p className="text-sm text-content-muted dark:text-content-subtle">
-                  {message || `Access ${feature} and sync your study plans across devices.`}
+                  {message || `Access your study plans and sync your study plans across devices.`}
                 </p>
               </div>
               <ul className="w-full max-w-sm text-left space-y-2 text-sm text-content-muted dark:text-content-subtle">
@@ -83,10 +82,6 @@ export function PremiumGate({
                 <li className="flex items-start gap-3">
                   <Check className="mt-0.5 h-[18px] w-[18px] flex-shrink-0 text-mint-600 dark:text-mint-400" />
                   <span>Keep study plan progress, bookmarks, and code updates in sync.</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="mt-0.5 h-[18px] w-[18px] flex-shrink-0 text-mint-600 dark:text-mint-400" />
-                  <span>Resume premium problem guidance and saved solutions instantly.</span>
                 </li>
               </ul>
               <div className="w-full max-w-sm">

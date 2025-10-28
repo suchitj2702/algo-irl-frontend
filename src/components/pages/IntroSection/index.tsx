@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthDialog } from '../../../contexts/AuthDialogContext';
 import { useDarkMode } from '../../DarkModeContext';
 import { ThinkingIndicator } from '../../ThinkingIndicator';
 import {
@@ -249,6 +251,8 @@ export function IntroSection() {
   const currentYear = new Date().getFullYear();
   const { isDarkMode } = useDarkMode();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { openAuthDialog } = useAuthDialog();
 
   const [selectedProblem, setSelectedProblem] = useState<(typeof PROBLEM_OPTIONS)[number]['id']>('two-sum');
   const [selectedCompany, setSelectedCompany] = useState<(typeof COMPANY_OPTIONS)[number]['id']>('google');
@@ -271,8 +275,17 @@ export function IntroSection() {
   }, []);
 
   const handlePlansRedirect = useCallback(() => {
-    navigate('/my-study-plans');
-  }, [navigate]);
+    if (user) {
+      navigate('/my-study-plans');
+      return;
+    }
+
+    openAuthDialog({
+      onSuccess: () => {
+        navigate('/my-study-plans');
+      },
+    });
+  }, [navigate, openAuthDialog, user]);
 
   const handleProblemChange = useCallback((problemId: typeof PROBLEM_OPTIONS[number]['id']) => {
     setSelectedProblem(problemId);
