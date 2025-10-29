@@ -352,7 +352,7 @@ export function IntroSection() {
   return (
     <div className="bg-background text-content">
       <SectionBlock surface="base" className="min-h-[calc(100vh-3.5rem)] flex items-center">
-        <div className="w-full max-w-4xl mx-auto text-center space-y-8 -mt-14">
+        <div className="w-full max-w-4xl mx-auto text-center space-y-6 sm:space-y-8 -mt-14">
           <h1 className="text-7xl sm:text-8xl lg:text-9xl font-light tracking-tight font-playfair leading-[1.2] group">
             <span
               className="inline-block px-4 py-4 text-transparent bg-clip-text logo-hover-scale relative cursor-pointer"
@@ -429,14 +429,14 @@ export function IntroSection() {
         surface="muted"
         containerClassName="text-center"
       >
-        <div className="max-w-3xl mx-auto space-y-4 text-center">
+        <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4 text-center">
           <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Try it for yourself</h2>
           <p className="text-sm text-content-muted leading-relaxed sm:text-base">
             Pick a familiar problem, choose the company and role, and let AlgoIRL do its magic
           </p>
         </div>
-        <div className="grid gap-6 sm:gap-8 text-center lg:grid-cols-[minmax(0,320px),1fr]">
-          <div className="space-y-3 rounded-3xl border border-outline-subtle/25 bg-background p-4 text-center">
+        <div className="grid gap-4 sm:gap-6 lg:gap-8 text-center lg:grid-cols-[minmax(0,320px),1fr]">
+          <div className="space-y-2 sm:space-y-3 rounded-3xl border border-outline-subtle/25 bg-background p-4 text-center">
             <div className="space-y-2">
               <label className="text-sm font-medium text-content">Select problem</label>
               <select
@@ -451,7 +451,7 @@ export function IntroSection() {
                 ))}
               </select>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-2 sm:gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-content-muted">Company</label>
                 <select
@@ -563,8 +563,8 @@ export function IntroSection() {
       </SectionBlock>
 
       <SectionBlock surface="tinted">
-        <div className="max-w-5xl mx-auto space-y-6">
-          <div className="max-w-3xl mx-auto text-center space-y-2">
+        <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
+          <div className="max-w-3xl mx-auto text-center space-y-1 sm:space-y-2">
             <h2 className="text-3xl font-thin text-content font-playfair text-center sm:text-4xl">Data-backed interview prep</h2>
           </div>
 
@@ -603,8 +603,8 @@ export function IntroSection() {
             The disconnect? You studied "Reverse a Linked List," but the interviewer asks about "Implementing undo functionality for our document editor." Same algorithm, unrecognizable context. This gap between practice and reality is where preparation breaks down.
           </p>
 
-          <div className="grid gap-4 text-left md:grid-cols-2">
-            <div className="space-y-2 rounded-3xl border border-outline-subtle/25 bg-background p-5">
+          <div className="grid gap-3 sm:gap-4 text-left md:grid-cols-2">
+            <div className="space-y-1.5 sm:space-y-2 rounded-3xl border border-outline-subtle/25 bg-background p-4 sm:p-5">
               <h3 className="text-lg font-thin text-content font-playfair">Without AlgoIRL</h3>
               <p className="text-sm text-content-muted">
                 Pure problem drilling builds algorithmic skill but rarely mirrors how your target company sets the stage.
@@ -613,7 +613,7 @@ export function IntroSection() {
                 <li>No product or stack context to anchor pattern recognition under stress.</li>
               </ul>
             </div>
-            <div className="space-y-2 rounded-3xl border border-outline-subtle/25 bg-background p-5">
+            <div className="space-y-1.5 sm:space-y-2 rounded-3xl border border-outline-subtle/25 bg-background p-4 sm:p-5">
               <h3 className="text-lg font-thin text-content font-playfair">With AlgoIRL</h3>
               <p className="text-sm text-content-muted">
                 Hyperrealistic scenarios rehearse recognition, not just solutions, so you stay composed when the framing shifts.
@@ -625,9 +625,9 @@ export function IntroSection() {
             </div>
           </div>
 
-          <div className="space-y-3 rounded-3xl border border-outline-subtle/25 bg-background p-5">
+          <div className="space-y-2 sm:space-y-3 rounded-3xl border border-outline-subtle/25 bg-background p-4 sm:p-5">
             <h3 className="text-lg font-thin text-content font-playfair">How AlgoIRL closes the gap</h3>
-            <div className="space-y-3">
+            <div className="space-y-2.5 sm:space-y-3">
               {DATA_FACTORS.map((factor) => (
                 <div key={factor.title} className="flex items-start gap-3">
                   <factor.icon className="mt-1 h-5 w-5 text-mint" />
@@ -643,7 +643,7 @@ export function IntroSection() {
       </SectionBlock>
 
       <SectionBlock surface="base" containerClassName="text-center">
-        <div className="max-w-3xl mx-auto space-y-4 text-center">
+        <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4 text-center">
           <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">
             Study plans tailored to your timeline, role, and target company
           </h2>
@@ -651,11 +651,11 @@ export function IntroSection() {
             Set your company, role, and timeline to get a personalized plan tuned to the latest interview signals.
           </p>
         </div>
-        <ol className="space-y-4">
+        <ol className="space-y-3 sm:space-y-4">
           {STUDY_PLAN_STEPS.map((step, index) => (
             <li
               key={step.title}
-              className="flex flex-col items-center gap-4 rounded-3xl border border-outline-subtle/25 bg-background p-6 sm:flex-row sm:items-start"
+              className="flex flex-col items-center gap-3 sm:gap-4 rounded-3xl border border-outline-subtle/25 bg-background p-4 sm:p-6 sm:flex-row sm:items-start"
             >
               <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-outline-subtle/25 text-sm font-semibold text-mint">
                 {String(index + 1).padStart(2, '0')}
@@ -673,7 +673,7 @@ export function IntroSection() {
       </SectionBlock>
 
       <SectionBlock surface="tinted" containerClassName="text-center" className="sm:py-20 md:py-24">
-        <div className="max-w-3xl mx-auto space-y-4 text-center">
+        <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4 text-center">
           <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">
             Choose the plan that fits your depth of prep
           </h2>
@@ -681,12 +681,12 @@ export function IntroSection() {
             Both plans include the same interface and privacy-first experience. Upgrade when you need the full company and role dataset.
           </p>
         </div>
-        <div className="grid gap-6 text-center md:grid-cols-2">
-          <div className="flex flex-col rounded-3xl border border-outline-subtle/25 bg-background p-8 text-center">
+        <div className="grid gap-4 sm:gap-6 text-center md:grid-cols-2">
+          <div className="flex flex-col rounded-3xl border border-outline-subtle/25 bg-background p-6 sm:p-8 text-center">
             <div className="text-sm font-semibold uppercase tracking-wide text-content-muted">Free</div>
             <div className="mt-3 text-3xl font-semibold text-content">$0</div>
             <div className="text-sm text-content-muted">Always available</div>
-            <ul className="mt-6 flex-1 space-y-3 text-sm text-content">
+            <ul className="mt-4 sm:mt-6 flex-1 space-y-2.5 sm:space-y-3 text-sm text-content">
               <li className="flex items-start gap-3 text-left">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
                 <span className="leading-snug">Study plans powered by the Blind 75 dataset</span>
@@ -716,11 +716,11 @@ export function IntroSection() {
               Start free today
             </button>
           </div>
-          <div className="flex flex-col rounded-3xl border border-mint/60 bg-background p-8 text-center">
+          <div className="flex flex-col rounded-3xl border border-mint/60 bg-background p-6 sm:p-8 text-center">
             <div className="text-sm font-semibold uppercase tracking-wide text-mint">Comprehensive</div>
             <div className="mt-3 text-3xl font-semibold text-content">$5.99</div>
             <div className="text-sm text-content-muted">Per month · cancel anytime</div>
-            <ul className="mt-6 flex-1 space-y-3 text-sm text-content">
+            <ul className="mt-4 sm:mt-6 flex-1 space-y-2.5 sm:space-y-3 text-sm text-content">
               <li className="flex items-start gap-3 text-left">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
                 <span className="leading-snug">Everything in the free plan</span>
@@ -746,7 +746,7 @@ export function IntroSection() {
       </SectionBlock>
 
       <SectionBlock surface="muted" containerClassName="text-left">
-        <div className="max-w-3xl mx-auto space-y-4 text-center">
+        <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4 text-center">
           <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Frequently asked questions</h2>
         </div>
         <div className="mx-auto w-full max-w-3xl px-1">
@@ -756,14 +756,14 @@ export function IntroSection() {
                 key={faq.question}
                 className="group relative border-t border-outline-subtle/20 transition-colors first:border-t-0 open:bg-panel-50/60 dark:open:bg-panel-200/30"
               >
-                <summary className="flex w-full cursor-pointer list-none items-start justify-between gap-4 py-5 pl-6 pr-6 text-left text-base font-medium leading-snug text-content transition-colors duration-200 sm:text-lg">
+                <summary className="flex w-full cursor-pointer list-none items-start justify-between gap-3 sm:gap-4 py-4 sm:py-5 pl-5 pr-5 sm:pl-6 sm:pr-6 text-left text-base font-medium leading-snug text-content transition-colors duration-200 sm:text-lg">
                   <span className="flex-1 tracking-tight">{faq.question}</span>
                   <span className="relative mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center">
                     <span className="absolute block h-px w-4 bg-content transition-transform duration-200 ease-out group-open:rotate-90" />
                     <span className="block h-4 w-px bg-content transition-opacity duration-200 ease-out group-open:opacity-0" />
                   </span>
                 </summary>
-                <div className="pb-6 pl-6 pr-6 pt-1 text-sm leading-relaxed text-content-muted sm:text-base">
+                <div className="pb-5 pl-5 pr-5 sm:pb-6 sm:pl-6 sm:pr-6 pt-1 text-sm leading-relaxed text-content-muted sm:text-base">
                   {faq.answer}
                 </div>
                 <span className="pointer-events-none absolute left-0 top-0 h-full w-[3px] bg-mint/50 opacity-0 transition-opacity duration-200 ease-out group-open:opacity-100" />
@@ -774,7 +774,7 @@ export function IntroSection() {
       </SectionBlock>
 
       <SectionBlock surface="base" containerClassName="text-center">
-        <div className="mx-auto max-w-3xl space-y-6 text-center">
+        <div className="mx-auto max-w-3xl space-y-4 sm:space-y-6 text-center">
           <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Build confidence with company-aware, role-specific practice powered by AI</h2>
           <p className="text-sm text-content-muted leading-relaxed sm:text-base">
             Start for free and upgrade when you are ready for comprehensive study plans
