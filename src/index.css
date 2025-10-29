@@ -202,6 +202,8 @@
 .logo-text-segment {
   display: inline-block;
   opacity: 0;
+  padding-bottom: 0.2em;
+  margin-bottom: -0.2em;
   background-image: var(--logo-gradient-image);
   background-size: var(--logo-background-size);
   background-position: var(--logo-background-position);
