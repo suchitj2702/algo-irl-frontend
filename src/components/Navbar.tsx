@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MenuIcon, XIcon, SunIcon, MoonIcon, User, ChevronDown } from 'lucide-react';
-import { useDarkMode } from './DarkModeContext';
+import { useDarkMode, isDarkModeFeatureEnabled } from './DarkModeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useAuthDialog } from '../contexts/AuthDialogContext';
 
@@ -22,6 +22,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
   isDarkMode,
   toggleDarkMode
  } = useDarkMode();
+ const showDarkModeToggle = isDarkModeFeatureEnabled;
  const { user, signOut, loading } = useAuth();
  const { openAuthDialog, navSignInHidden } = useAuthDialog();
 
@@ -114,13 +115,15 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
       >
        Practice Blind 75
       </button>
-      <button
-       onClick={toggleDarkMode}
-       className="p-2.5 text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.95] backdrop-blur-sm"
-       aria-label="Toggle dark mode"
-      >
-       {isDarkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
-      </button>
+      {showDarkModeToggle && (
+       <button
+        onClick={toggleDarkMode}
+        className="p-2.5 text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.95] backdrop-blur-sm"
+        aria-label="Toggle dark mode"
+       >
+        {isDarkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+       </button>
+      )}
 
       {/* Auth Button / User Menu */}
       {!loading && (
@@ -172,13 +175,15 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
       )}
      </div>
      <div className="md:hidden flex items-center gap-2">
-      <button
-       onClick={toggleDarkMode}
-       className="p-2 text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[12px] transition-all duration-200 active:scale-[0.95] backdrop-blur-sm"
-       aria-label="Toggle dark mode"
-      >
-       {isDarkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
-      </button>
+      {showDarkModeToggle && (
+       <button
+        onClick={toggleDarkMode}
+        className="p-2 text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[12px] transition-all duration-200 active:scale-[0.95] backdrop-blur-sm"
+        aria-label="Toggle dark mode"
+       >
+        {isDarkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+       </button>
+      )}
       <button
        onClick={() => setIsMenuOpen(!isMenuOpen)}
        type="button"

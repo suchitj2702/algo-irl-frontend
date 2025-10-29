@@ -4,25 +4,37 @@ type DarkModeContextType = {
  toggleDarkMode: () => void;
 };
 const DarkModeContext = createContext<DarkModeContextType | undefined>(undefined);
+export const isDarkModeFeatureEnabled = import.meta.env.DEV;
 export function DarkModeProvider({
  children
 }: {
  children: React.ReactNode;
 }) {
  const [isDarkMode, setIsDarkMode] = useState(() => {
+  if (!isDarkModeFeatureEnabled) {
+   return false;
+  }
   const savedMode = localStorage.getItem('darkMode');
   return savedMode ? JSON.parse(savedMode) : false;
  });
  useEffect(() => {
+  if (!isDarkModeFeatureEnabled) {
+   document.documentElement.classList.remove('dark');
+   localStorage.removeItem('darkMode');
+   return;
+  }
   if (isDarkMode) {
    document.documentElement.classList.add('dark');
   } else {
    document.documentElement.classList.remove('dark');
   }
   localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
- }, [isDarkMode]);
+ }, [isDarkMode, isDarkModeFeatureEnabled]);
  const toggleDarkMode = () => {
-  setIsDarkMode(!isDarkMode);
+  if (!isDarkModeFeatureEnabled) {
+   return;
+  }
+  setIsDarkMode(prev => !prev);
  };
  return <DarkModeContext.Provider value={{
   isDarkMode,
