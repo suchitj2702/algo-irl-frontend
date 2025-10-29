@@ -71,7 +71,7 @@ export function PremiumGate({
                   <span className="font-playfair font-semibold">AlgoIRL</span>
                 </h3>
                 <p className="text-sm text-content-muted dark:text-content-subtle">
-                  {message || `Access your study plans and sync your study plans across devices.`}
+                  {message || `Access your study plans and sync them across devices.`}
                 </p>
               </div>
               <ul className="w-full max-w-sm text-left space-y-2 text-sm text-content-muted dark:text-content-subtle">

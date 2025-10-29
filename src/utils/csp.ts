@@ -40,7 +40,7 @@ export const setEnvironmentBasedCSP = () => {
       img-src 'self' data: blob: https:;
       connect-src 'self' ${apiUrl} https://judge0-ce.p.rapidapi.com https://firebaseinstallations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firestore.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://accounts.google.com https://*.google.com https://*.googleapis.com https://vitals.vercel-insights.com https://va.vercel-scripts.com ws: wss:;
       font-src 'self' data: blob: https://cdn.jsdelivr.net https://fonts.gstatic.com;
-      frame-src 'self' https://checkout.razorpay.com https://api.razorpay.com https://accounts.google.com https://*.firebaseapp.com https://*.google.com;
+      frame-src 'self' https://checkout.razorpay.com https://api.razorpay.com https://accounts.google.com https://*.firebaseapp.com https://*.google.com https://algoirl.ai https://*.algoirl.ai;
       worker-src 'self' blob: data:;
       child-src 'self' blob: data:;
       object-src 'none';
@@ -56,7 +56,7 @@ export const setEnvironmentBasedCSP = () => {
       img-src 'self' data: blob: https:;
       connect-src 'self' ${apiUrl} https://judge0-ce.p.rapidapi.com https://firebaseinstallations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firestore.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://accounts.google.com https://*.google.com https://*.googleapis.com https://vitals.vercel-insights.com https://va.vercel-scripts.com;
       font-src 'self' data: blob: https://cdn.jsdelivr.net https://fonts.gstatic.com;
-      frame-src 'self' https://checkout.razorpay.com https://api.razorpay.com https://accounts.google.com https://*.firebaseapp.com https://*.google.com;
+      frame-src 'self' https://checkout.razorpay.com https://api.razorpay.com https://accounts.google.com https://*.firebaseapp.com https://*.google.com https://algoirl.ai https://*.algoirl.ai;
       worker-src 'self' blob: data:;
       child-src 'self' blob: data:;
       object-src 'none';
