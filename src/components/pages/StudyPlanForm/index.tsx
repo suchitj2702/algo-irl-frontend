@@ -89,6 +89,11 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
  // Other companies (excluding the fixed ones)
  const otherCompanies = companies.filter(c => !FIXED_COMPANY_IDS.includes(c.id));
 
+ const activeOptionClasses =
+  'bg-gradient-to-r from-mint-600 to-mint-700 text-white border border-mint-700 shadow-sm hover:shadow-md transition-all duration-150';
+ const inactiveOptionClasses =
+  'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:border-panel-600 dark:hover:bg-panel-400 transition-colors duration-150';
+
  const handleSubmit = (e: React.FormEvent) => {
   e.preventDefault();
   setLocalError(null);
@@ -152,7 +157,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
      <div className="bg-panel-100 dark:bg-panel-300 rounded-[20px] shadow-lg border border-panel-200 dark:border-panel-300 overflow-hidden">
       {/* Header */}
       <div className="text-center px-6 pt-6 pb-4 border-b border-black/5 dark:border-accent/10">
-       <h2 className="text-lg font-semibold text-content mb-1">
+       <h2 className="text-lg sm:text-[1.5rem] font-thin text-content font-playfair mb-1">
         Create Study Plan
        </h2>
        <p className="text-xs text-content-muted dark:text-content-subtle">
@@ -189,19 +194,19 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
        <div className="space-y-2">
         <div className="grid grid-cols-3 gap-1.5">
          {fixedCompanies.map((company) => (
-          <button
-           key={company.id}
-           type="button"
-           onClick={() => setCompanyId(company.id)}
-           className={`py-2 px-2.5 text-xs font-medium transition-colors duration-150 rounded-[8px] ${
-            companyId === company.id
-             ? 'bg-button-600 text-button-foreground border border-button-700 shadow-sm dark:bg-button-400 dark:border-button-500'
-             : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:border-panel-600 dark:hover:bg-panel-400'
-           }`}
-           disabled={isLoading}
-          >
-           {company.name}
-          </button>
+         <button
+          key={company.id}
+          type="button"
+          onClick={() => setCompanyId(company.id)}
+          className={`py-2.5 px-3 text-sm font-normal rounded-[12px] ${
+           companyId === company.id
+            ? `${activeOptionClasses} hover:from-mint-700 hover:to-mint-800`
+           : inactiveOptionClasses
+          }`}
+          disabled={isLoading}
+         >
+          <span className={companyId === company.id ? 'text-white' : ''}>{company.name}</span>
+         </button>
          ))}
         </div>
 
@@ -242,17 +247,17 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
         <button
          type="button"
          onClick={() => setDatasetType('blind75')}
-         className={`py-2.5 px-3 text-xs font-medium transition-colors duration-150 rounded-[8px] text-left ${
+         className={`py-2.5 px-3 text-sm font-normal rounded-[12px] text-left ${
           datasetType === 'blind75'
-           ? 'bg-button-500 text-button-foreground border border-button-600 shadow-sm dark:bg-button-400 dark:border-button-500'
-           : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:border-panel-600 dark:hover:bg-panel-400'
+           ? `${activeOptionClasses} hover:from-mint-700 hover:to-mint-800`
+           : inactiveOptionClasses
          }`}
          disabled={isLoading}
         >
-         <div className="font-semibold text-xs mb-1">Blind 75</div>
-         <div className={`text-[10px] leading-tight ${
+         <div className={`font-normal text-sm mb-1 ${datasetType === 'blind75' ? 'text-white' : ''}`}>Blind 75</div>
+         <div className={`text-xs leading-tight ${
           datasetType === 'blind75'
-           ? 'text-content-subtle dark:text-white/90'
+           ? 'text-white/80'
            : 'text-content-muted'
          }`}>
           75 essential LeetCode problems covering all major data structures and algorithms patterns
@@ -262,17 +267,17 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
         <button
          type="button"
          onClick={() => setDatasetType('full')}
-         className={`py-2.5 px-3 text-xs font-medium transition-colors duration-150 rounded-[8px] text-left ${
+         className={`py-2.5 px-3 text-sm font-normal rounded-[12px] text-left ${
           datasetType === 'full'
-           ? 'bg-button-500 text-button-foreground border border-button-600 shadow-sm dark:bg-button-400 dark:border-button-500'
-           : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:border-panel-600 dark:hover:bg-panel-400'
+           ? `${activeOptionClasses} hover:from-mint-700 hover:to-mint-800`
+           : inactiveOptionClasses
          }`}
          disabled={isLoading}
         >
-         <div className="font-semibold text-xs mb-1">Full Dataset</div>
-         <div className={`text-[10px] leading-tight ${
+         <div className={`font-normal text-sm mb-1 ${datasetType === 'full' ? 'text-white' : ''}`}>Full Dataset</div>
+         <div className={`text-xs leading-tight ${
           datasetType === 'full'
-           ? 'text-content-subtle dark:text-white/90'
+           ? 'text-white/80'
            : 'text-content-muted'
          }`}>
           2000+ comprehensive problems for more targeted practice
@@ -295,21 +300,14 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
           key={role.id}
           type="button"
           onClick={() => setRoleFamily(role.id)}
-          className={`py-2 px-2.5 text-xs font-medium transition-colors duration-150 rounded-[8px] text-left ${
+          className={`py-2.5 px-3 text-sm font-medium rounded-[12px] ${
            roleFamily === role.id
-            ? 'bg-button-500 text-button-foreground border border-button-600 shadow-sm dark:bg-button-400 dark:border-button-500'
-           : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:border-panel-600 dark:hover:bg-panel-400'
+            ? `${activeOptionClasses} hover:from-mint-700 hover:to-mint-800`
+           : inactiveOptionClasses
           }`}
           disabled={isLoading}
          >
-          <div className="font-medium text-xs mb-0.5">{role.name}</div>
-          <div className={`text-[10px] leading-tight ${
-           roleFamily === role.id
-            ? 'text-content-subtle dark:text-white/90'
-            : 'text-content-muted'
-          }`}>
-           {role.description}
-          </div>
+          <span className={roleFamily === role.id ? 'text-white' : ''}>{role.name}</span>
          </button>
         ))}
        </div>
@@ -336,7 +334,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
            step="1"
            value={timelineLocal}
            onChange={(e) => setTimelineLocal(parseInt(e.target.value, 10))}
-           className="w-full h-2.5 rounded-full appearance-none cursor-pointer relative z-10 bg-gradient-to-r from-blue-500 via-blue-300 to-blue-100
+           className="w-full h-2.5 rounded-full appearance-none cursor-pointer relative bg-gradient-to-r from-blue-500 via-blue-300 to-blue-100
             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6
             [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white dark:[&::-webkit-slider-thumb]:bg-neutral-850
             [&::-webkit-slider-thumb]:shadow-md
@@ -369,7 +367,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
            step="1"
            value={hoursPerDayLocal}
            onChange={(e) => setHoursPerDayLocal(parseInt(e.target.value, 10))}
-           className="w-full h-2.5 rounded-full appearance-none cursor-pointer relative z-10 bg-gradient-to-r from-indigo-100 via-blue-300 to-indigo-500
+           className="w-full h-2.5 rounded-full appearance-none cursor-pointer relative bg-gradient-to-r from-indigo-100 via-blue-300 to-indigo-500
             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6
             [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white dark:[&::-webkit-slider-thumb]:bg-neutral-850
             [&::-webkit-slider-thumb]:shadow-md
@@ -401,14 +399,16 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
           key={diff}
           type="button"
           onClick={() => toggleDifficulty(diff)}
-          className={`py-2 px-2.5 text-xs font-medium transition-colors duration-150 rounded-[8px] ${
+          className={`py-2.5 px-3 text-sm font-normal rounded-[12px] ${
            difficultyPreference[diff]
-            ? 'bg-button-600 text-button-foreground border border-button-700 shadow-sm dark:bg-button-400 dark:border-button-500'
-            : 'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:border-panel-600 dark:hover:bg-panel-400'
+            ? `${activeOptionClasses} hover:from-mint-700 hover:to-mint-800`
+            : inactiveOptionClasses
           }`}
           disabled={isLoading}
          >
-          {diff.charAt(0).toUpperCase() + diff.slice(1)}
+          <span className={difficultyPreference[diff] ? 'text-white' : ''}>
+           {diff.charAt(0).toUpperCase() + diff.slice(1)}
+          </span>
          </button>
         ))}
        </div>
@@ -430,7 +430,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
             key={topic}
             type="button"
             onClick={() => toggleTopic(topic)}
-            className={`px-2 py-1 rounded-[6px] text-[10px] font-medium transition-colors duration-150 ${
+            className={`px-2 py-1 rounded-[6px] text-xs font-normal transition-colors duration-150 ${
              isSelected
               ? 'bg-mint-400 text-content border border-mint-500 dark:bg-mint-600 dark:text-background dark:border-mint-700'
               : isDisabled
@@ -458,7 +458,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
       <div className="pt-2 space-y-2">
        <button
         type="submit"
-       className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 shadow-sm rounded-[10px] transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium text-white bg-gradient-to-r from-mint-600 to-mint-700 border border-mint-700 shadow-md hover:from-mint-700 hover:to-mint-800 hover:shadow-lg rounded-[12px] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
         disabled={isLoading || isLoadingCompanies}
        >
         {isLoading ? (
@@ -476,7 +476,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
        <button
         type="button"
         onClick={onCancel}
-       className="w-full px-4 py-2.5 text-xs font-medium text-content bg-cream-100 dark:bg-panel-500 hover:bg-cream-200 dark:hover:bg-panel-400 border border-cream-200 dark:border-panel-600 rounded-[10px] transition-colors duration-150 disabled:opacity-40"
+       className="w-full px-4 py-2.5 text-sm font-normal text-content bg-cream-100 dark:bg-panel-500 hover:bg-cream-200 dark:hover:bg-panel-400 border border-cream-200 dark:border-panel-600 rounded-[10px] transition-colors duration-150 disabled:opacity-40"
         disabled={isLoading}
        >
         Cancel

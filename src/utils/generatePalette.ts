@@ -58,8 +58,8 @@ export function generatePalette(): ColorPalette {
     // Panel scale - blend of background and foreground
     panel: generatePanelScale(background, foreground, dark),
 
-    // Button scale - based on primary but slightly adjusted
-    button: generateColorScale(primary, dark),
+    // Button scale - align with IntroSection blue (mint gradient anchor)
+    button: generateColorScale(mintScale[600], dark),
 
     // Sage scale - green tint for Easy difficulty
     sage: generateColorScale('#22c55e', dark), // Using success green as base

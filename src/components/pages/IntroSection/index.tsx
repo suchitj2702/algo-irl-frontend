@@ -1,7 +1,6 @@
 import type { FormEvent } from 'react';
 import {
   useCallback,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -117,13 +116,13 @@ const DATA_FACTORS = [
     icon: Activity,
     title: 'Role-specific patterns',
     description:
-      'Community reports from Reddit, Blind, Glassdoor, and internal alumni outline how ML, Backend, Frontend, Infrastructure and Security coding interview loops at big tech. emphasise signal.',
+      'Community reports from Reddit, Blind, Glassdoor, and internal alumni outline how ML, Backend, Frontend, Infrastructure and Security coding interview loops at FAANG+ companies emphasise signal.',
   },
   {
     icon: BarChart4,
     title: 'Quality scoring engine',
     description:
-      'Every AI-generated scenario is judged across six metrics — company relevance, role alignment, realism, technical fidelity, clarity, and safety.',
+      'Every AI-generated scenario is judged across six metrics - company relevance, role alignment, realism, technical fidelity, clarity, and safety.',
   },
 ] as const;
 
@@ -396,86 +395,6 @@ export function IntroSection() {
             </button>
           </div>
         </div>
-        <div className="grid gap-6 text-sm text-content-muted text-center sm:grid-cols-3">
-          {DATA_FACTORS.map((factor) => (
-            <div key={factor.title} className="space-y-2">
-              <div className="text-sm font-semibold text-content">{factor.title}</div>
-              <p>{factor.description}</p>
-            </div>
-          ))}
-        </div>
-      </SectionBlock>
-
-      <SectionBlock surface="tinted">
-        <div className="max-w-3xl mx-auto text-center space-y-3">
-          <h2 className="text-3xl font-thin text-content font-playfair text-center sm:text-4xl">Data-backed interview prep</h2>
-          <p className="text-base text-content-muted sm:text-lg">
-            Our system cross-references curated company data, role patterns, and the latest community intel to prioritize what you should practice next.
-          </p>
-        </div>
-
-        <div className="max-w-4xl mx-auto space-y-4 text-content-muted text-center">
-          <p className="text-base sm:text-lg">
-            Studies show that{' '}
-            <a
-              href="https://www.carejobz.com.au/i-froze-completely-interview-response-uncovered/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-content underline decoration-mint/50 hover:decoration-mint transition-colors"
-            >
-              62% of professionals have frozen at least once in an interview
-            </a>
-            , often on problems they mastered during practice. This isn't about skill—it's about stress. When{' '}
-            <a
-              href="https://resources.biginterview.com/interviews-101/interview-anxiety/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-content underline decoration-mint/50 hover:decoration-mint transition-colors"
-            >
-              93% of candidates experience interview anxiety
-            </a>
-            , even familiar algorithms feel unrecognizable when wrapped in company-specific jargon and framed through a product lens you've never encountered.
-          </p>
-          <p className="text-base sm:text-lg">
-            The freeze response isn't rare.{' '}
-            <a
-              href="https://www.tandfonline.com/doi/full/10.1080/10253890.2024.2364333"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-content underline decoration-mint/50 hover:decoration-mint transition-colors"
-            >
-              Research indicates that interview stress impairs working memory, problem-solving, and pattern recognition
-            </a>
-            —the exact skills you need most. Candidates spend an average of 5-10 minutes wrestling with problems they could solve instantly in practice, simply because the real interview presents them differently.
-          </p>
-          <p className="text-base sm:text-lg">
-            <strong className="text-content">Why this happens:</strong> Your brain trained on "Two Sum." The interviewer asks about "cache shard user matching" at Google or "content recommendation deduplication" at Netflix. Same algorithm, completely different context. This gap between practice and reality is where preparation breaks down.
-          </p>
-        </div>
-
-        <div className="grid gap-6 text-center md:grid-cols-2">
-          <div className="space-y-4 rounded-3xl border border-outline-subtle/25 bg-background p-6 text-center">
-            <div className="text-sm font-semibold text-content">Without AlgoIRL</div>
-            <p className="text-base text-content">
-              Generic problem sets that don't match how your target company frames questions. When interview stress hits, familiar patterns become unrecognizable.
-            </p>
-            <ul className="space-y-2 text-sm text-content-muted">
-              <li>Practice builds algorithmic skill but not recognition under pressure</li>
-              <li>No exposure to product-specific context that appears in real interviews</li>
-              <li>Freeze on problems you already know when they're presented differently</li>
-            </ul>
-          </div>
-          <div className="space-y-4 rounded-3xl border border-outline-subtle/25 bg-background p-6 text-center">
-            <div className="text-sm font-semibold text-content">With AlgoIRL</div>
-            <p className="text-base text-content">
-              Train with hyperrealistic scenarios tailored to your company's products, tech stack, and interview style. Build the muscle to recognize familiar patterns in company-specific context.
-            </p>
-            <ul className="space-y-2 text-sm text-content-muted">
-              <li>Practice the same recognition skill you'll need when anxiety strikes mid-interview</li>
-              <li>Study plans intelligently match problems from our 2,000+ curated dataset to your target profile and interview timeline</li>
-            </ul>
-          </div>
-        </div>
       </SectionBlock>
 
       <SectionBlock
@@ -612,6 +531,86 @@ export function IntroSection() {
                 Select a problem to get started.
               </div>
             )}
+          </div>
+        </div>
+      </SectionBlock>
+
+      <SectionBlock surface="tinted">
+        <div className="max-w-5xl mx-auto space-y-8">
+          <div className="max-w-3xl mx-auto text-center space-y-3">
+            <h2 className="text-3xl font-thin text-content font-playfair text-center sm:text-4xl">Data-backed interview prep</h2>
+          </div>
+
+          <p className="mx-auto max-w-3xl text-center text-sm text-content-muted leading-relaxed sm:text-base">
+            Studies show{' '}
+            <a
+              href="https://www.carejobz.com.au/i-froze-completely-interview-response-uncovered/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-content hover:text-mint"
+            >
+              62% of professionals freeze during interviews
+            </a>
+            , often on problems they have already mastered, while{' '}
+            <a
+              href="https://resources.biginterview.com/interviews-101/interview-anxiety/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-content hover:text-mint"
+            >
+              93% experience anxiety
+            </a>
+            {' '}severe enough to{' '}
+            <a
+              href="https://www.tandfonline.com/doi/full/10.1080/10253890.2024.2364333"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-content hover:text-mint"
+            >
+              impair working memory and pattern recognition
+            </a>
+            . Candidates average 5 to 10 minutes wrestling with problems they could solve instantly in practice.
+          </p>
+
+          <p className="mx-auto max-w-3xl text-center text-sm text-content-muted leading-relaxed sm:text-base">
+            The disconnect? You studied "Reverse a Linked List," but the interviewer asks about "Implementing undo functionality for our document editor." Same algorithm, unrecognizable context. This gap between practice and reality is where preparation breaks down.
+          </p>
+
+          <div className="grid gap-6 text-left md:grid-cols-2">
+            <div className="space-y-3 rounded-3xl border border-outline-subtle/25 bg-background p-6">
+              <h3 className="text-lg font-thin text-content font-playfair">Without AlgoIRL</h3>
+              <p className="text-sm text-content-muted">
+                Pure problem drilling builds algorithmic skill but rarely mirrors how your target company sets the stage.
+              </p>
+              <ul className="space-y-2 text-sm text-content-muted">
+                <li>No product or stack context to anchor pattern recognition under stress.</li>
+              </ul>
+            </div>
+            <div className="space-y-3 rounded-3xl border border-outline-subtle/25 bg-background p-6">
+              <h3 className="text-lg font-thin text-content font-playfair">With AlgoIRL</h3>
+              <p className="text-sm text-content-muted">
+                Hyperrealistic scenarios rehearse recognition, not just solutions, so you stay composed when the framing shifts.
+              </p>
+              <ul className="space-y-2 text-sm text-content-muted">
+                <li>Context-rich rewrites across 20 companies and 5 roles keep patterns recognizable.</li>
+                <li>Adaptive study plans adjust sequencing as your interview date approaches.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="space-y-4 rounded-3xl border border-outline-subtle/25 bg-background p-6">
+            <h3 className="text-lg font-thin text-content font-playfair">How AlgoIRL closes the gap</h3>
+            <div className="space-y-4">
+              {DATA_FACTORS.map((factor) => (
+                <div key={factor.title} className="flex items-start gap-3">
+                  <factor.icon className="mt-1 h-5 w-5 text-mint" />
+                  <div>
+                    <div className="text-base font-thin text-content font-playfair">{factor.title}</div>
+                    <p className="text-sm text-content-muted">{factor.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </SectionBlock>

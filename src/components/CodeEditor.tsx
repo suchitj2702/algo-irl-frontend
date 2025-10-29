@@ -108,7 +108,7 @@ export default function CodeEditor({
       </ul>
       <button 
        onClick={handleRetry}
-       className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-button-foreground text-sm rounded mr-2"
+       className="px-3 py-1 bg-button-600 hover:bg-button-500 text-button-foreground text-sm rounded mr-2 border border-button-700 transition-colors duration-150"
       >
        Retry Loading Editor
       </button>

@@ -107,7 +107,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
      </h2>
      <button
       onClick={() => setShowUsageGuide(true)}
-      className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 transition-colors hover:bg-blue-200 dark:hover:bg-blue-900/60"
+      className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-button-100 text-button-600 transition-colors duration-150 hover:bg-button-200 border border-button-200 dark:bg-button-800 dark:text-button-200 dark:hover:bg-button-700"
       aria-label="How to use this study plan"
       title="How to use this study plan"
      >
@@ -348,10 +348,10 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
     <div className="mt-6 pt-4 border-t border-outline-subtle">
        <button
         onClick={() => setShowUsageGuide(false)}
-        className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
+        className="w-full px-4 py-2 bg-button-600 hover:bg-button-500 text-button-foreground font-medium rounded-lg border border-button-700 transition-colors duration-150"
        >
         Got it!
-       </button>
+      </button>
       </div>
      </div>
     </div>

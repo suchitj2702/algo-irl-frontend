@@ -34,7 +34,7 @@ export class ErrorBoundary extends Component<Props, State> {
       <p className="text-content-muted mb-4">{this.state.error?.message}</p>
       <button
        onClick={() => window.location.href = '/'}
-       className="px-4 py-2 bg-blue-600 text-button-foreground rounded hover:bg-blue-700"
+       className="px-4 py-2 bg-button-600 hover:bg-button-500 text-button-foreground rounded border border-button-700 transition-colors duration-150"
       >
        Go Home
       </button>
