@@ -79,6 +79,26 @@
      Components: Info badges, help tooltips,
                  informational messages */
   --info: #0ea5e9;
+
+  /* ==========================================
+     LOGO SPECIFIC COLORS - Light Mode
+     Aurora Depth Theme - Premium & Impactful
+     ========================================== */
+
+  /* Logo Gradient Colors - Enhanced for maximum impact */
+  --logo-gradient-start: #0A3F51;  /* Deeper navy teal for stronger contrast */
+  --logo-gradient-mid1: #00968F;   /* Rich jewel teal */
+  --logo-gradient-mid2: #00C9A7;   /* Vibrant emerald mint */
+  --logo-gradient-end: #00A6C2;    /* Brilliant ocean blue */
+
+  /* Logo Effects */
+  --logo-glow: rgba(0, 201, 167, 0.3);
+  --logo-text-shadow: 0 4px 16px rgba(10, 63, 81, 0.15);
+  --logo-hover-glow: rgba(0, 201, 167, 0.45);
+
+  /* Logo Text (for better contrast) */
+  --logo-text-fill: transparent;
+  --logo-text-stroke: rgba(10, 63, 81, 0.1);
 }
 
 .dark {
@@ -131,6 +151,26 @@
   --warning: #fbbf24;
   --error: #f87171;
   --info: #67e8f9;
+
+  /* ==========================================
+     LOGO SPECIFIC COLORS - Dark Mode
+     Using same theme as light mode for consistency
+     ========================================== */
+
+  /* Logo Gradient Colors - Dark Mode - Same as light for elegance */
+  --logo-gradient-start: #0A3F51;  /* Deeper navy teal for stronger contrast */
+  --logo-gradient-mid1: #00968F;   /* Rich jewel teal */
+  --logo-gradient-mid2: #00C9A7;   /* Vibrant emerald mint */
+  --logo-gradient-end: #00A6C2;    /* Brilliant ocean blue */
+
+  /* Logo Effects - Dark Mode - Subtle glow for dark background */
+  --logo-glow: rgba(0, 201, 167, 0.25);
+  --logo-text-shadow: 0 4px 20px rgba(0, 201, 167, 0.2);
+  --logo-hover-glow: rgba(0, 201, 167, 0.35);
+
+  /* Logo Text - Dark Mode */
+  --logo-text-fill: transparent;
+  --logo-text-stroke: rgba(0, 201, 167, 0.05);
 }
 
 /* ==========================================

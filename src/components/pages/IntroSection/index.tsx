@@ -351,13 +351,65 @@ export function IntroSection() {
 
   return (
     <div className="bg-background text-content">
-      <SectionBlock surface="base">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-thin text-content font-playfair">
-            AlgoIRL
+      <SectionBlock surface="base" className="min-h-[calc(100vh-3.5rem)] flex items-center">
+        <div className="w-full max-w-4xl mx-auto text-center space-y-8 -mt-14">
+          <h1 className="text-7xl sm:text-8xl lg:text-9xl font-light tracking-tight font-playfair leading-[1.2] group">
+            <span
+              className="inline-block px-4 py-4 text-transparent bg-clip-text logo-hover-scale relative cursor-pointer"
+              style={{
+                backgroundImage: `
+                  linear-gradient(135deg,
+                    var(--logo-gradient-start) 0%,
+                    var(--logo-gradient-mid1) 25%,
+                    var(--logo-gradient-mid2) 60%,
+                    var(--logo-gradient-end) 100%),
+                  linear-gradient(90deg,
+                    transparent 0%,
+                    rgba(255, 255, 255, 0.1) 50%,
+                    transparent 100%)`,
+                backgroundSize: '200% 200%, 200% 100%',
+                backgroundPosition: '0% 50%, -200% 0%',
+                animation: 'logo-gradient-shift 8s ease-in-out infinite',
+                filter: 'drop-shadow(var(--logo-text-shadow))',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                letterSpacing: '-0.01em',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.animation = 'logo-gradient-shift 3s ease-in-out infinite, logo-shimmer 1s ease-out';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.animation = 'logo-gradient-shift 8s ease-in-out infinite';
+              }}
+            >
+              <span
+                style={{
+                  animation: 'logo-letter-reveal 0.6s ease-out forwards',
+                  animationDelay: '0.1s',
+                  opacity: 0,
+                  display: 'inline-block',
+                }}
+              >
+                Algo
+              </span>
+              <span
+                className="font-normal"
+                style={{
+                  animation: 'logo-letter-reveal 0.6s ease-out forwards',
+                  animationDelay: '0.3s',
+                  opacity: 0,
+                  display: 'inline-block',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                IRL
+              </span>
+            </span>
           </h1>
 
-          <p className="text-base text-content-muted sm:text-lg lg:text-xl">
+          <p className="text-sm text-content-muted sm:text-base">
             A hyperrealistic interview simulator, designed to bridge the gap between your coding interview preparation and how companies actually frame problems in the real interview
           </p>
 
@@ -380,7 +432,7 @@ export function IntroSection() {
         <div className="max-w-3xl mx-auto space-y-4 text-center">
           <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Try it for yourself</h2>
           <p className="text-sm text-content-muted leading-relaxed sm:text-base">
-            Pick a familiar problem, choose the company and role, then let AlgoIRL do its magic
+            Pick a familiar problem, choose the company and role, and let AlgoIRL do its magic
           </p>
         </div>
         <div className="grid gap-6 sm:gap-8 text-center lg:grid-cols-[minmax(0,320px),1fr]">
@@ -511,8 +563,8 @@ export function IntroSection() {
       </SectionBlock>
 
       <SectionBlock surface="tinted">
-        <div className="max-w-5xl mx-auto space-y-8">
-          <div className="max-w-3xl mx-auto text-center space-y-3">
+        <div className="max-w-5xl mx-auto space-y-6">
+          <div className="max-w-3xl mx-auto text-center space-y-2">
             <h2 className="text-3xl font-thin text-content font-playfair text-center sm:text-4xl">Data-backed interview prep</h2>
           </div>
 
@@ -551,31 +603,31 @@ export function IntroSection() {
             The disconnect? You studied "Reverse a Linked List," but the interviewer asks about "Implementing undo functionality for our document editor." Same algorithm, unrecognizable context. This gap between practice and reality is where preparation breaks down.
           </p>
 
-          <div className="grid gap-6 text-left md:grid-cols-2">
-            <div className="space-y-3 rounded-3xl border border-outline-subtle/25 bg-background p-6">
+          <div className="grid gap-4 text-left md:grid-cols-2">
+            <div className="space-y-2 rounded-3xl border border-outline-subtle/25 bg-background p-5">
               <h3 className="text-lg font-thin text-content font-playfair">Without AlgoIRL</h3>
               <p className="text-sm text-content-muted">
                 Pure problem drilling builds algorithmic skill but rarely mirrors how your target company sets the stage.
               </p>
-              <ul className="space-y-2 text-sm text-content-muted">
+              <ul className="space-y-1.5 text-sm text-content-muted">
                 <li>No product or stack context to anchor pattern recognition under stress.</li>
               </ul>
             </div>
-            <div className="space-y-3 rounded-3xl border border-outline-subtle/25 bg-background p-6">
+            <div className="space-y-2 rounded-3xl border border-outline-subtle/25 bg-background p-5">
               <h3 className="text-lg font-thin text-content font-playfair">With AlgoIRL</h3>
               <p className="text-sm text-content-muted">
                 Hyperrealistic scenarios rehearse recognition, not just solutions, so you stay composed when the framing shifts.
               </p>
-              <ul className="space-y-2 text-sm text-content-muted">
+              <ul className="space-y-1.5 text-sm text-content-muted">
                 <li>Context-rich rewrites across 20 companies and 5 roles keep patterns recognizable.</li>
                 <li>Adaptive study plans adjust sequencing as your interview date approaches.</li>
               </ul>
             </div>
           </div>
 
-          <div className="space-y-4 rounded-3xl border border-outline-subtle/25 bg-background p-6">
+          <div className="space-y-3 rounded-3xl border border-outline-subtle/25 bg-background p-5">
             <h3 className="text-lg font-thin text-content font-playfair">How AlgoIRL closes the gap</h3>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {DATA_FACTORS.map((factor) => (
                 <div key={factor.title} className="flex items-start gap-3">
                   <factor.icon className="mt-1 h-5 w-5 text-mint" />
@@ -620,7 +672,7 @@ export function IntroSection() {
         </ol>
       </SectionBlock>
 
-      <SectionBlock surface="tinted" containerClassName="text-center">
+      <SectionBlock surface="tinted" containerClassName="text-center" className="sm:py-20 md:py-24">
         <div className="max-w-3xl mx-auto space-y-4 text-center">
           <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">
             Choose the plan that fits your depth of prep
@@ -666,7 +718,7 @@ export function IntroSection() {
           </div>
           <div className="flex flex-col rounded-3xl border border-mint/60 bg-background p-8 text-center">
             <div className="text-sm font-semibold uppercase tracking-wide text-mint">Comprehensive</div>
-            <div className="mt-3 text-3xl font-semibold text-content">$5</div>
+            <div className="mt-3 text-3xl font-semibold text-content">$5.99</div>
             <div className="text-sm text-content-muted">Per month · cancel anytime</div>
             <ul className="mt-6 flex-1 space-y-3 text-sm text-content">
               <li className="flex items-start gap-3 text-left">

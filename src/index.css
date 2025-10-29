@@ -147,6 +147,58 @@
     transform: translateX(200%);
   }
 }
+
+/* Logo Animations */
+@keyframes logo-gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes logo-glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 20px var(--logo-glow));
+  }
+  50% {
+    filter: drop-shadow(0 0 35px var(--logo-hover-glow));
+  }
+}
+
+@keyframes logo-letter-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes logo-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Logo hover scale */
+.logo-hover-scale {
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.logo-hover-scale:hover {
+  transform: scale(1.02);
+  filter: drop-shadow(0 0 30px var(--logo-hover-glow));
+}
 .animate-shimmer {
   animation: shimmer 2s infinite;
 }
