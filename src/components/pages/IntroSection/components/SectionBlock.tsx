@@ -27,7 +27,7 @@ export default function SectionBlock({
   return (
     <section
       className={cn(
-        'relative isolate overflow-hidden py-[clamp(3.5rem,6vw,6.25rem)] transition-colors duration-300',
+        'relative isolate py-[clamp(3.5rem,6vw,6.25rem)] transition-colors duration-300',
         surfaceClassNames[surface],
         'before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-16 before:-translate-y-full before:bg-gradient-to-b before:from-transparent before:via-background/80 before:to-background/0 before:content-[\'\']',
         'after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-16 after:translate-y-full after:bg-gradient-to-t after:from-transparent after:via-background/80 after:to-background/0 after:content-[\'\']',

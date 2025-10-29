@@ -1,4 +1,7 @@
-import type { FormEvent } from 'react';
+import type {
+  CSSProperties,
+  FormEvent,
+} from 'react';
 import {
   useCallback,
   useRef,
@@ -351,13 +354,13 @@ export function IntroSection() {
 
   return (
     <div className="bg-background text-content">
-      <SectionBlock surface="base" className="min-h-[calc(100vh-3.5rem)] flex items-center">
+      <SectionBlock surface="base" className="min-h-[calc(100vh-3.5rem)] flex items-center overflow-visible">
         <div className="w-full max-w-4xl mx-auto text-center space-y-6 sm:space-y-8 -mt-14">
           <h1 className="text-7xl sm:text-8xl lg:text-9xl font-light tracking-tight font-playfair leading-[1.2] group">
             <span
-              className="inline-block px-4 py-4 text-transparent bg-clip-text logo-hover-scale relative cursor-pointer"
+              className="inline-block px-4 py-4 logo-hover-scale relative cursor-pointer"
               style={{
-                backgroundImage: `
+                '--logo-gradient-image': `
                   linear-gradient(135deg,
                     var(--logo-gradient-start) 0%,
                     var(--logo-gradient-mid1) 25%,
@@ -367,42 +370,30 @@ export function IntroSection() {
                     transparent 0%,
                     rgba(255, 255, 255, 0.1) 50%,
                     transparent 100%)`,
-                backgroundSize: '200% 200%, 200% 100%',
-                backgroundPosition: '0% 50%, -200% 0%',
-                animation: 'logo-gradient-shift 8s ease-in-out infinite',
-                filter: 'drop-shadow(var(--logo-text-shadow))',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                '--logo-background-size': '200% 200%, 200% 100%',
+                '--logo-background-position': '0% 50%, -200% 0%',
+                '--logo-gradient-name': 'logo-gradient-shift',
+                '--logo-gradient-duration': '8s',
+                '--logo-gradient-timing': 'ease-in-out',
+                '--logo-gradient-iterations': 'infinite',
                 letterSpacing: '-0.01em',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.animation = 'logo-gradient-shift 3s ease-in-out infinite, logo-shimmer 1s ease-out';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.animation = 'logo-gradient-shift 8s ease-in-out infinite';
-              }}
+                transition: 'transform 0.3s ease',
+              } as CSSProperties}
             >
               <span
+                className="logo-text-segment"
                 style={{
-                  animation: 'logo-letter-reveal 0.6s ease-out forwards',
-                  animationDelay: '0.1s',
-                  opacity: 0,
-                  display: 'inline-block',
-                }}
+                  '--logo-letter-delay': '0.1s',
+                } as CSSProperties}
               >
                 Algo
               </span>
               <span
-                className="font-normal"
+                className="font-normal logo-text-segment"
                 style={{
-                  animation: 'logo-letter-reveal 0.6s ease-out forwards',
-                  animationDelay: '0.3s',
-                  opacity: 0,
-                  display: 'inline-block',
+                  '--logo-letter-delay': '0.3s',
                   letterSpacing: '-0.01em',
-                }}
+                } as CSSProperties}
               >
                 IRL
               </span>

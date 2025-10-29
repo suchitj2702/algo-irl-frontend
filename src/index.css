@@ -192,12 +192,36 @@
 
 /* Logo hover scale */
 .logo-hover-scale {
-  transition: transform 0.3s ease, filter 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .logo-hover-scale:hover {
   transform: scale(1.02);
-  filter: drop-shadow(0 0 30px var(--logo-hover-glow));
+}
+
+.logo-text-segment {
+  display: inline-block;
+  opacity: 0;
+  background-image: var(--logo-gradient-image);
+  background-size: var(--logo-background-size);
+  background-position: var(--logo-background-position);
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: var(--logo-text-shadow);
+  transition: text-shadow 0.3s ease;
+  animation-name: var(--logo-gradient-name, logo-gradient-shift), logo-letter-reveal;
+  animation-duration: var(--logo-gradient-duration, 8s), 0.6s;
+  animation-timing-function: var(--logo-gradient-timing, ease-in-out), ease-out;
+  animation-iteration-count: var(--logo-gradient-iterations, infinite), 1;
+  animation-fill-mode: none, forwards;
+  animation-delay: var(--logo-gradient-delay, 0s), var(--logo-letter-delay, 0s);
+}
+
+.logo-hover-scale:hover .logo-text-segment {
+  text-shadow: var(--logo-text-shadow), 0 0 30px var(--logo-hover-glow);
 }
 .animate-shimmer {
   animation: shimmer 2s infinite;
