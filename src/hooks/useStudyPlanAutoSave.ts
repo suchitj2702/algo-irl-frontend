@@ -48,6 +48,7 @@ export function useStudyPlanAutoSave({
   const pendingUpdates = useRef<Map<string, PendingPlanUpdate>>(new Map());
   const isSyncingRef = useRef(false);
   const pendingPlanCreations = useRef<Set<string>>(new Set());
+  const pendingCreationPromises = useRef<Map<string, Promise<unknown>>>(new Map());
   const lastSyncedUpdates = useRef<Map<string, PendingPlanUpdate>>(new Map());
   const saveSkipCount = useRef<number>(0);
 
@@ -203,28 +204,39 @@ export function useStudyPlanAutoSave({
     pendingPlanCreations.current.add(tempId);
 
     // Sync to Firestore in background
+    const creationTask = saveStudyPlanToFirestore(config, response)
+      .then((realPlanId) => {
+        console.log(`☁️ [Auto-Save] Plan synced to Firestore with ID: ${realPlanId}`);
+
+        // Update cache with real ID
+        cachedPlan.planId = realPlanId;
+        cachedPlan.syncedToFirestore = true;
+        savePlanToCache(cachedPlan);
+
+        if (onSyncComplete) {
+          onSyncComplete(realPlanId);
+        }
+
+        return realPlanId;
+      })
+      .catch((error) => {
+        console.error('[Auto-Save] Failed to sync plan to Firestore:', error);
+        if (onError && error instanceof Error) {
+          onError(error);
+        }
+        throw error;
+      })
+      .finally(() => {
+        pendingPlanCreations.current.delete(tempId);
+        pendingCreationPromises.current.delete(tempId);
+      });
+
+    pendingCreationPromises.current.set(tempId, creationTask);
+
     try {
-      const realPlanId = await saveStudyPlanToFirestore(config, response);
-      console.log(`☁️ [Auto-Save] Plan synced to Firestore with ID: ${realPlanId}`);
-
-      // Update cache with real ID
-      cachedPlan.planId = realPlanId;
-      cachedPlan.syncedToFirestore = true;
-      savePlanToCache(cachedPlan);
-
-      // Remove temp ID entry
-      pendingPlanCreations.current.delete(tempId);
-
-      if (onSyncComplete) {
-        onSyncComplete(realPlanId);
-      }
-
+      const realPlanId = await creationTask;
       return realPlanId;
-    } catch (error) {
-      console.error('[Auto-Save] Failed to sync plan to Firestore:', error);
-      if (onError && error instanceof Error) {
-        onError(error);
-      }
+    } catch {
       // Return temp ID - plan is still usable locally
       return tempId;
     }
@@ -299,6 +311,11 @@ export function useStudyPlanAutoSave({
 
     try {
       isSyncingRef.current = true;
+      if (pendingCreationPromises.current.size > 0) {
+        console.log(`⏳ [Force-Save] Waiting for ${pendingCreationPromises.current.size} pending plan creation(s)`);
+        await Promise.allSettled(Array.from(pendingCreationPromises.current.values()));
+      }
+
       const updates = Array.from(pendingUpdates.current.values());
       console.log(`☁️ [Force-Save] Syncing ${updates.length} updates immediately`);
 

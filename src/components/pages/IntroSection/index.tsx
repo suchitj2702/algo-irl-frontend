@@ -709,8 +709,20 @@ export function IntroSection() {
           </div>
           <div className="flex flex-col rounded-3xl border border-mint/60 bg-background p-6 sm:p-8 text-center">
             <div className="text-sm font-semibold uppercase tracking-wide text-mint">Comprehensive</div>
-            <div className="mt-3 text-3xl font-semibold text-content">$5.99</div>
-            <div className="text-sm text-content-muted">Per month · cancel anytime</div>
+            <div className="mt-3 flex flex-col items-center gap-3">
+              <span className="inline-flex items-center gap-1 rounded-full border border-mint/50 bg-mint/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-mint-700">
+                Beta access
+              </span>
+              <span className="text-sm font-medium text-content-muted line-through decoration-2 decoration-mint-500/80">
+                $5.99 per month
+              </span>
+              <span className="text-3xl font-semibold text-content">
+                Free for a limited time
+              </span>
+            </div>
+            <p className="mt-2 text-sm font-medium text-mint-600">
+              Secure beta access before pricing goes live.
+            </p>
             <ul className="mt-4 sm:mt-6 flex-1 space-y-2.5 sm:space-y-3 text-sm text-content">
               <li className="flex items-start gap-3 text-left">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />

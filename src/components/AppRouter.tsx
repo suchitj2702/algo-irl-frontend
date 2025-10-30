@@ -147,6 +147,7 @@ export function AppRouter() {
  const [lastSaveTime, setLastSaveTime] = useState<number>(Date.now());
  const [currentCode, setCurrentCode] = useState<string>('');
  const [codeSaveStatus, setCodeSaveStatus] = useState<'saving' | 'saved' | 'error' | undefined>();
+ const [hasUnsyncedCode, setHasUnsyncedCode] = useState(false);
  const [codeSaveTimestamp, setCodeSaveTimestamp] = useState<number | null>(null);
 
  // Track active problem ID with ref for race condition prevention
@@ -197,6 +198,7 @@ export function AppRouter() {
       const now = Date.now();
       setLastSaveTime(now);
       setCodeSaveTimestamp(now);
+      setHasUnsyncedCode(false);
       setCodeSaveStatus('saved');
 
       // Auto-hide "saved" indicator after 2 seconds
@@ -216,6 +218,7 @@ export function AppRouter() {
   onError: (error) => {
     console.error('[Auto-Save] Error:', error);
     setCodeSaveStatus('error');
+    setHasUnsyncedCode(true);
     setTimeout(() => {
       setCodeSaveStatus(undefined);
     }, 3000);
@@ -223,11 +226,12 @@ export function AppRouter() {
  });
 
  const clearPlanSessionContext = useCallback(() => {
-  // CRITICAL FIX: Clear BOTH study plan context variables
-  // This prevents study plan toolbar from appearing in Blind75 mode
-  setCurrentPlanProblemId(null);
-  setCurrentStudyPlanId(null);
- }, []);
+ // CRITICAL FIX: Clear BOTH study plan context variables
+ // This prevents study plan toolbar from appearing in Blind75 mode
+ setCurrentPlanProblemId(null);
+ setCurrentStudyPlanId(null);
+ setHasUnsyncedCode(false);
+}, []);
 
  const syncPlanStructures = useCallback((response?: StudyPlanResponse | null) => {
   const source = response || studyPlanResponse;
@@ -786,6 +790,9 @@ const handleHomeClick = () => navigate('/');
 
  const handleCodeChange = async (code: string) => {
   setCurrentCode(code);
+  if (currentStudyPlanId && currentPlanProblemId) {
+    setHasUnsyncedCode(true);
+  }
   setCodeSaveStatus('saving'); // Show "Saving..." immediately
 
   // For non-study-plan problems, keep using cache.ts
@@ -1070,6 +1077,7 @@ const handleHomeClick = () => navigate('/');
     setCodeDetails(cachedProblem.codeDetails);
     setSolutionFromSolver(cachedProblem.userCode || cachedProblem.codeDetails.defaultUserCode || '');
     setCurrentCode(cachedProblem.userCode || cachedProblem.codeDetails.defaultUserCode || '');
+    setHasUnsyncedCode(false);
     setCurrentCompanyId(companyId);
     setApiResponseReceived(true);
 
@@ -1210,6 +1218,7 @@ const handleHomeClick = () => navigate('/');
    setProblem(formattedProblem);
    setCodeDetails(formattedCodeDetails);
    setCurrentCompanyId(companyId);
+   setHasUnsyncedCode(false);
    navigate('/study-plan/problem', { replace: true });
 
   } catch (err) {
@@ -1240,6 +1249,7 @@ const handleHomeClick = () => navigate('/');
    setCodeDetails(null);
    setSolutionFromSolver(null);
    setCurrentCode('');
+   setHasUnsyncedCode(false);
    setEvaluationResults(null);
    setApiResponseReceived(false);
 
@@ -1339,6 +1349,7 @@ const handleHomeClick = () => navigate('/');
       setCodeDetails(cachedProblem.codeDetails);
       setSolutionFromSolver(cachedProblem.userCode);
       setCurrentCode(cachedProblem.userCode);
+      setHasUnsyncedCode(false);
       setApiResponseReceived(true);
       navigate('/study-plan/problem', { replace: true });
       return;
@@ -1465,55 +1476,85 @@ const handleHomeClick = () => navigate('/');
   toggleCompletionOptimistic
  ]);
 
- // Consolidated force sync: saves code, progress, and all study plan changes in one go
- const forceFullSync = useCallback(async () => {
-  if (!currentStudyPlanId || !currentPlanProblemId) {
-    return;
-  }
+// Consolidated force sync: saves code, progress, and all study plan changes in one go
+const forceFullSync = useCallback(async () => {
+ const planId = currentStudyPlanId;
+ const problemId = currentPlanProblemId;
 
-  try {
-    // Run all syncs in parallel for better performance
-    const syncPromises: Promise<void>[] = [];
+ const needsCodeSync = Boolean(
+   planId &&
+   problemId &&
+   (hasUnsyncedCode || codeSaveStatus === 'saving')
+ );
+ const needsProgressSync = hasPendingProgressChanges;
+ const needsPlanSync = hasPendingPlanChanges;
 
-    // 1. Force save code if there's current code
-    if (currentCode) {
-      syncPromises.push(
-        forceSave({
-          planId: currentStudyPlanId,
-          problemId: currentPlanProblemId,
-          code: currentCode
-        })
-      );
-    }
+ if (!needsCodeSync && !needsProgressSync && !needsPlanSync) {
+   console.log('ℹ️ [Sync] No pending study plan changes to sync');
+   return;
+ }
 
-    // 2. Force sync plan progress (bookmarks, completion status)
-    syncPromises.push(forceSyncPlanProgress());
+ try {
+   const syncPromises: Promise<void>[] = [];
 
-    // 3. Force sync all study plan changes (problems, metadata)
-    syncPromises.push(forceSyncStudyPlan());
+   if (needsCodeSync && planId && problemId) {
+     syncPromises.push(
+       forceSave({
+         planId,
+         problemId,
+         code: currentCode
+       }).catch((error) => {
+         setHasUnsyncedCode(true);
+         throw error;
+       })
+     );
+   }
 
-    // Wait for all syncs to complete
-    await Promise.all(syncPromises);
-    console.log('✅ Full sync complete');
-  } catch (error) {
-    console.error('❌ Force full sync failed:', error);
-    throw error; // Re-throw so caller can handle
-  }
- }, [currentCode, currentStudyPlanId, currentPlanProblemId, forceSave, forceSyncPlanProgress, forceSyncStudyPlan]);
+   if (needsProgressSync) {
+     syncPromises.push(forceSyncPlanProgress());
+   }
+
+   if (needsPlanSync) {
+     syncPromises.push(forceSyncStudyPlan());
+   }
+
+   await Promise.all(syncPromises);
+   console.log('✅ Full sync complete');
+ } catch (error) {
+   console.error('❌ Force full sync failed:', error);
+   throw error; // Re-throw so caller can handle
+ }
+}, [
+ codeSaveStatus,
+ currentCode,
+ currentPlanProblemId,
+ currentStudyPlanId,
+ forceSave,
+ forceSyncPlanProgress,
+ forceSyncStudyPlan,
+ hasPendingPlanChanges,
+ hasPendingProgressChanges,
+ hasUnsyncedCode
+]);
 
  // Direct navigation to plan view - no loading screen needed!
  const handleReturnToPlanViewImmediate = useCallback(() => {
   console.log('⚡ [Return to Plan] Navigating instantly without loading screen');
 
   // Save in background (non-blocking) if needed
-  if (currentStudyPlanId && currentPlanProblemId) {
-    const hasAnyPendingChanges = hasPendingProgressChanges || hasPendingPlanChanges;
-    if (hasAnyPendingChanges) {
-      console.log('💾 [View Plan] Starting background save...');
-      forceFullSync()
-        .then(() => console.log('✅ [Background Save] Completed'))
-        .catch(error => console.error('❌ [Background Save] Failed:', error));
-    }
+  const isCodeSyncInFlight =
+    Boolean(currentStudyPlanId && currentPlanProblemId && codeSaveStatus === 'saving');
+  const hasAnyPendingChanges =
+    hasPendingProgressChanges ||
+    hasPendingPlanChanges ||
+    hasUnsyncedCode ||
+    isCodeSyncInFlight;
+
+  if (hasAnyPendingChanges) {
+    console.log('💾 [View Plan] Starting background save...');
+    forceFullSync()
+      .then(() => console.log('✅ [Background Save] Completed'))
+      .catch(error => console.error('❌ [Background Save] Failed:', error));
   }
 
   // Navigate IMMEDIATELY - no loading screen, no delays!
@@ -1527,7 +1568,7 @@ const handleHomeClick = () => navigate('/');
     // Fallback: just navigate
     navigate('/study-plan-view');
   }
- }, [
+}, [
   currentStudyPlanId,
   currentPlanProblemId,
   studyPlanResponse,
@@ -1535,55 +1576,103 @@ const handleHomeClick = () => navigate('/');
   handleViewStudyPlan,
   navigate,
   hasPendingProgressChanges,
-  hasPendingPlanChanges
- ]);
+  hasPendingPlanChanges,
+  hasUnsyncedCode,
+  codeSaveStatus
+]);
 
  // Helper: Force save before any navigation
- const saveBeforeAction = useCallback(async (action: () => void | Promise<void>) => {
-  if (currentStudyPlanId && currentPlanProblemId) {
-    try {
-      await forceFullSync();
-    } catch (error) {
-      console.error('Failed to save before action:', error);
-    }
-  }
-  await action();
- }, [currentStudyPlanId, currentPlanProblemId, forceFullSync]);
+const saveBeforeAction = useCallback(async (action: () => void | Promise<void>) => {
+ const isCodeSyncInFlight =
+   Boolean(currentStudyPlanId && currentPlanProblemId && codeSaveStatus === 'saving');
+
+ const hasAnyPendingChanges =
+   hasPendingProgressChanges ||
+   hasPendingPlanChanges ||
+   hasUnsyncedCode ||
+   isCodeSyncInFlight;
+
+ if (hasAnyPendingChanges) {
+   try {
+     await forceFullSync();
+   } catch (error) {
+     console.error('Failed to save before action:', error);
+   }
+ }
+ await action();
+}, [
+  codeSaveStatus,
+  currentPlanProblemId,
+  currentStudyPlanId,
+  forceFullSync,
+  hasPendingPlanChanges,
+  hasPendingProgressChanges,
+  hasUnsyncedCode
+]);
 
  // Non-blocking navigation with background save (like View Plan button)
- const navigateWithBackgroundSave = useCallback((action: () => void | Promise<void>) => {
-  // Save in background (non-blocking) if needed
-  if (currentStudyPlanId && currentPlanProblemId) {
-    const hasAnyPendingChanges = hasPendingProgressChanges || hasPendingPlanChanges;
-    if (hasAnyPendingChanges) {
-      console.log('💾 [Navigation] Starting background save...');
-      forceFullSync()
-        .then(() => console.log('✅ [Background Save] Completed'))
-        .catch(error => console.error('❌ [Background Save] Failed:', error));
-    }
-  }
+const navigateWithBackgroundSave = useCallback((action: () => void | Promise<void>) => {
+ // Save in background (non-blocking) if needed
+ const isCodeSyncInFlight =
+   Boolean(currentStudyPlanId && currentPlanProblemId && codeSaveStatus === 'saving');
 
-  // Execute action IMMEDIATELY - don't wait for save
-  action();
- }, [currentStudyPlanId, currentPlanProblemId, forceFullSync, hasPendingProgressChanges, hasPendingPlanChanges]);
+ const hasAnyPendingChanges =
+   hasPendingProgressChanges ||
+   hasPendingPlanChanges ||
+   hasUnsyncedCode ||
+   isCodeSyncInFlight;
+
+ if (hasAnyPendingChanges) {
+   console.log('💾 [Navigation] Starting background save...');
+   forceFullSync()
+     .then(() => console.log('✅ [Background Save] Completed'))
+     .catch(error => console.error('❌ [Background Save] Failed:', error));
+ }
+
+ // Execute action IMMEDIATELY - don't wait for save
+ action();
+}, [
+  codeSaveStatus,
+  currentPlanProblemId,
+  currentStudyPlanId,
+  forceFullSync,
+  hasPendingPlanChanges,
+  hasPendingProgressChanges,
+  hasUnsyncedCode
+]);
 
  // Force sync before sign-out to prevent data loss
- const handleBeforeSignOut = useCallback(async () => {
-  console.log('🔄 [Sign-Out] Force syncing before sign-out...');
+const handleBeforeSignOut = useCallback(async () => {
+ console.log('🔄 [Sign-Out] Force syncing before sign-out...');
+ const isCodeSyncInFlight =
+   Boolean(currentStudyPlanId && currentPlanProblemId && codeSaveStatus === 'saving');
+ const shouldSync =
+   hasPendingPlanChanges ||
+   hasPendingProgressChanges ||
+   hasUnsyncedCode ||
+   isCodeSyncInFlight;
 
-  // Only sync if user is actively working on study plan
-  if (currentStudyPlanId && currentPlanProblemId && currentCode) {
-    try {
-      await forceFullSync();
-      console.log('✅ [Sign-Out] Sync complete');
-    } catch (error) {
-      console.error('❌ [Sign-Out] Sync failed:', error);
-      // Continue with sign-out even if sync fails (offline, network error, etc.)
-    }
-  } else {
-    console.log('ℹ️ [Sign-Out] No active study plan, skipping sync');
-  }
- }, [currentStudyPlanId, currentPlanProblemId, currentCode, forceFullSync]);
+ if (!shouldSync) {
+   console.log('ℹ️ [Sign-Out] No pending study plan changes, skipping sync');
+   return;
+ }
+
+ try {
+   await forceFullSync();
+   console.log('✅ [Sign-Out] Sync complete');
+ } catch (error) {
+   console.error('❌ [Sign-Out] Sync failed:', error);
+   // Continue with sign-out even if sync fails (offline, network error, etc.)
+ }
+}, [
+  codeSaveStatus,
+  currentPlanProblemId,
+  currentStudyPlanId,
+  forceFullSync,
+  hasPendingPlanChanges,
+  hasPendingProgressChanges,
+  hasUnsyncedCode
+]);
 
  // Handle return to Blind75 with view state restoration
  const handleReturnToBlind75 = useCallback(() => {
