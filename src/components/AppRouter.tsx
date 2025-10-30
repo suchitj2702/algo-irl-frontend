@@ -869,13 +869,19 @@ const handleHomeClick = () => navigate('/');
  // Study Plan handlers
  const handleGenerateStudyPlan = async (config: StudyPlanConfig) => {
   try {
-   // Check for duplicate first
+   setIsGeneratingStudyPlan(true);
+   setStudyPlanError(null);
+   navigate('/study-plan-loading');
+
+   // Check for duplicate while showing loading screen
    const duplicate = await findDuplicateStudyPlanInFirestore(config);
    if (duplicate) {
     setDuplicateStudyPlan(duplicate);
     setPendingStudyPlanConfig(config);
     setShowDuplicateModal(true);
-    return; // Don't proceed with API call yet
+    setIsGeneratingStudyPlan(false);
+    navigate('/study-plan-form');
+    return;
    }
 
    // No duplicate, proceed with generation
@@ -883,6 +889,7 @@ const handleHomeClick = () => navigate('/');
   } catch (err) {
    console.error('Error in handleGenerateStudyPlan:', err);
    setStudyPlanError(err instanceof Error ? err.message : 'Failed to generate study plan.');
+   setIsGeneratingStudyPlan(false);
    navigate('/study-plan-form');
   }
  };

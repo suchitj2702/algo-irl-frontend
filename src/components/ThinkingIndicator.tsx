@@ -6,6 +6,9 @@ interface ThinkingIndicatorProps {
   typingSpeed?: number; // Speed for typing effect in ms
   pauseDuration?: number; // Pause after typing complete before deleting
   deletingSpeed?: number; // Speed for deleting effect in ms
+  alignment?: 'start' | 'center';
+  onStateChange?: (index: number) => void;
+  titleTone?: 'default' | 'subtle';
 }
 
 export function ThinkingIndicator({
@@ -13,7 +16,10 @@ export function ThinkingIndicator({
   title,
   typingSpeed = 80,
   pauseDuration = 1500,
-  deletingSpeed = 40
+  deletingSpeed = 40,
+  alignment = 'start',
+  onStateChange,
+  titleTone = 'default'
 }: ThinkingIndicatorProps) {
   const [currentStateIndex, setCurrentStateIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState('');
@@ -58,18 +64,40 @@ export function ThinkingIndicator({
     }
   }, [currentStateIndex, displayedText, isDeleting, isPaused, states, typingSpeed, pauseDuration, deletingSpeed]);
 
+  useEffect(() => {
+    onStateChange?.(currentStateIndex);
+  }, [currentStateIndex, onStateChange]);
+
+  const alignmentClasses = alignment === 'center'
+    ? 'items-center text-center'
+    : 'items-start text-left';
+  const textAlignmentClasses = alignment === 'center'
+    ? 'text-center'
+    : 'text-left';
+  const textValue = displayedText || '\u00a0';
+  const titleClasses = titleTone === 'subtle'
+    ? 'w-full text-lg font-normal text-content-muted dark:text-content-subtle font-playfair'
+    : 'w-full text-2xl font-bold text-content dark:text-content-subtle font-playfair';
+
   return (
-    <div>
+    <div className={`flex flex-col gap-4 ${alignmentClasses}`}>
       {title && (
-        <h2 className="text-2xl font-bold mb-6 text-content dark:text-content-subtle font-playfair">
+        <h2 className={titleClasses}>
           {title}
         </h2>
       )}
 
-      <div className="inline-flex items-center">
-        <span className="text-base text-content-muted dark:text-content-subtle">
-          {displayedText}
-          <span className="inline-block w-0.5 h-5 bg-mint-600 dark:bg-mint-400 ml-0.5 animate-blink" />
+      <div className="w-full">
+        <span
+          className={`block min-h-[1.75rem] sm:min-h-[2rem] text-sm sm:text-base leading-snug text-content-muted dark:text-content-subtle ${textAlignmentClasses}`}
+          aria-live="polite"
+          role="status"
+        >
+          {textValue}
+          <span
+            className="ml-0.5 inline-block h-4 w-0.5 align-middle rounded-full bg-mint-600 dark:bg-mint-400 sm:h-5 animate-blink"
+            aria-hidden="true"
+          />
         </span>
       </div>
 
