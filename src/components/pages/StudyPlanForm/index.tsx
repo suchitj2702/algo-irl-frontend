@@ -9,6 +9,7 @@ import { useDebounce } from '../../../hooks/useDebounce';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuthDialog } from '@/contexts/AuthDialogContext';
+import { useFeatureFlags } from '@/contexts/FeatureFlagsContext';
 import PaymentModal from '@/components/PaymentModal';
 import { storePaymentContext, trackPaymentEvent } from '@/utils/payment';
 import { toast } from '@/utils/toast';
@@ -44,6 +45,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
  const { user } = useAuth();
  const { hasActiveSubscription, loading: subscriptionLoading, refresh: refreshSubscription } = useSubscription();
  const { openAuthDialog } = useAuthDialog();
+ const { flags } = useFeatureFlags();
  const [showPaymentModal, setShowPaymentModal] = useState(false);
  const [showAuthModal, setShowAuthModal] = useState(false);
  const [pendingDatasetSelection, setPendingDatasetSelection] = useState<'full' | null>(null);
@@ -53,6 +55,11 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
  useEffect(() => {
   subscriptionStatusRef.current = hasActiveSubscription;
  }, [hasActiveSubscription]);
+
+ // Debug logging
+ useEffect(() => {
+  console.log('[StudyPlanForm] flags.paymentsEnabled:', flags.paymentsEnabled);
+ }, [flags.paymentsEnabled]);
 
  useEffect(() => {
   if (!showAuthModal) {
@@ -219,6 +226,15 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
 
   setFullButtonBusy(true);
 
+  // If payments are disabled, allow full dataset access without payment flow
+  if (!flags.paymentsEnabled) {
+   setDatasetType('full');
+   trackPaymentEvent('full_dataset_selected_no_payment');
+   setTimeout(() => setFullButtonBusy(false), 200);
+   return;
+  }
+
+  // If payments are enabled, check authentication and subscription
   if (!user) {
    setPendingDatasetSelection('full');
    setShowAuthModal(true);
@@ -242,7 +258,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
  setDatasetType('full');
  trackPaymentEvent('full_dataset_selected');
   setTimeout(() => setFullButtonBusy(false), 200);
-}, [subscriptionLoading, user, hasActiveSubscription]);
+}, [subscriptionLoading, user, hasActiveSubscription, flags.paymentsEnabled]);
 
  const handlePaymentSuccess = useCallback(() => {
   trackPaymentEvent('full_dataset_payment_success');

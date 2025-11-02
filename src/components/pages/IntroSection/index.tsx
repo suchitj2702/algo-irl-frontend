@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useFeatureFlags } from '@/contexts/FeatureFlagsContext';
 import PaymentModal from '@/components/PaymentModal';
 import AuthModal from '@/components/AuthModal';
 import { trackPaymentEvent, storePaymentContext } from '@/utils/payment';
@@ -154,7 +155,8 @@ const STUDY_PLAN_STEPS = [
   },
 ] as const;
 
-const FAQ_ITEMS = [
+// FAQ items - will be filtered based on payments feature flag
+const BASE_FAQ_ITEMS = [
   {
     question: 'Why not just use LeetCode\'s company tags or premium filters?',
     answer:
@@ -175,20 +177,27 @@ const FAQ_ITEMS = [
     answer:
       'Use LeetCode first, then AlgoIRL. LeetCode builds your foundational algorithmic skills through pattern repetition. AlgoIRL is designed to train users the skill of recognizing those same patterns when they\'re wrapped in company-specific context and jargon. Think of LeetCode as learning chess moves, and AlgoIRL as practicing against opponents with different playing styles. Most successful users solve 50-200 LeetCode problems first, then spend 2-3 weeks on AlgoIRL to build context-switching confidence before their interview.',
   },
+] as const;
+
+// Payment-related FAQs (only shown when payments are enabled)
+const PAYMENT_FAQ_ITEMS = [
   {
     question: 'Can I see a few examples before I upgrade to the paid tier?',
     answer:
       'Yes! The free tier is designed for exactly this. You get full access to the Blind 75 dataset with unlimited company-role transformations. Try 10-15 problems across different companies and roles to see if AlgoIRL\'s context-rich scenarios help you recognize patterns faster. If you find the transformations valuable and want deeper topic coverage (50 graph problems instead of 10, advanced DP patterns, etc.), upgrade to access the full 2,000+ problem library. No trial periods, no credit card required to start.',
   },
   {
-    question: 'How accurate are the company-specific transformations?',
-    answer:
-      'Our fine-tuned LLM model was trained to optimize on six quality metrics - company relevance, role alignment, scenario realism, technical fidelity, clarity, and parsing accuracy. If a scenario doesn\'t feel realistic, regenerate it for a fresh take. We\'re continuously improving the model based on user feedback and new interview data to ensure high-quality transformations that truly reflect how companies frame problems in their interviews.',
-  },
-  {
     question: 'What is included in the free plan?',
     answer:
       'You get study plans powered by the Blind 75 dataset, company-aware transformations for those problems, and our privacy-first workspace — all synced across devices. No credit card required, no time limit.',
+  },
+] as const;
+
+const ADDITIONAL_FAQ_ITEMS = [
+  {
+    question: 'How accurate are the company-specific transformations?',
+    answer:
+      'Our fine-tuned LLM model was trained to optimize on six quality metrics - company relevance, role alignment, scenario realism, technical fidelity, clarity, and parsing accuracy. If a scenario doesn\'t feel realistic, regenerate it for a fresh take. We\'re continuously improving the model based on user feedback and new interview data to ensure high-quality transformations that truly reflect how companies frame problems in their interviews.',
   },
   {
     question: 'How does AlgoIRL source company and role intelligence?',
@@ -228,6 +237,7 @@ export function IntroSection() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { hasActiveSubscription, loading } = useSubscription();
+  const { flags } = useFeatureFlags();
   const { openAuthDialog } = useAuthDialog();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -276,6 +286,11 @@ export function IntroSection() {
       return;
     }
 
+    // Guard: Don't show payment UI if payments are disabled
+    if (!flags.paymentsEnabled) {
+      return;
+    }
+
     if (!user) {
       sessionStorage.setItem('post_auth_action', 'unlock-comprehensive');
       setPostAuthAction('unlock-comprehensive');
@@ -295,7 +310,7 @@ export function IntroSection() {
       feature: 'Comprehensive Plan',
       timestamp: Date.now(),
     });
-  }, [hasActiveSubscription, loading, navigate, user]);
+  }, [hasActiveSubscription, loading, navigate, user, flags.paymentsEnabled]);
 
   const handlePaymentSuccess = useCallback(() => {
     trackPaymentEvent('unlock_comprehensive_payment_success', {
@@ -333,6 +348,18 @@ export function IntroSection() {
       },
     });
   }, [navigate, openAuthDialog, user]);
+
+  // Dynamically build FAQ items based on payment feature flag
+  const FAQ_ITEMS = [
+    ...BASE_FAQ_ITEMS,
+    ...(flags.paymentsEnabled ? PAYMENT_FAQ_ITEMS : []),
+    ...ADDITIONAL_FAQ_ITEMS,
+  ];
+
+  // Debug logging
+  useEffect(() => {
+    console.log('[IntroSection] flags.paymentsEnabled:', flags.paymentsEnabled);
+  }, [flags.paymentsEnabled]);
 
   const handleProblemChange = useCallback((problemId: typeof PROBLEM_OPTIONS[number]['id']) => {
     setSelectedProblem(problemId);
@@ -733,17 +760,18 @@ export function IntroSection() {
         </ol>
       </SectionBlock>
 
-      <SectionBlock surface="tinted" containerClassName="text-center" className="sm:py-20 md:py-24">
-        <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4 text-center">
-          <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">
-            Choose the plan that fits your depth of prep
-          </h2>
-          <p className="text-sm text-content-muted leading-relaxed sm:text-base">
-            Both plans include the same interface and privacy-first experience. Upgrade when you need the full company and role dataset.
-          </p>
-        </div>
-        <div className="grid gap-4 sm:gap-6 text-center md:grid-cols-2">
-          <div className="flex flex-col rounded-3xl border border-outline-subtle/25 bg-background p-6 sm:p-8 text-center">
+      {flags.paymentsEnabled && (
+        <SectionBlock surface="tinted" containerClassName="text-center" className="sm:py-20 md:py-24">
+          <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4 text-center">
+            <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">
+              Choose the plan that fits your depth of prep
+            </h2>
+            <p className="text-sm text-content-muted leading-relaxed sm:text-base">
+              Both plans include the same interface and privacy-first experience. Upgrade when you need the full company and role dataset.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:gap-6 text-center md:grid-cols-2">
+            <div className="flex flex-col rounded-3xl border border-outline-subtle/25 bg-background p-6 sm:p-8 text-center">
             <div className="text-sm font-semibold uppercase tracking-wide text-content-muted">Free</div>
             <div className="mt-3 text-3xl font-semibold text-content">$0</div>
             <div className="text-sm text-content-muted">Always available</div>
@@ -776,8 +804,8 @@ export function IntroSection() {
             >
               Start free today
             </button>
-          </div>
-          <div className="flex flex-col rounded-3xl border border-mint/60 bg-background p-6 sm:p-8 text-center">
+            </div>
+            <div className="flex flex-col rounded-3xl border border-mint/60 bg-background p-6 sm:p-8 text-center">
             <div className="text-sm font-semibold uppercase tracking-wide text-mint">Comprehensive</div>
             <div className="mt-3 flex flex-col items-center gap-3">
               <span className="inline-flex items-center gap-1 rounded-full border border-mint/50 bg-mint/10 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-mint-700">
@@ -817,9 +845,10 @@ export function IntroSection() {
             >
               {hasActiveSubscription ? 'Already subscribed' : 'Unlock comprehensive plans'}
             </button>
+            </div>
           </div>
-        </div>
-      </SectionBlock>
+        </SectionBlock>
+      )}
 
       <SectionBlock surface="muted" containerClassName="text-left">
         <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4 text-center">
@@ -853,7 +882,10 @@ export function IntroSection() {
         <div className="mx-auto max-w-3xl space-y-4 sm:space-y-6 text-center">
           <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Build confidence with company-aware, role-specific practice powered by AI</h2>
           <p className="text-sm text-content-muted leading-relaxed sm:text-base">
-            Start for free and upgrade when you are ready for comprehensive study plans
+            {flags.paymentsEnabled
+              ? "Start for free and upgrade when you are ready for comprehensive study plans"
+              : "Start for free with comprehensive study plans powered by AI"
+            }
           </p>
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
             <button

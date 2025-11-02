@@ -106,13 +106,9 @@ export function PremiumGate({
 
   // PRIORITY 2: Check if subscription is required (payment gate, optional)
   if (flags.requireSubscription && !hasActiveSubscription) {
-    if (!flags.razorpayCheckoutEnabled) {
-      return (
-        <ComingSoonModal
-          feature={feature}
-          message="Subscription upgrades are almost ready. You'll be able to unlock this feature soon."
-        />
-      );
+    // If payments are not enabled, allow access without subscription requirement
+    if (!flags.paymentsEnabled || !flags.razorpayCheckoutEnabled) {
+      return <>{children}</>;
     }
 
     return (

@@ -14,6 +14,7 @@ import { MyStudyPlansPage } from './pages/MyStudyPlansPage';
 import PaymentStatusPage from '@/pages/PaymentStatus';
 import { PremiumGate } from './PremiumGate';
 import { DuplicateWarningModal } from './DuplicateWarningModal';
+import { useFeatureFlags } from '@/contexts/FeatureFlagsContext';
 import { DarkModeProvider } from './DarkModeContext';
 import { Navbar } from './Navbar';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -75,6 +76,12 @@ export const MAX_LOADING_DURATION_SECONDS = 60;
 export function AppRouter() {
  const navigate = useNavigate();
  const location = useLocation();
+ const { flags } = useFeatureFlags();
+
+ // Debug logging
+ useEffect(() => {
+  console.log('[AppRouter] flags.paymentsEnabled:', flags.paymentsEnabled);
+ }, [flags.paymentsEnabled]);
 
  // Problem state
  const [problem, setProblem] = useState<Problem | null>(null);
@@ -1791,10 +1798,12 @@ const handleBeforeSignOut = useCallback(async () => {
      )}
 
      <Routes>
-    <Route path="/" element={<IntroSection />} />
-    <Route path="/payment/status/:status" element={<PaymentStatusPage />} />
+      <Route path="/" element={<IntroSection />} />
+      {flags.paymentsEnabled && (
+        <Route path="/payment/status/:status" element={<PaymentStatusPage />} />
+      )}
 
-     <Route path="/my-study-plans" element={
+      <Route path="/my-study-plans" element={
       <PremiumGate feature="My Study Plans">
        <MyStudyPlansPage
         onCreateNew={handleCreateNewStudyPlan}

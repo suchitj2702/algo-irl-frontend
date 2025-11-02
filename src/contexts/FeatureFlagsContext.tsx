@@ -85,7 +85,8 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
         require_auth_for_study_plans: defaultFlags.requireAuthForStudyPlans,
       };
 
-      await fetchAndActivate(remoteConfig);
+      const activated = await fetchAndActivate(remoteConfig);
+      console.log('[FeatureFlags] Remote Config activated:', activated);
 
       const newFlags: FeatureFlags = {
         paymentsEnabled: getValue(remoteConfig, 'payments_enabled').asBoolean(),
@@ -100,6 +101,9 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
         maxFreeStudyPlans: getValue(remoteConfig, 'max_free_study_plans').asNumber(),
         requireAuthForStudyPlans: getValue(remoteConfig, 'require_auth_for_study_plans').asBoolean(),
       };
+
+      console.log('[FeatureFlags] Loaded flags:', newFlags);
+      console.log('[FeatureFlags] paymentsEnabled:', newFlags.paymentsEnabled);
 
       setFlags(newFlags);
     } catch (error) {
