@@ -5,7 +5,9 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFeatureFlags } from "@/contexts/FeatureFlagsContext";
 import { clearPaymentContext, retrievePaymentContext, trackPaymentEvent } from "@/utils/payment";
+import { secureLog } from "@/utils/secureLogger";
 
 type VerificationAttempt = {
   paymentId: string;
@@ -17,6 +19,12 @@ const POLL_INTERVAL_MS = 2000;
 const MAX_POLL_ATTEMPTS = 15;
 
 export function PaymentSuccessHandler() {
+  const { flags } = useFeatureFlags();
+
+  // Don't render if payments are disabled
+  if (!flags.paymentsEnabled) {
+    return null;
+  }
   const { refresh } = useSubscription();
   const { getIdToken } = useAuth();
   const navigate = useNavigate();
@@ -114,7 +122,7 @@ export function PaymentSuccessHandler() {
           navigateToDestination();
         }
       } catch (error) {
-        console.error("Subscription polling error:", error);
+        secureLog.error('Payment', error as Error, { context: 'subscription-polling' });
       }
     }, POLL_INTERVAL_MS);
   }, [clearActivePoll, handleActivatedSubscription, navigateToDestination, refresh]);
@@ -224,11 +232,11 @@ export function PaymentSuccessHandler() {
             (errorPayload && typeof errorPayload.message === "string" && errorPayload.message) ||
             (errorPayload && typeof errorPayload.error === "string" && errorPayload.error) ||
             "Payment verification failed. Please try again.";
-          console.error("Payment verification failed:", message);
+          secureLog.error('Payment', new Error('Payment verification failed'), { message });
           await handleFailedPayment();
         }
       } catch (error) {
-        console.error("Payment verification error:", error);
+        secureLog.error('Payment', error as Error, { context: 'payment-verification' });
         toast.error("Payment verification failed. Please contact support.");
       } finally {
         setIsProcessing(false);

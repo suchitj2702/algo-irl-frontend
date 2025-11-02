@@ -3,6 +3,7 @@ import { collection, getDocs, getFirestore, onSnapshot, query, where } from "fir
 import { toast } from "@/utils/toast";
 import app from "../config/firebase";
 import { useAuth } from "./AuthContext";
+import { secureLog } from "../utils/secureLogger";
 
 export type SubscriptionStatus = "active" | "canceled" | "past_due" | "none";
 
@@ -355,7 +356,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       const normalizedError =
         error instanceof Error ? error : new Error("Unable to refresh subscription status at this time.");
       setRefreshError(normalizedError);
-      console.error("Error refreshing subscription status:", normalizedError);
+      secureLog.error('Subscription', normalizedError);
       return subscriptionState.status;
     } finally {
       setLoading(false);
@@ -392,7 +393,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
             window.clearInterval(pollInterval);
           }
         } catch (error) {
-          console.error("Subscription refresh error:", error);
+          secureLog.error('Subscription', error as Error, { context: 'payment-success-polling' });
         }
       }, 2000);
 
@@ -438,7 +439,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         setLastRefreshTime(Date.now());
       },
       (error) => {
-        console.error("Subscription listener error:", error);
+        secureLog.error('Subscription', error as Error, { context: 'subscription-listener' });
       },
     );
 

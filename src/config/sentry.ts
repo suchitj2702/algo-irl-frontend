@@ -1,0 +1,216 @@
+/**
+ * Sentry Configuration - Optimized for Free Tier
+ *
+ * Free Tier Limits:
+ * - 5,000 errors/month
+ * - 10,000 performance transactions/month
+ *
+ * Strategy:
+ * - 30% error sampling = ~3,000-4,000 errors/month (leaves buffer)
+ * - 5% performance sampling = stays well under limit
+ * - Fatal errors always captured (bypasses sampling)
+ * - Warnings/info not sent to Sentry (Vercel logs only)
+ */
+
+import * as Sentry from '@sentry/react';
+import { sanitizeResponse } from '../utils/responseSanitizer';
+
+/**
+ * Initialize Sentry with free tier optimization
+ */
+export function initSentry(): void {
+  // Only initialize in production
+  if (!import.meta.env.PROD) {
+    return;
+  }
+
+  const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
+
+  if (!sentryDsn) {
+    console.warn('[Sentry] DSN not configured, skipping initialization');
+    return;
+  }
+
+  Sentry.init({
+    dsn: sentryDsn,
+
+    // Environment tracking
+    environment: import.meta.env.MODE,
+
+    // Release tracking (for identifying which deploy caused errors)
+    release: import.meta.env.VITE_APP_VERSION || '0.0.1',
+
+    // FREE TIER QUOTA MANAGEMENT
+    // 30% sampling = ~3-4K errors/month (safe buffer under 5K limit)
+    sampleRate: 0.3,
+
+    // 5% performance sampling = well under 10K transactions/month
+    tracesSampleRate: 0.05,
+
+    // Only send errors and fatal (not warnings/info)
+    beforeSend(event, hint) {
+      // Always capture fatal errors (bypasses sampling)
+      if (event.level === 'fatal') {
+        return event;
+      }
+
+      // Don't send warnings or info to Sentry
+      if (event.level !== 'error' && event.level !== 'fatal') {
+        return null;
+      }
+
+      // Sanitize all data before sending
+      if (event.extra) {
+        event.extra = sanitizeResponse(event.extra, { maxLength: 2000 });
+      }
+
+      if (event.contexts) {
+        event.contexts = sanitizeResponse(event.contexts, { maxLength: 2000 });
+      }
+
+      // Remove full URLs from breadcrumbs (may contain tokens in query params)
+      if (event.breadcrumbs) {
+        event.breadcrumbs = event.breadcrumbs.map(breadcrumb => ({
+          ...breadcrumb,
+          data: breadcrumb.data ? sanitizeResponse(breadcrumb.data) : undefined,
+        }));
+      }
+
+      return event;
+    },
+
+    // Integrations
+    integrations: [
+      // Browser tracing for performance monitoring
+      Sentry.browserTracingIntegration({
+        // Only trace requests to our own API
+        tracePropagationTargets: ['localhost', 'algoirl.ai', /^\//],
+
+        // Disable automatic instrumentation for links/forms (saves quota)
+        instrumentNavigation: false,
+        instrumentPageLoad: true,
+      }),
+
+      // Session replay (DISABLED to save quota on free tier)
+      Sentry.replayIntegration({
+        maskAllText: true,      // Mask all text for privacy
+        blockAllMedia: true,    // Block all media
+        maskAllInputs: true,    // Mask all inputs
+
+        // Only capture replays for errors (not all sessions)
+        sessionSampleRate: 0,   // Never sample normal sessions (saves quota)
+        errorSampleRate: 0.1,   // Only 10% of error sessions
+      }),
+
+      // Feedback integration (DISABLED - not needed for MVP)
+      // Sentry.feedbackIntegration(),
+    ],
+
+    // Ignore known non-critical errors
+    ignoreErrors: [
+      // Browser extension errors
+      'top.GLOBALS',
+      'originalCreateNotification',
+      'canvas.contentDocument',
+      'MyApp_RemoveAllHighlights',
+      'atomicFindClose',
+
+      // React DevTools
+      'Cannot find module',
+
+      // Network errors (user's connection, not our bug)
+      'NetworkError',
+      'Failed to fetch',
+      'Load failed',
+
+      // ResizeObserver errors (benign)
+      'ResizeObserver loop limit exceeded',
+      'ResizeObserver loop completed',
+
+      // Non-Error promise rejections
+      'Non-Error promise rejection captured',
+      'Non-Error exception captured',
+
+      // Firebase auth errors (expected, not bugs)
+      'auth/popup-closed-by-user',
+      'auth/cancelled-popup-request',
+      'auth/network-request-failed',
+    ],
+
+    // Ignore errors from browser extensions
+    denyUrls: [
+      // Chrome extensions
+      /extensions\//i,
+      /^chrome:\/\//i,
+      /^chrome-extension:\/\//i,
+
+      // Firefox extensions
+      /^moz-extension:\/\//i,
+
+      // Safari extensions
+      /^safari-extension:\/\//i,
+    ],
+
+    // Attach stack traces to messages
+    attachStacktrace: true,
+
+    // Enable debug mode in development only
+    debug: import.meta.env.DEV,
+
+    // Maximum breadcrumbs (default 100, reduce to save data)
+    maxBreadcrumbs: 50,
+
+    // Transport options
+    transportOptions: {
+      // Limit request size
+      maxBatchSize: 5,
+    },
+  });
+
+  console.info('[Sentry] Initialized successfully');
+}
+
+/**
+ * Check if Sentry is enabled
+ */
+export function isSentryEnabled(): boolean {
+  return import.meta.env.PROD && !!import.meta.env.VITE_SENTRY_DSN;
+}
+
+/**
+ * Manually capture message (use sparingly - counts against quota)
+ */
+export function captureMessage(message: string, level: Sentry.SeverityLevel = 'info'): void {
+  if (isSentryEnabled()) {
+    Sentry.captureMessage(message, level);
+  }
+}
+
+/**
+ * Manually capture exception (use secureLog.error instead)
+ */
+export function captureException(error: Error, context?: any): void {
+  if (isSentryEnabled()) {
+    Sentry.captureException(error, {
+      extra: context ? sanitizeResponse(context) : undefined,
+    });
+  }
+}
+
+/**
+ * Set custom tag (useful for filtering errors)
+ */
+export function setTag(key: string, value: string): void {
+  if (isSentryEnabled()) {
+    Sentry.setTag(key, value);
+  }
+}
+
+/**
+ * Set custom context
+ */
+export function setContext(name: string, context: Record<string, any>): void {
+  if (isSentryEnabled()) {
+    Sentry.setContext(name, sanitizeResponse(context));
+  }
+}

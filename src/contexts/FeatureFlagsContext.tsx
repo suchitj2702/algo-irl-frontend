@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from 'react';
 import { fetchAndActivate, getRemoteConfig, getValue } from 'firebase/remote-config';
 import app from '../config/firebase';
+import { secureLog } from '../utils/secureLogger';
 
 export interface FeatureFlags {
   paymentsEnabled: boolean;
@@ -45,8 +46,7 @@ function parseJsonArray(value: string, paramName?: string): string[] {
     const parsed = JSON.parse(value);
     return Array.isArray(parsed) ? (parsed.filter((item) => typeof item === 'string') as string[]) : [];
   } catch (err) {
-    console.warn(`Failed to parse Remote Config array value for "${paramName}":`, err);
-    console.warn('Raw value:', value);
+    secureLog.warn('FeatureFlags', `Failed to parse Remote Config array value for "${paramName}"`);
     return [];
   }
 }
@@ -87,7 +87,7 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
       };
 
       const activated = await fetchAndActivate(remoteConfig);
-      console.log('[FeatureFlags] Remote Config activated:', activated);
+      secureLog.dev('FeatureFlags', `Remote Config activated: ${activated}`);
 
       const newFlags: FeatureFlags = {
         paymentsEnabled: getValue(remoteConfig, 'payments_enabled').asBoolean(),
@@ -106,12 +106,14 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
         requireAuthForStudyPlans: getValue(remoteConfig, 'require_auth_for_study_plans').asBoolean(),
       };
 
-      console.log('[FeatureFlags] Loaded flags:', newFlags);
-      console.log('[FeatureFlags] paymentsEnabled:', newFlags.paymentsEnabled);
+      secureLog.dev('FeatureFlags', 'Loaded feature flags', {
+        paymentsEnabled: newFlags.paymentsEnabled,
+        razorpayCheckoutEnabled: newFlags.razorpayCheckoutEnabled
+      });
 
       setFlags(newFlags);
     } catch (error) {
-      console.error('Error loading feature flags:', error);
+      secureLog.error('FeatureFlags', error as Error);
       setFlags(defaultFlags);
     } finally {
       setLoading(false);

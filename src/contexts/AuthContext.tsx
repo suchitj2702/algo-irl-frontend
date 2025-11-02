@@ -13,6 +13,7 @@ import type { FirebaseError } from "firebase/app";
 import app, { auth, type User as AppUser } from "../config/firebase";
 import { useNavigate } from "react-router-dom";
 import { trackEvent } from "@/utils/analytics";
+import { secureLog } from "@/utils/secureLogger";
 
 type SubscriptionStatus = "active" | "canceled" | "past_due" | "none";
 
@@ -310,6 +311,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       const friendlyMessage = getFriendlyErrorMessage(err);
       setError(friendlyMessage);
+      secureLog.error('Auth', err as Error, { operation: 'get-subscription-status' });
       return "none";
     }
   }, [user]);

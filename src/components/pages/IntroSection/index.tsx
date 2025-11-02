@@ -1,5 +1,6 @@
 import type { CSSProperties, FormEvent } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { secureLog } from '@/utils/secureLogger';
 import {
   Activity,
   BarChart4,
@@ -358,7 +359,7 @@ export function IntroSection() {
 
   // Debug logging
   useEffect(() => {
-    console.log('[IntroSection] flags.paymentsEnabled:', flags.paymentsEnabled);
+    secureLog.dev('IntroSection', 'Payments feature flag', { paymentsEnabled: flags.paymentsEnabled });
   }, [flags.paymentsEnabled]);
 
   const handleProblemChange = useCallback((problemId: typeof PROBLEM_OPTIONS[number]['id']) => {

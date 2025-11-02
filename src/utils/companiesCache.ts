@@ -1,5 +1,6 @@
 // Companies cache utility for localStorage
 import { Company } from '../types';
+import { secureLog } from './secureLogger';
 
 const COMPANIES_CACHE_KEY = 'algo_irl_companies_cache';
 const CACHE_EXPIRY_KEY = 'algo_irl_companies_cache_expiry';
@@ -35,7 +36,7 @@ export const getCachedCompanies = (): Company[] | null => {
     const parsedCache: CompaniesCache = JSON.parse(cached);
     return parsedCache.companies;
   } catch (error) {
-    console.error('Error reading companies from cache:', error);
+    secureLog.error('CompaniesCache', error as Error, { operation: 'read' });
     return null;
   }
 };

@@ -7,6 +7,7 @@ import { CachedPlanData, getPlanFromCache, updateProblemInCache } from './studyP
 import { EnrichedProblem } from '../types/studyPlan';
 import { Problem, CodeDetails } from '../types';
 import { getProblemDetailsFromFirestore } from './studyPlanFirestoreService';
+import { secureLog } from '../utils/secureLogger';
 
 // In-memory cache for frequently accessed data
 class MemoryCache {
@@ -92,10 +93,10 @@ class BatchWriter {
         localStorage.setItem(key, JSON.stringify(data));
       }
 
-      console.log(`💾 [BatchWriter] Flushed ${this.pendingWrites.size} writes to localStorage`);
+      secureLog.dev('BatchWriter', `Flushed ${this.pendingWrites.size} writes to localStorage`);
       this.pendingWrites.clear();
     } catch (error) {
-      console.error('[BatchWriter] Failed to flush writes:', error);
+      secureLog.error('BatchWriter', error as Error, { operation: 'flush' });
     }
 
     if (this.writeTimer) {
@@ -135,7 +136,7 @@ export async function preloadAdjacentProblems(
         const cached = getCachedProblemOptimized(planId, problem.problemId);
         if (cached) {
           memoryCache.set(cacheKey, cached);
-          console.log(`🚀 [Preloader] Cached adjacent problem ${index - currentIndex > 0 ? '+' : ''}${index - currentIndex}: ${problem.problemId}`);
+          secureLog.dev('Preloader', `Cached adjacent problem ${index - currentIndex > 0 ? '+' : ''}${index - currentIndex}: ${problem.problemId}`);
         }
       }, 0);
     }
@@ -154,7 +155,7 @@ export function getCachedProblemOptimized(
   // Check memory cache first (fastest)
   const memCached = memoryCache.get(cacheKey);
   if (memCached) {
-    console.log(`⚡ [Cache] Memory hit for problem ${problemId}`);
+    secureLog.dev('Cache', `Memory hit for problem ${problemId}`);
     return memCached;
   }
 
@@ -170,11 +171,11 @@ export function getCachedProblemOptimized(
     if (problem) {
       // Store in memory cache for next access
       memoryCache.set(cacheKey, problem);
-      console.log(`💾 [Cache] localStorage hit for problem ${problemId}`);
+      secureLog.dev('Cache', `localStorage hit for problem ${problemId}`);
       return problem;
     }
   } catch (error) {
-    console.error('[Cache] Read error:', error);
+    secureLog.error('Cache', error as Error, { operation: 'read', problemId });
   }
 
   return null;
@@ -209,9 +210,9 @@ export function updateCacheOptimized(
     // Schedule batched write
     batchWriter.schedule(planKey, updated);
 
-    console.log(`⏱️ [Cache] Scheduled batched update for plan ${planId}`);
+    secureLog.dev('Cache', `Scheduled batched update for plan ${planId}`);
   } catch (error) {
-    console.error('[Cache] Update error:', error);
+    secureLog.error('Cache', error as Error, { operation: 'update', planId });
   }
 }
 
@@ -228,7 +229,7 @@ export function validateCache(planId: string): boolean {
 
     // Basic integrity checks
     if (!plan.planId || !plan.config || !plan.response) {
-      console.warn(`[Cache] Invalid structure for plan ${planId}`);
+      secureLog.warn('Cache', `Invalid structure for plan ${planId}`);
       return false;
     }
 
@@ -236,7 +237,7 @@ export function validateCache(planId: string): boolean {
     if (plan.problemDetails) {
       for (const [problemId, details] of Object.entries(plan.problemDetails)) {
         if (!details.problem || !details.codeDetails) {
-          console.warn(`[Cache] Corrupted problem details for ${problemId}`);
+          secureLog.warn('Cache', `Corrupted problem details for ${problemId}`);
           return false;
         }
       }
@@ -244,7 +245,7 @@ export function validateCache(planId: string): boolean {
 
     return true;
   } catch (error) {
-    console.error('[Cache] Validation error:', error);
+    secureLog.error('Cache', error as Error, { operation: 'validation', planId });
     return false;
   }
 }
@@ -300,7 +301,7 @@ export function decompressCache(compressed: string, fullData: CachedPlanData): C
       }
     };
   } catch (error) {
-    console.error('[Cache] Decompression error:', error);
+    secureLog.error('Cache', error as Error, { operation: 'decompression' });
     return fullData;
   }
 }
@@ -310,7 +311,7 @@ export function decompressCache(compressed: string, fullData: CachedPlanData): C
  */
 export function clearMemoryCache(): void {
   memoryCache.clear();
-  console.log('🧹 [Cache] Cleared memory cache');
+  secureLog.dev('Cache', 'Cleared memory cache');
 }
 
 /**
@@ -388,7 +389,12 @@ const telemetry: CacheTelemetry = {
 setInterval(() => {
   if (telemetry.totalRequests > 0) {
     const hitRate = (telemetry.cacheHits / telemetry.totalRequests * 100).toFixed(1);
-    console.log(`📊 [Cache Telemetry] Hour summary - Hit rate: ${hitRate}%, Hits: ${telemetry.cacheHits}, Misses: ${telemetry.cacheMisses}, Firestore: ${telemetry.firestoreHits}, API: ${telemetry.apiCalls}`);
+    secureLog.dev('CacheTelemetry', `Hour summary - Hit rate: ${hitRate}%`, {
+      hits: telemetry.cacheHits,
+      misses: telemetry.cacheMisses,
+      firestore: telemetry.firestoreHits,
+      api: telemetry.apiCalls
+    });
   }
 
   // Reset counters
@@ -420,18 +426,18 @@ export async function getProblemWithFallbacks(
   const memCached = memoryCache.get(memCacheKey);
   if (memCached?.problem && memCached?.codeDetails) {
     telemetry.cacheHits++;
-    console.log(`⚡ [Cache] Tier 0 HIT: Found in memory cache`);
+    secureLog.dev('Cache', `Tier 0 HIT: Found in memory cache`);
     return memCached;
   }
 
   // Tier 1: Check unified cache
-  console.log(`🔍 [Cache] Tier 1: Checking unified cache for ${problemId}`);
+  secureLog.dev('Cache', `Tier 1: Checking unified cache for ${problemId}`);
   const cachedPlan = getPlanFromCache(planId);
   if (cachedPlan?.problemDetails?.[problemId]) {
     const cached = cachedPlan.problemDetails[problemId];
     if (cached.problem && cached.codeDetails) {
       telemetry.cacheHits++;
-      console.log(`✅ [Cache] Tier 1 HIT: Found in unified cache`);
+      secureLog.dev('Cache', `Tier 1 HIT: Found in unified cache`);
 
       // Store in memory cache for next access
       memoryCache.set(memCacheKey, {
@@ -449,12 +455,12 @@ export async function getProblemWithFallbacks(
   }
 
   // Tier 2: Check Firestore (network call, but cheaper than API)
-  console.log(`🔍 [Cache] Tier 2: Checking Firestore for ${problemId}`);
+  secureLog.dev('Cache', `Tier 2: Checking Firestore for ${problemId}`);
   try {
     const firestoreData = await getProblemDetailsFromFirestore(planId, problemId);
     if (firestoreData) {
       telemetry.firestoreHits++;
-      console.log(`✅ [Cache] Tier 2 HIT: Found in Firestore`);
+      secureLog.dev('Cache', `Tier 2 HIT: Found in Firestore`);
 
       // Save to unified cache and memory cache
       updateProblemInCache(
@@ -478,11 +484,11 @@ export async function getProblemWithFallbacks(
       };
     }
   } catch (error) {
-    console.warn(`[Cache] Tier 2 Firestore check failed:`, error);
+    secureLog.warn('Cache', `Tier 2 Firestore check failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 
   // Tier 3: Check localStorage legacy format (backward compatibility)
-  console.log(`🔍 [Cache] Tier 3: Checking localStorage legacy format`);
+  secureLog.dev('Cache', `Tier 3: Checking localStorage legacy format`);
   try {
     const legacyKey = `problem_${planId}_${problemId}`;
     const legacyData = localStorage.getItem(legacyKey);
@@ -490,7 +496,7 @@ export async function getProblemWithFallbacks(
       const parsed = JSON.parse(legacyData);
       if (parsed.problem && parsed.codeDetails) {
         telemetry.cacheHits++;
-        console.log(`✅ [Cache] Tier 3 HIT: Found in legacy localStorage`);
+        secureLog.dev('Cache', `Tier 3 HIT: Found in legacy localStorage`);
 
         // Migrate to unified cache and memory cache
         updateProblemInCache(
@@ -511,7 +517,7 @@ export async function getProblemWithFallbacks(
       }
     }
   } catch (error) {
-    console.warn(`[Cache] Tier 3 legacy check failed:`, error);
+    secureLog.warn('Cache', `Tier 3 legacy check failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 
   // Tier 4: API call (last resort)
@@ -519,8 +525,8 @@ export async function getProblemWithFallbacks(
   telemetry.apiCalls++;
 
   if (onApiCall) {
-    console.log(`🌐 [Cache] Tier 4: All caches missed, calling API`);
-    console.warn(`⚠️ [Cache] API call required for ${problemId} - this should be rare!`);
+    secureLog.dev('Cache', `Tier 4: All caches missed, calling API`);
+    secureLog.warn('Cache', `API call required for ${problemId} - this should be rare!`);
 
     // Log cache miss for investigation
     logCacheMiss(planId, problemId);
@@ -541,12 +547,12 @@ export async function getProblemWithFallbacks(
 
       return apiData;
     } catch (error) {
-      console.error(`[Cache] API call failed:`, error);
+      secureLog.error('Cache', error as Error, { operation: 'api-call', problemId });
       return null;
     }
   }
 
-  console.error(`❌ [Cache] All tiers failed for ${problemId}`);
+  secureLog.error('Cache', new Error(`All tiers failed for ${problemId}`));
   return null;
 }
 
@@ -569,7 +575,7 @@ function logCacheMiss(planId: string, problemId: string): void {
     if (misses.length > 10) misses.shift();
     localStorage.setItem('cache_misses', JSON.stringify(misses));
   } catch (error) {
-    console.error('[Cache] Failed to log cache miss:', error);
+    secureLog.error('Cache', error as Error, { operation: 'log-cache-miss' });
   }
 }
 
@@ -584,19 +590,17 @@ export function checkCacheHealth(): void {
     const apiRate = metrics.apiRate || 0;
 
     if (hitRate < 50) {
-      console.warn(`⚠️ [Cache Health] Low cache hit rate: ${hitRate.toFixed(1)}%`);
-      console.warn(`[Cache Health] Consider warming up cache or checking migration logic`);
+      secureLog.warn('CacheHealth', `Low cache hit rate: ${hitRate.toFixed(1)}% - Consider warming up cache or checking migration logic`);
     }
 
     if (apiRate > 20) {
-      console.error(`❌ [Cache Health] High API call rate: ${apiRate.toFixed(1)}%`);
-      console.error(`[Cache Health] Cache system may not be working correctly`);
+      secureLog.error('CacheHealth', new Error(`High API call rate: ${apiRate.toFixed(1)}% - Cache system may not be working correctly`));
 
       // Log recent cache misses for debugging
       try {
         const misses = JSON.parse(localStorage.getItem('cache_misses') || '[]');
         if (misses.length > 0) {
-          console.error('[Cache Health] Recent cache misses:', misses);
+          secureLog.error('CacheHealth', new Error('Recent cache misses detected'), { misses });
         }
       } catch (error) {
         // Ignore

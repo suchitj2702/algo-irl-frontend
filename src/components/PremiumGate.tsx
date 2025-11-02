@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useSubscription } from "../hooks/useSubscription";
 import { useAuthDialog } from "../contexts/AuthDialogContext";
 import { AuthProviderList } from "./auth/AuthProviderList";
+import { secureLog } from "../utils/secureLogger";
 
 interface PremiumGateProps {
   children: ReactNode;
@@ -209,7 +210,7 @@ function UpgradeModal({ isOpen, onClose, monthlyPrice }: UpgradeModalProps) {
         image: "/logo.png", // Your logo
         handler: async (response: any) => {
           // Payment successful
-          console.log("Payment successful:", response);
+          secureLog.dev('Payment', 'Payment successful');
 
           // Razorpay will trigger webhook, which updates Firestore
           // Frontend will detect the change via useSubscription() hook
@@ -229,21 +230,21 @@ function UpgradeModal({ isOpen, onClose, monthlyPrice }: UpgradeModalProps) {
         },
         modal: {
           ondismiss: () => {
-            console.log("Checkout dismissed");
+            secureLog.dev('Payment', 'Checkout dismissed');
             setLoading(false);
           },
         },
       });
 
       razorpay.on("payment.failed", (response: any) => {
-        console.error("Payment failed:", response);
+        secureLog.error('Payment', new Error('Payment failed'), { hasResponse: !!response });
         setError("Payment failed. Please try again.");
         setLoading(false);
       });
 
       razorpay.open();
     } catch (err: any) {
-      console.error("Error:", err);
+      secureLog.error('Payment', err as Error);
       setError(err.message || "Failed to start checkout");
     } finally {
       setLoading(false);

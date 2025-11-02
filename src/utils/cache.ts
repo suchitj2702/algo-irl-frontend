@@ -10,6 +10,7 @@
  * This ensures cross-device sync and eliminates localStorage limitations.
  */
 import { Problem, CodeDetails } from '../types';
+import { secureLog } from './secureLogger';
 
 const KEY_SEPARATOR = '::';
 const PLAN_PREFIX = 'plan::';
@@ -140,7 +141,7 @@ export const getCache = (): UserCache => {
       };
     }
   } catch (error) {
-    console.error('Error reading from cache:', error);
+    secureLog.error('Cache', error as Error, { operation: 'read-cache' });
   }
 
   return {

@@ -1,3 +1,5 @@
+import { secureLog } from './secureLogger';
+
 const isBrowser = (): boolean => typeof window !== "undefined";
 
 export function trackEvent(event: string, data?: Record<string, unknown>): void {
@@ -21,11 +23,10 @@ export function trackEvent(event: string, data?: Record<string, unknown>): void 
     }
 
     if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
-      console.debug("[analytics] trackEvent", event, payload);
+      secureLog.dev('Analytics', `trackEvent: ${event}`, payload);
     }
   } catch (error) {
-    console.error("Failed to send analytics event", error);
+    secureLog.error('Analytics', error as Error, { event });
   }
 }
 

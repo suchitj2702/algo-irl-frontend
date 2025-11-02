@@ -1,7 +1,8 @@
 import type { RazorpayErrorResponse, RazorpayOptions } from "@types/razorpay";
+import { secureLog } from './secureLogger';
 
 const PAYMENT_CONTEXT_KEY = "payment_context";
-const PAYMENT_CONTEXT_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const PAYMENT_CONTEXT_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours (reduced from 24h for security)
 const RAZORPAY_SCRIPT_ID = "razorpay-checkout-js";
 const RAZORPAY_SCRIPT_URL = "https://checkout.razorpay.com/v1/checkout.js";
 const AUTH_USER_STORAGE_KEY = "algoIRL.auth.user";
@@ -50,12 +51,12 @@ export function storePaymentContext(context: PaymentContext): void {
   try {
     window.sessionStorage.setItem(PAYMENT_CONTEXT_KEY, JSON.stringify(contextWithTimestamp));
   } catch (error) {
-    console.error("Failed to persist payment context", error);
+    secureLog.error('Payment', error as Error, { operation: 'store-context' });
   }
 }
 
 /**
- * Retrieves the stored payment context, enforcing a 24-hour freshness window.
+ * Retrieves the stored payment context, enforcing a 4-hour freshness window.
  *
  * @returns The payment context if available and fresh; otherwise, null.
  */
@@ -84,7 +85,7 @@ export function retrievePaymentContext(): PaymentContext | null {
 
     return parsed;
   } catch (error) {
-    console.warn("Invalid payment context detected; clearing stored value.", error);
+    secureLog.warn('Payment', 'Invalid payment context detected; clearing stored value');
     clearPaymentContext();
     return null;
   }
@@ -101,7 +102,7 @@ export function clearPaymentContext(): void {
   window.sessionStorage.removeItem(PAYMENT_CONTEXT_KEY);
 
   if (import.meta.env.DEV) {
-    console.debug("[payment] Cleared payment context");
+    secureLog.dev('Payment', 'Cleared payment context');
   }
 }
 
@@ -145,7 +146,7 @@ export function loadRazorpayScript(): Promise<boolean> {
 
     const handleLoad = () => resolve(true);
     const handleError = (event: Event | string) => {
-      console.error("Failed to load Razorpay script", event);
+      secureLog.error('Payment', new Error('Failed to load Razorpay script'), { event: String(event) });
       if (existingScript) {
         existingScript.removeEventListener("load", handleLoad);
         existingScript.removeEventListener("error", handleError as EventListener);
@@ -221,7 +222,7 @@ export function getRazorpayConfig(
  * @returns A structured error response containing message, code, and recoverability.
  */
 export function handleRazorpayError(error: unknown): { message: string; code?: string; recoverable: boolean } {
-  console.error("Razorpay error encountered", error);
+  secureLog.paymentError(error instanceof Error ? error : new Error('Razorpay error encountered'));
 
   const defaultResult = {
     message: "Something went wrong with the payment. Please try again.",
@@ -292,11 +293,10 @@ export function trackPaymentEvent(event: string, data?: Record<string, unknown>)
     }
 
     if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
-      console.log("[payment] trackPaymentEvent", payload);
+      secureLog.dev('Payment', `trackPaymentEvent: ${event}`, payload);
     }
   } catch (error) {
-    console.error("Failed to send payment analytics event", error);
+    secureLog.error('Payment', error as Error, { context: 'track-analytics' });
   }
 }
 
@@ -315,7 +315,7 @@ function readStoredUser(): StoredAuthUser | null {
     }
     return JSON.parse(raw) as StoredAuthUser;
   } catch (error) {
-    console.warn("Failed to parse stored auth user", error);
+    secureLog.warn('Payment', 'Failed to parse stored auth user');
     return null;
   }
 }
