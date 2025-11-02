@@ -47,6 +47,10 @@ export function initSentry(): void {
     // 5% performance sampling = well under 10K transactions/month
     tracesSampleRate: 0.05,
 
+    // Replay sampling (0 = disabled to save quota on free tier)
+    replaysSessionSampleRate: 0,   // Never sample normal sessions
+    replaysOnErrorSampleRate: 0.1, // Only 10% of error sessions
+
     // Only send errors and fatal (not warnings/info)
     beforeSend(event, hint) {
       // Always capture fatal errors (bypasses sampling)
@@ -92,14 +96,11 @@ export function initSentry(): void {
       }),
 
       // Session replay (DISABLED to save quota on free tier)
+      // Note: Console warning "Replay is disabled..." is informational only
       Sentry.replayIntegration({
-        maskAllText: true,      // Mask all text for privacy
-        blockAllMedia: true,    // Block all media
-        maskAllInputs: true,    // Mask all inputs
-
-        // Only capture replays for errors (not all sessions)
-        sessionSampleRate: 0,   // Never sample normal sessions (saves quota)
-        errorSampleRate: 0.1,   // Only 10% of error sessions
+        maskAllText: true,           // Mask all text for privacy
+        blockAllMedia: true,         // Block all media
+        maskAllInputs: true,         // Mask all inputs
       }),
 
       // Feedback integration (DISABLED - not needed for MVP)

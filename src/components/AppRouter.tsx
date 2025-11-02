@@ -33,7 +33,7 @@ import {
  buildProblemCacheKey,
  parseProblemCacheKey
 } from '../utils/cache';
-import { buildPlanProblemCacheKey } from '../utils/studyPlanCache';
+import { buildProblemCacheKey as buildPlanProblemCacheKey } from '../utils/cache';
 import {
   saveStudyPlanToFirestore,
   getStudyPlanFromFirestore,
