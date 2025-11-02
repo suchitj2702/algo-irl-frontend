@@ -7,74 +7,27 @@
  * frame-ancestors via HTTP response headers or use X-Frame-Options header.
  */
 
+/**
+ * DEPRECATED: CSP is now managed via vercel.json HTTP headers
+ *
+ * This dynamic CSP was causing conflicts with vercel.json HTTP header CSP.
+ * HTTP headers take precedence and are more secure than meta tags.
+ *
+ * All CSP configuration has been consolidated in vercel.json.
+ * This function is kept for reference but disabled.
+ *
+ * @deprecated Use vercel.json CSP headers instead
+ */
 export const setEnvironmentBasedCSP = () => {
-  // Only run in browser environment
-  if (typeof document === 'undefined') return;
-
-  // Remove existing CSP meta tag if it exists
-  const existingCSP = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-  if (existingCSP) {
-    existingCSP.remove();
-  }
-
-  // Get API URL from environment variables
-  const getApiUrl = (): string => {
-    if (import.meta.env.DEV) {
-      return import.meta.env.VITE_API_URL || 'http://localhost:3000';
-    }
-    return import.meta.env.VITE_PRODUCTION_API_URL;
-  };
-
-  const apiUrl = getApiUrl();
-
-  // Create new CSP meta tag
-  const meta = document.createElement('meta');
-  meta.setAttribute('http-equiv', 'Content-Security-Policy');
+  // CSP now managed via vercel.json HTTP headers - this function is disabled
+  // to prevent conflicts between meta tag CSP and HTTP header CSP.
 
   if (import.meta.env.DEV) {
-    // Development - More permissive for Monaco Editor and debugging
-    meta.setAttribute('content', `
-      default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net https://checkout.razorpay.com https://va.vercel-scripts.com https://apis.google.com https://www.gstatic.com;
-      style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net https://fonts.googleapis.com https://checkout.razorpay.com https://accounts.google.com;
-      img-src 'self' data: blob: https:;
-      connect-src 'self' ${apiUrl} https://judge0-ce.p.rapidapi.com https://firebaseinstallations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firestore.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://accounts.google.com https://*.google.com https://*.googleapis.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://api.razorpay.com https://lumberjack.razorpay.com ws: wss:;
-      font-src 'self' data: blob: https://cdn.jsdelivr.net https://fonts.gstatic.com;
-      frame-src 'self' https://checkout.razorpay.com https://api.razorpay.com https://accounts.google.com https://*.firebaseapp.com https://*.google.com https://algoirl.ai https://*.algoirl.ai;
-      worker-src 'self' blob: data:;
-      child-src 'self' blob: data:;
-      object-src 'none';
-      base-uri 'self';
-      form-action 'self' https://checkout.razorpay.com;
-    `.replace(/\s+/g, ' ').trim());
-  } else {
-    // Production - More restrictive but still Monaco compatible
-    const cspContent = `
-      default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net https://checkout.razorpay.com https://va.vercel-scripts.com https://apis.google.com https://www.gstatic.com;
-      style-src 'self' 'unsafe-inline' blob: data: https://cdn.jsdelivr.net https://fonts.googleapis.com https://checkout.razorpay.com https://accounts.google.com;
-      img-src 'self' data: blob: https:;
-      connect-src 'self' ${apiUrl} https://judge0-ce.p.rapidapi.com https://firebaseinstallations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firestore.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://accounts.google.com https://*.google.com https://*.googleapis.com https://vitals.vercel-insights.com https://va.vercel-scripts.com https://api.razorpay.com https://lumberjack.razorpay.com;
-      font-src 'self' data: blob: https://cdn.jsdelivr.net https://fonts.gstatic.com;
-      frame-src 'self' https://checkout.razorpay.com https://api.razorpay.com https://accounts.google.com https://*.firebaseapp.com https://*.google.com https://algoirl.ai https://*.algoirl.ai;
-      worker-src 'self' blob: data:;
-      child-src 'self' blob: data:;
-      object-src 'none';
-      base-uri 'self';
-      form-action 'self' https://checkout.razorpay.com;
-    `.replace(/\s+/g, ' ').trim();
-
-    meta.setAttribute('content', cspContent);
+    console.info('[CSP] Content Security Policy is managed via vercel.json HTTP headers');
   }
 
-  // Add the new CSP to the document head
-  document.head.appendChild(meta);
-  
-  // Verify CSP was added
-  setTimeout(() => {
-    const addedCSP = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-    if (!addedCSP) {
-      console.error('Failed to add CSP to document');
-    }
-  }, 100);
+  // Original implementation kept for reference:
+  // - All CSP directives have been moved to vercel.json
+  // - HTTP header CSP is more secure than meta tag CSP
+  // - Prevents dual CSP conflicts where the most restrictive policy wins
 }; 
