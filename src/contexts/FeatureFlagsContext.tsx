@@ -36,7 +36,7 @@ export const defaultFlags: FeatureFlags = {
   requireAuthForStudyPlans: false,
 };
 
-function parseJsonArray(value: string): string[] {
+function parseJsonArray(value: string, paramName?: string): string[] {
   if (!value) {
     return [];
   }
@@ -45,7 +45,8 @@ function parseJsonArray(value: string): string[] {
     const parsed = JSON.parse(value);
     return Array.isArray(parsed) ? (parsed.filter((item) => typeof item === 'string') as string[]) : [];
   } catch (err) {
-    console.warn('Failed to parse Remote Config array value:', err);
+    console.warn(`Failed to parse Remote Config array value for "${paramName}":`, err);
+    console.warn('Raw value:', value);
     return [];
   }
 }
@@ -94,7 +95,10 @@ export function FeatureFlagsProvider({ children }: { children: ReactNode }) {
         showPricingPage: getValue(remoteConfig, 'show_pricing_page').asBoolean(),
         requireSubscription: getValue(remoteConfig, 'require_subscription').asBoolean(),
         paymentsRolloutPercentage: getValue(remoteConfig, 'payments_rollout_percentage').asNumber(),
-        paymentsAllowedEmails: parseJsonArray(getValue(remoteConfig, 'payments_allowed_emails').asString()),
+        paymentsAllowedEmails: parseJsonArray(
+          getValue(remoteConfig, 'payments_allowed_emails').asString(),
+          'payments_allowed_emails'
+        ),
         monthlyPriceInr: getValue(remoteConfig, 'monthly_price_inr').asNumber(),
         monthlyPriceUsd: getValue(remoteConfig, 'monthly_price_usd').asNumber(),
         showAnnualPlan: getValue(remoteConfig, 'show_annual_plan').asBoolean(),

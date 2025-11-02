@@ -175,7 +175,8 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
   return;
  }
 
- if (datasetType === 'full' && (!user || !hasActiveSubscription)) {
+ // Only validate subscription for full dataset if payments are enabled
+ if (flags.paymentsEnabled && datasetType === 'full' && (!user || !hasActiveSubscription)) {
   setLocalError('Full dataset requires an active premium subscription.');
   return;
  }
