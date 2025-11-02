@@ -1,48 +1,47 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { AuthModal } from "../components/auth/AuthModal";
+import { AuthModal, type AuthModalProps } from "../components/auth/AuthModal";
 
-type AuthIntent = "navbar" | "premium-gate" | string;
+type AuthIntent = "default" | "navbar" | "premium-gate" | "unlock-comprehensive" | string;
 
 interface AuthDialogOptions {
   intent?: AuthIntent;
-  title?: string;
-  description?: string;
-  ctaLabel?: string;
+  message?: string;
+  postAuthAction?: AuthModalProps["postAuthAction"];
   onSuccess?: () => void;
 }
 
 interface ResolvedAuthDialogOptions {
   intent: AuthIntent;
-  title: string;
-  description: string;
-  ctaLabel: string;
+  message: string;
+  postAuthAction: AuthModalProps["postAuthAction"];
   onSuccess?: () => void;
 }
 
-interface AuthDialogContextValue {
+export interface AuthDialogContextValue {
   openAuthDialog: (options?: AuthDialogOptions) => void;
   closeAuthDialog: () => void;
   suppressNavSignInButton: () => () => void;
   navSignInHidden: boolean;
 }
 
-const AuthDialogContext = createContext<AuthDialogContextValue | undefined>(undefined);
+export const AuthDialogContext = createContext<AuthDialogContextValue | undefined>(undefined);
 
 const INTENT_DEFAULTS: Record<string, Omit<ResolvedAuthDialogOptions, "intent">> = {
   default: {
-    title: "Sign in to access your study plans",
-    description: "Sync your personalized plans, solution drafts, and premium guidance across devices.",
-    ctaLabel: "Continue with Google",
+    message: "Sign in to save your progress",
+    postAuthAction: null,
   },
   navbar: {
-    title: "Sign in to access your study plans",
-    description: "Create study plans, save solutions, and keep your progress synced wherever you prep.",
-    ctaLabel: "Continue with Google",
+    message: "Sign in to save your progress",
+    postAuthAction: null,
   },
   "premium-gate": {
-    title: "Sign in to unlock this feature",
-    description: "Sync study plans, bookmarks, and saved code securely in the cloud.",
-    ctaLabel: "Continue with Google",
+    message: "Sign in to access the full problem dataset",
+    postAuthAction: "select-full-dataset",
+  },
+  "unlock-comprehensive": {
+    message: "Sign in to unlock premium features",
+    postAuthAction: "unlock-comprehensive",
   },
 };
 
@@ -52,9 +51,8 @@ function resolveOptions(options: AuthDialogOptions | undefined): ResolvedAuthDia
 
   return {
     intent,
-    title: options?.title ?? defaults.title,
-    description: options?.description ?? defaults.description,
-    ctaLabel: options?.ctaLabel ?? defaults.ctaLabel,
+    message: options?.message ?? defaults.message,
+    postAuthAction: options?.postAuthAction ?? defaults.postAuthAction ?? null,
     onSuccess: options?.onSuccess,
   };
 }
@@ -108,10 +106,9 @@ export function AuthDialogProvider({ children }: { children: ReactNode }) {
       <AuthModal
         isOpen={dialogState.isOpen}
         onClose={closeAuthDialog}
-        title={dialogState.options?.title}
-        description={dialogState.options?.description}
-        primaryButtonLabel={dialogState.options?.ctaLabel}
-        onSuccess={dialogState.options?.onSuccess}
+        message={dialogState.options?.message}
+        postAuthAction={dialogState.options?.postAuthAction ?? null}
+        onAuthSuccess={dialogState.options?.onSuccess}
       />
     </AuthDialogContext.Provider>
   );

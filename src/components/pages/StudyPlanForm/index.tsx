@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { XCircleIcon, ChevronDownIcon } from 'lucide-react';
 import { Company } from '../../../types';
 import { StudyPlanConfig, ROLE_OPTIONS, COMMON_TOPICS, RoleFamily, DifficultyPreference } from '../../../types/studyPlan';
@@ -6,6 +6,12 @@ import { fetchCompanies as fetchCompaniesAPI } from '../../../utils/api-service'
 import { getCachedCompanies, cacheCompanies } from '../../../utils/companiesCache';
 import { PremiumGate } from '../../PremiumGate';
 import { useDebounce } from '../../../hooks/useDebounce';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAuthDialog } from '@/contexts/AuthDialogContext';
+import PaymentModal from '@/components/PaymentModal';
+import { storePaymentContext, trackPaymentEvent } from '@/utils/payment';
+import { toast } from '@/utils/toast';
 
 // Six fixed company IDs
 const FIXED_COMPANY_IDS = ['meta', 'apple', 'amazon', 'netflix', 'google', 'microsoft'];
@@ -35,6 +41,54 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
  });
  const [topicFocus, setTopicFocus] = useState<string[]>([]);
  const [datasetType, setDatasetType] = useState<'blind75' | 'full'>('full');
+ const { user } = useAuth();
+ const { hasActiveSubscription, loading: subscriptionLoading, refresh: refreshSubscription } = useSubscription();
+ const { openAuthDialog } = useAuthDialog();
+ const [showPaymentModal, setShowPaymentModal] = useState(false);
+ const [showAuthModal, setShowAuthModal] = useState(false);
+ const [pendingDatasetSelection, setPendingDatasetSelection] = useState<'full' | null>(null);
+ const [fullButtonBusy, setFullButtonBusy] = useState(false);
+ const subscriptionStatusRef = useRef(hasActiveSubscription);
+
+ useEffect(() => {
+  subscriptionStatusRef.current = hasActiveSubscription;
+ }, [hasActiveSubscription]);
+
+ useEffect(() => {
+  if (!showAuthModal) {
+   return;
+  }
+
+  openAuthDialog({
+   intent: 'premium-gate',
+   onSuccess: () => {
+    trackPaymentEvent('full_dataset_auth_success');
+   }
+  });
+
+  // Reset flag to avoid duplicate dialog triggers on subsequent renders
+  setShowAuthModal(false);
+ }, [showAuthModal, openAuthDialog]);
+
+ useEffect(() => {
+  if (user && pendingDatasetSelection === 'full') {
+   setPendingDatasetSelection(null);
+
+   if (!hasActiveSubscription) {
+    setShowPaymentModal(true);
+    trackPaymentEvent('full_dataset_payment_prompt_post_auth');
+   } else {
+    setDatasetType('full');
+    trackPaymentEvent('full_dataset_selected_post_auth');
+   }
+  }
+ }, [user, pendingDatasetSelection, hasActiveSubscription]);
+
+ useEffect(() => {
+  if (showPaymentModal) {
+   setFullButtonBusy(false);
+  }
+ }, [showPaymentModal]);
 
  // Company loading state
  const [companies, setCompanies] = useState<Company[]>([]);
@@ -109,16 +163,21 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
    return;
   }
 
-  if (topicFocus.length > 5) {
-   setLocalError('Maximum 5 topics can be selected');
-   return;
-  }
+ if (topicFocus.length > 5) {
+  setLocalError('Maximum 5 topics can be selected');
+  return;
+ }
 
-  const config: StudyPlanConfig = {
-   companyId,
-   roleFamily,
-   timeline,
-   hoursPerDay,
+ if (datasetType === 'full' && (!user || !hasActiveSubscription)) {
+  setLocalError('Full dataset requires an active premium subscription.');
+  return;
+ }
+
+ const config: StudyPlanConfig = {
+  companyId,
+  roleFamily,
+  timeline,
+  hoursPerDay,
    difficultyPreference,
    topicFocus: topicFocus.length > 0 ? topicFocus : undefined,
    datasetType
@@ -146,6 +205,90 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
    ...prev,
    [diff]: !prev[diff]
   }));
+ }, []);
+
+ const handleBlindDatasetClick = useCallback(() => {
+  setDatasetType('blind75');
+  trackPaymentEvent('blind75_dataset_selected');
+ }, []);
+
+ const handleFullDatasetClick = useCallback(() => {
+  if (subscriptionLoading) {
+   return;
+  }
+
+  setFullButtonBusy(true);
+
+  if (!user) {
+   setPendingDatasetSelection('full');
+   setShowAuthModal(true);
+   trackPaymentEvent('full_dataset_auth_prompt');
+   setTimeout(() => setFullButtonBusy(false), 350);
+   return;
+  }
+
+  if (!hasActiveSubscription) {
+   storePaymentContext({
+    returnUrl: '/study-plan-form',
+    feature: 'Full Dataset Access',
+    preSelectDataset: 'full',
+    timestamp: Date.now()
+   });
+   setShowPaymentModal(true);
+   trackPaymentEvent('full_dataset_payment_prompt');
+   return;
+ }
+
+ setDatasetType('full');
+ trackPaymentEvent('full_dataset_selected');
+  setTimeout(() => setFullButtonBusy(false), 200);
+}, [subscriptionLoading, user, hasActiveSubscription]);
+
+ const handlePaymentSuccess = useCallback(() => {
+  trackPaymentEvent('full_dataset_payment_success');
+  setShowPaymentModal(false);
+
+  let attempts = 0;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  const poll = setInterval(async () => {
+   attempts += 1;
+   await refreshSubscription();
+
+   if (subscriptionStatusRef.current) {
+    clearInterval(poll);
+    if (timeoutId) {
+     clearTimeout(timeoutId);
+    }
+    setDatasetType('full');
+    setFullButtonBusy(false);
+    toast.success('Full dataset unlocked!');
+    trackPaymentEvent('full_dataset_unlocked');
+    return;
+   }
+
+   if (attempts >= 10) {
+    clearInterval(poll);
+   }
+  }, 1000);
+
+  timeoutId = setTimeout(() => {
+   clearInterval(poll);
+  }, 10000);
+ }, [refreshSubscription]);
+
+ const handlePaymentFailure = useCallback((error: Error) => {
+  trackPaymentEvent('full_dataset_payment_failed');
+  setFullButtonBusy(false);
+  if (import.meta.env.DEV) {
+   console.error('Full dataset payment failed', error);
+  }
+ }, []);
+
+ const handlePaymentClose = useCallback(() => {
+  setShowPaymentModal(false);
+  setFullButtonBusy(false);
+  trackPaymentEvent('full_dataset_payment_modal_closed');
  }, []);
 
  const currentError = externalError || localError;
@@ -246,7 +389,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
        <div className="grid grid-cols-2 gap-1.5">
         <button
          type="button"
-         onClick={() => setDatasetType('blind75')}
+         onClick={handleBlindDatasetClick}
          className={`py-2.5 px-3 text-sm font-normal rounded-[12px] text-left ${
           datasetType === 'blind75'
            ? `${activeOptionClasses} hover:from-mint-700 hover:to-mint-800`
@@ -266,13 +409,13 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
 
         <button
          type="button"
-         onClick={() => setDatasetType('full')}
+         onClick={handleFullDatasetClick}
          className={`py-2.5 px-3 text-sm font-normal rounded-[12px] text-left ${
           datasetType === 'full'
            ? `${activeOptionClasses} hover:from-mint-700 hover:to-mint-800`
            : inactiveOptionClasses
          }`}
-         disabled={isLoading}
+         disabled={isLoading || fullButtonBusy}
         >
          <div className={`font-normal text-sm mb-1 ${datasetType === 'full' ? 'text-white' : ''}`}>Full Dataset</div>
          <div className={`text-xs leading-tight ${
@@ -492,6 +635,16 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
      </div>
     </div>
    </div>
+   <PaymentModal
+    isOpen={showPaymentModal}
+    onClose={handlePaymentClose}
+    feature="Full Dataset Access"
+    returnUrl="/study-plan-form"
+    onSuccess={handlePaymentSuccess}
+    onFailure={handlePaymentFailure}
+   />
   </PremiumGate>
  );
 }
+
+export default StudyPlanForm;

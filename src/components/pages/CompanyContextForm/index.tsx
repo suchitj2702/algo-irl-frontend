@@ -3,9 +3,11 @@ import { ChevronDownIcon } from 'lucide-react';
 import { fetchCompanies as fetchCompaniesAPI } from '../../../utils/api-service';
 import { getCachedCompanies, cacheCompanies } from '../../../utils/companiesCache';
 import { Company } from '../../../types';
+import { RoleFamily, ROLE_OPTIONS } from '../../../types/studyPlan';
 
 export interface CompanyContextFormData {
  company: string;
+ roleFamily?: RoleFamily;
 }
 
 interface CompanyContextFormProps {
@@ -19,7 +21,8 @@ const FIXED_COMPANY_IDS = ['meta', 'apple', 'amazon', 'netflix', 'google', 'micr
 
 export function CompanyContextForm({ onSubmit, onCancel, problemSlug }: CompanyContextFormProps) {
  const [formData, setFormData] = useState<CompanyContextFormData>({
-  company: 'meta'
+  company: 'meta',
+  roleFamily: 'backend'
  });
  const [companies, setCompanies] = useState<Company[]>([]);
  const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
@@ -131,9 +134,17 @@ export function CompanyContextForm({ onSubmit, onCancel, problemSlug }: CompanyC
  };
 
  const selectCompany = (companyId: string) => {
-  setFormData({
+  setFormData(prev => ({
+   ...prev,
    company: companyId
-  });
+  }));
+ };
+
+ const selectRole = (roleFamily: RoleFamily) => {
+  setFormData(prev => ({
+   ...prev,
+   roleFamily
+  }));
  };
 
  // Helper function to convert slug to title
@@ -243,6 +254,32 @@ export function CompanyContextForm({ onSubmit, onCancel, problemSlug }: CompanyC
          <p className="text-xs text-content-subtle mt-2">Loading companies...</p>
         </div>
        )}
+      </div>
+     </div>
+
+     {/* Role Selection */}
+     <div>
+      <label className="block text-sm font-medium text-content mb-3">
+       Select Your Role
+      </label>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+       {ROLE_OPTIONS.map(role => (
+        <button
+         key={role.id}
+         type="button"
+         onClick={() => selectRole(role.id)}
+         className={`py-3 px-3 border rounded-md transition-all ${
+          formData.roleFamily === role.id
+           ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-400 dark:text-indigo-300 shadow-sm'
+           : 'border-outline-subtle text-content dark:border-outline-subtle dark:text-content hover:bg-surface-muted/60 dark:hover:bg-surface-muted/40 hover:border-outline-subtle/80'
+         }`}
+        >
+         <div className="text-sm font-medium">{role.name}</div>
+         <div className="text-xs text-content-muted dark:text-content-subtle mt-1">
+          {role.description}
+         </div>
+        </button>
+       ))}
       </div>
      </div>
 

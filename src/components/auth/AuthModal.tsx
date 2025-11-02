@@ -10,6 +10,10 @@ interface AuthModalProps {
   description?: string;
   primaryButtonLabel?: string;
   onSuccess?: () => void;
+  // New props for payment integration (keep these for compatibility)
+  message?: string;
+  postAuthAction?: string;
+  onAuthSuccess?: () => void;
 }
 
 export function AuthModal({
@@ -19,6 +23,8 @@ export function AuthModal({
   description,
   primaryButtonLabel = "Continue with Google",
   onSuccess,
+  onAuthSuccess,
+  postAuthAction,
 }: AuthModalProps) {
   const { signInWithGoogle, clearError, error, loading } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -34,14 +40,21 @@ export function AuthModal({
     setIsProcessing(true);
     try {
       await signInWithGoogle();
+
+      // Store post-auth action if provided
+      if (postAuthAction && typeof window !== "undefined") {
+        window.sessionStorage.setItem("post_auth_action", postAuthAction);
+      }
+
       onSuccess?.();
+      onAuthSuccess?.();
       onClose();
     } catch {
       // Error message surfaced through AuthContext.error
     } finally {
       setIsProcessing(false);
     }
-  }, [signInWithGoogle, onClose, onSuccess]);
+  }, [signInWithGoogle, onClose, onSuccess, onAuthSuccess, postAuthAction]);
 
   if (!isOpen) {
     return null;

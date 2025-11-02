@@ -1,12 +1,5 @@
-import type {
-  CSSProperties,
-  FormEvent,
-} from 'react';
-import {
-  useCallback,
-  useRef,
-  useState,
-} from 'react';
+import type { CSSProperties, FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Activity,
   BarChart4,
@@ -19,8 +12,13 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../contexts/AuthContext';
-import { useAuthDialog } from '../../../contexts/AuthDialogContext';
+import { toast } from 'react-hot-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/hooks/useSubscription';
+import PaymentModal from '@/components/PaymentModal';
+import AuthModal from '@/components/AuthModal';
+import { trackPaymentEvent, storePaymentContext } from '@/utils/payment';
+import { useAuthDialog } from '@/contexts/AuthDialogContext';
 import { useDarkMode } from '../../DarkModeContext';
 import { ThinkingIndicator } from '../../ThinkingIndicator';
 import {
@@ -229,7 +227,16 @@ export function IntroSection() {
   const { isDarkMode } = useDarkMode();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { hasActiveSubscription, loading } = useSubscription();
   const { openAuthDialog } = useAuthDialog();
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [postAuthAction, setPostAuthAction] = useState<string | null>(() => {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+    return sessionStorage.getItem('post_auth_action');
+  });
 
   const [selectedProblem, setSelectedProblem] = useState<(typeof PROBLEM_OPTIONS)[number]['id']>('two-sum');
   const [selectedCompany, setSelectedCompany] = useState<(typeof COMPANY_OPTIONS)[number]['id']>('google');
@@ -238,6 +245,69 @@ export function IntroSection() {
   const [demoState, setDemoState] = useState<DemoState | null>(null);
   const [demoError, setDemoError] = useState<string | null>(null);
   const [isTransforming, setIsTransforming] = useState(false);
+
+
+  useEffect(() => {
+    if (!user || postAuthAction !== 'unlock-comprehensive') {
+      return;
+    }
+
+    setPostAuthAction(null);
+    sessionStorage.removeItem('post_auth_action');
+
+    if (!hasActiveSubscription) {
+      const timeoutId = window.setTimeout(() => {
+        setShowPaymentModal(true);
+      }, 500);
+
+      return () => window.clearTimeout(timeoutId);
+    }
+
+    navigate('/my-study-plans');
+  }, [user, postAuthAction, hasActiveSubscription, navigate]);
+
+  const handleUnlockComprehensive = useCallback(() => {
+    trackPaymentEvent('unlock_comprehensive_clicked', {
+      source: 'landing_page_pricing_card',
+      user_state: user ? 'authenticated' : 'anonymous',
+    });
+
+    if (loading) {
+      return;
+    }
+
+    if (!user) {
+      sessionStorage.setItem('post_auth_action', 'unlock-comprehensive');
+      setPostAuthAction('unlock-comprehensive');
+      setShowAuthModal(true);
+      return;
+    }
+
+    if (hasActiveSubscription) {
+      toast.success('You already have the Comprehensive Plan!');
+      navigate('/my-study-plans');
+      return;
+    }
+
+    setShowPaymentModal(true);
+    storePaymentContext({
+      returnUrl: '/my-study-plans',
+      feature: 'Comprehensive Plan',
+      timestamp: Date.now(),
+    });
+  }, [hasActiveSubscription, loading, navigate, user]);
+
+  const handlePaymentSuccess = useCallback(() => {
+    trackPaymentEvent('unlock_comprehensive_payment_success', {
+      source: 'landing_page_pricing_card',
+    });
+    setShowPaymentModal(false);
+    toast.success('Welcome to Comprehensive Plan!');
+
+    window.setTimeout(() => {
+      navigate('/my-study-plans');
+    }, 2000);
+  }, [navigate]);
 
   const planButtonBaseClasses =
     'mt-6 inline-flex w-full items-center justify-center rounded-full px-6 py-2.5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint/40 active:scale-[0.98]';
@@ -739,10 +809,13 @@ export function IntroSection() {
             </ul>
             <button
               type="button"
-              onClick={handlePlansRedirect}
-              className={`${planButtonBaseClasses} bg-gradient-to-r from-mint-600 to-mint-700 text-white shadow-md hover:-translate-y-0.5 hover:from-mint-700 hover:to-mint-800 hover:shadow-lg`}
+              onClick={handleUnlockComprehensive}
+              disabled={loading || hasActiveSubscription}
+              className={`${planButtonBaseClasses} bg-gradient-to-r from-mint-600 to-mint-700 text-white shadow-md hover:-translate-y-0.5 hover:from-mint-700 hover:to-mint-800 hover:shadow-lg ${
+                loading ? 'cursor-wait opacity-70' : ''
+              } ${hasActiveSubscription ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              Unlock comprehensive plans
+              {hasActiveSubscription ? 'Already subscribed' : 'Unlock comprehensive plans'}
             </button>
           </div>
         </div>
@@ -804,6 +877,38 @@ export function IntroSection() {
           </footer>
         </div>
       </SectionBlock>
+
+      {showAuthModal && (
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          postAuthAction="unlock-comprehensive"
+          message="Access the full 2,000+ problem dataset with tailored walkthroughs and interview intel."
+          onAuthSuccess={() =>
+            trackPaymentEvent('unlock_comprehensive_auth_success', { source: 'landing_page_pricing_card' })
+          }
+        />
+      )}
+
+      {showPaymentModal && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => {
+            setShowPaymentModal(false);
+            trackPaymentEvent('unlock_comprehensive_payment_closed', { source: 'landing_page_pricing_card' });
+          }}
+          returnUrl="/my-study-plans"
+          feature="Comprehensive Plan"
+          onSuccess={handlePaymentSuccess}
+          onFailure={(error) => {
+            trackPaymentEvent('unlock_comprehensive_payment_failed', {
+              source: 'landing_page_pricing_card',
+              message: error.message,
+            });
+            toast.error(error.message);
+          }}
+        />
+      )}
     </div>
   );
 }

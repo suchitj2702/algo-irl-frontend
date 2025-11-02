@@ -11,6 +11,7 @@ import { CompanyContextForm, CompanyContextFormData } from './pages/CompanyConte
 import { StudyPlanForm } from './pages/StudyPlanForm';
 import { StudyPlanView } from './pages/StudyPlanView';
 import { MyStudyPlansPage } from './pages/MyStudyPlansPage';
+import PaymentStatusPage from '@/pages/PaymentStatus';
 import { PremiumGate } from './PremiumGate';
 import { DuplicateWarningModal } from './DuplicateWarningModal';
 import { DarkModeProvider } from './DarkModeContext';
@@ -96,7 +97,8 @@ export function AppRouter() {
 
  // Form state
  const [companyContextFormData, setCompanyContextFormData] = useState<CompanyContextFormData>({
-  company: 'meta'
+  company: 'meta',
+  roleFamily: 'backend'
  });
  const [selectedProblemSlug, setSelectedProblemSlug] = useState<string | null>(null);
  const [isCompanyContextFlow, setIsCompanyContextFlow] = useState(false);
@@ -471,7 +473,7 @@ const handleHomeClick = () => navigate('/');
    setIsResuming(false);
    setResumeProblemId(null);
 
-   const { company } = data;
+   const { company, roleFamily } = data;
    const isBlind75 = true;
    const companyId = company;
    const companyName = getCompanyDisplayName(company);
@@ -483,12 +485,16 @@ const handleHomeClick = () => navigate('/');
     const difficulties = ['Easy', 'Medium', 'Hard'];
     apiPayload.difficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
    }
+   if (roleFamily) {
+    apiPayload.roleFamily = roleFamily;
+   }
 
    const responseData = await prepareProblemAPI(
     apiPayload.problemId,
     apiPayload.companyId,
     apiPayload.difficulty,
-    apiPayload.isBlind75
+    apiPayload.isBlind75,
+    apiPayload.roleFamily
    );
 
    const apiTestCases = responseData.problem?.testCases || [];
@@ -1786,6 +1792,7 @@ const handleBeforeSignOut = useCallback(async () => {
 
      <Routes>
     <Route path="/" element={<IntroSection />} />
+    <Route path="/payment/status/:status" element={<PaymentStatusPage />} />
 
      <Route path="/my-study-plans" element={
       <PremiumGate feature="My Study Plans">

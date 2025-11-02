@@ -1,5 +1,6 @@
 import { Analytics } from '@vercel/analytics/react';
 import { AppRouter } from './components/AppRouter';
+import PaymentSuccessHandler from './components/PaymentSuccessHandler';
 import { initializeEnvironment } from './utils/config';
 import { AuthDialogProvider } from './contexts/AuthDialogContext';
 
@@ -10,6 +11,7 @@ export function App() {
  return (
   <AuthDialogProvider>
    <AppRouter />
+   <PaymentSuccessHandler />
    <Analytics />
   </AuthDialogProvider>
  );

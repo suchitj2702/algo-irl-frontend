@@ -8,7 +8,8 @@ const RAZORPAY_SCRIPT_ID = "razorpay-checkout-js";
 const RAZORPAY_SCRIPT_URL = "https://checkout.razorpay.com/v1/checkout.js";
 const RETURN_URL_STORAGE_KEY = "payment_return_url";
 const FEATURE_STORAGE_KEY = "payment_feature";
-const PLAN_ID = "plan_monthly_study_plan_inr";
+// Plan ID can be overridden via environment variable for testing
+const PLAN_ID = import.meta.env.VITE_RAZORPAY_PLAN_ID || "plan_monthly_study_plan_inr";
 
 type ScriptStatus = "idle" | "loading" | "ready" | "failed";
 
@@ -48,7 +49,7 @@ export function PaymentModal({
   const ensureRazorpayScript = useCallback((): Promise<void> => {
     if (typeof window === "undefined") {
       setScriptStatus("failed");
-      return Promise.reject(new Error("Payment gateway unavailable"));
+      return Promise.reject(new Error("Payment system requires a browser environment"));
     }
 
     if (window.Razorpay) {
@@ -68,7 +69,8 @@ export function PaymentModal({
 
       const handleError = () => {
         setScriptStatus("failed");
-        reject(new Error("Payment gateway unavailable"));
+        console.error(`[Payment] Failed to load Razorpay script from ${RAZORPAY_SCRIPT_URL}. Check network connectivity or browser extensions that might block scripts.`);
+        reject(new Error("Failed to load payment system. Please check your internet connection or disable ad-blockers and try again."));
       };
 
       if (existingScript) {
@@ -160,14 +162,20 @@ export function PaymentModal({
 
     try {
       if (typeof window === "undefined") {
-        throw new Error("Payment gateway unavailable");
+        throw new Error("Payment system requires a browser environment");
       }
 
       await ensureRazorpayScript();
 
       const key = import.meta.env.VITE_RAZORPAY_KEY_ID;
       if (!key) {
-        throw new Error("Payment gateway unavailable");
+        console.error("[Payment] Razorpay API key not configured. Please check VITE_RAZORPAY_KEY_ID in environment variables.");
+        throw new Error("Payment configuration missing. Please contact support.");
+      }
+
+      // Log warning in development if using test key
+      if (import.meta.env.DEV && key.includes('test')) {
+        console.warn('[Payment] Using test Razorpay key');
       }
 
       const idToken = await getIdToken();
@@ -179,6 +187,12 @@ export function PaymentModal({
           ...(feature ? { feature } : {}),
         },
       };
+
+      // Debug logging for development
+      if (import.meta.env.DEV) {
+        console.log('[Payment] Creating subscription with plan ID:', PLAN_ID);
+        console.log('[Payment] Full payload:', payload);
+      }
 
       if (returnUrl) {
         payload.returnUrl = returnUrl;
@@ -204,6 +218,22 @@ export function PaymentModal({
 
       if (!response.ok) {
         const apiMessage = responseBody?.error || responseBody?.message;
+
+        // Log detailed error info in development
+        if (import.meta.env.DEV) {
+          console.error('[Payment] API Error:', {
+            status: response.status,
+            statusText: response.statusText,
+            message: apiMessage,
+            responseBody
+          });
+        }
+
+        // Provide specific error messages for common issues
+        if (apiMessage?.toLowerCase().includes('invalid planid')) {
+          throw new Error("Subscription plan configuration error. Please contact support.");
+        }
+
         throw new Error(apiMessage || "Network error. Please try again.");
       }
 
@@ -213,13 +243,14 @@ export function PaymentModal({
           return;
         }
 
-        throw new Error("Payment gateway unavailable");
+        throw new Error("Failed to create subscription. Please try again.");
       }
 
       const razorpayConstructor = window.Razorpay;
 
       if (!razorpayConstructor) {
-        throw new Error("Payment gateway unavailable");
+        console.error("[Payment] Razorpay SDK not loaded properly");
+        throw new Error("Payment system initialization failed. Please refresh the page and try again.");
       }
 
       const options: RazorpayOptions = {

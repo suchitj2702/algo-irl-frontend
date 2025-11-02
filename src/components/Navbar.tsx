@@ -82,8 +82,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
  const handleSignInClick = () => {
   openAuthDialog({
    intent: 'navbar',
-   title: 'Sign in to access your study plans',
-   description: 'Save study plans, sync your progress, and access premium prep tools across every device.'
+   message: 'Save study plans, sync your progress, and access premium prep tools across every device.'
   });
   setIsMenuOpen(false);
  };

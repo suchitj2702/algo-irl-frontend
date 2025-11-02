@@ -79,3 +79,7 @@ hive-mind-prompt-*.txt
 .claude/*
 .claude-flow/*
 .hive-mind/*
+
+# Tests
+playwright-report/
+test-results/

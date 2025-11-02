@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, ReactNode 
 import { fetchAndActivate, getRemoteConfig, getValue } from 'firebase/remote-config';
 import app from '../config/firebase';
 
-interface FeatureFlags {
+export interface FeatureFlags {
   paymentsEnabled: boolean;
   razorpayCheckoutEnabled: boolean;
   showPricingPage: boolean;
@@ -16,13 +16,13 @@ interface FeatureFlags {
   requireAuthForStudyPlans: boolean;
 }
 
-interface FeatureFlagsContextType {
+export interface FeatureFlagsContextType {
   flags: FeatureFlags;
   loading: boolean;
   refreshFlags: () => Promise<void>;
 }
 
-const defaultFlags: FeatureFlags = {
+export const defaultFlags: FeatureFlags = {
   paymentsEnabled: false,
   razorpayCheckoutEnabled: false,
   showPricingPage: false,
@@ -50,7 +50,7 @@ function parseJsonArray(value: string): string[] {
   }
 }
 
-const FeatureFlagsContext = createContext<FeatureFlagsContextType | undefined>(undefined);
+export const FeatureFlagsContext = createContext<FeatureFlagsContextType | undefined>(undefined);
 
 export function useFeatureFlags() {
   const context = useContext(FeatureFlagsContext);

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -11,6 +11,8 @@ import {
 import { getFirestore, collection, getDocs } from "firebase/firestore";
 import type { FirebaseError } from "firebase/app";
 import app, { auth, type User as AppUser } from "../config/firebase";
+import { useNavigate } from "react-router-dom";
+import { trackEvent } from "@/utils/analytics";
 
 type SubscriptionStatus = "active" | "canceled" | "past_due" | "none";
 
@@ -21,14 +23,21 @@ export interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithRedirect: (redirectUrl: string) => Promise<void>;
+  signInForFeature: (feature: string) => Promise<void>;
   signOut: () => Promise<void>;
   getIdToken: (forceRefresh?: boolean) => Promise<string | null>;
   hasActiveSubscription: () => Promise<boolean>;
   getSubscriptionStatus: () => Promise<SubscriptionStatus>;
+  postAuthRedirect: string | null;
+  setPostAuthRedirect: (url: string | null) => void;
+  authTrigger: string | null;
+  setAuthTrigger: (trigger: string | null) => void;
+  handlePostAuthNavigation: () => Promise<void>;
   clearError: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const AUTH_USER_STORAGE_KEY = "algoIRL.auth.user";
 
@@ -100,12 +109,16 @@ function getFriendlyErrorMessage(error: unknown): string {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState<AppUser | null>(() => getStoredUser());
   const [loading, setLoading] = useState<boolean>(() => {
     const storedUser = getStoredUser();
     return storedUser ? false : true;
   });
   const [error, setError] = useState<string | null>(null);
+  const [postAuthRedirectState, setPostAuthRedirectState] = useState<string | null>(null);
+  const [authTriggerState, setAuthTriggerState] = useState<string | null>(null);
+  const previousUserRef = useRef<AppUser | null>(getStoredUser());
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
@@ -133,6 +146,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const clearError = useCallback(() => {
     setError(null);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const storedTrigger = window.sessionStorage.getItem("auth_trigger");
+    if (storedTrigger) {
+      setAuthTriggerState(storedTrigger);
+    }
+
+    const storedRedirect = window.sessionStorage.getItem("post_auth_redirect");
+    if (storedRedirect) {
+      setPostAuthRedirectState(storedRedirect);
+    }
   }, []);
 
   const handleAuthOperation = useCallback(
@@ -170,12 +199,80 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [handleAuthOperation],
   );
 
+  const signInWithRedirect = useCallback(
+    async (redirectUrl: string) => {
+      setPostAuthRedirectState(redirectUrl);
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("post_auth_redirect", redirectUrl);
+      }
+      await signInWithGoogle();
+    },
+    [signInWithGoogle],
+  );
+
+  const signInForFeature = useCallback(
+    async (feature: string) => {
+      setAuthTriggerState(feature);
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("auth_trigger", feature);
+      }
+      await signInWithGoogle();
+    },
+    [signInWithGoogle],
+  );
+
+  const handlePostAuthNavigation = useCallback(async () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const storedAction = window.sessionStorage.getItem("post_auth_action");
+    const storedRedirect = window.sessionStorage.getItem("post_auth_redirect");
+
+    if (storedAction) {
+      switch (storedAction) {
+        case "unlock-comprehensive":
+          window.dispatchEvent(
+            new CustomEvent("open-payment-modal", {
+              detail: { feature: "Comprehensive Plan" },
+            }),
+          );
+          break;
+        case "select-full-dataset":
+          window.dispatchEvent(
+            new CustomEvent("select-dataset", {
+              detail: { type: "full" },
+            }),
+          );
+          break;
+        default:
+          break;
+      }
+
+      window.sessionStorage.removeItem("post_auth_action");
+    }
+
+    if (storedRedirect) {
+      navigate(storedRedirect);
+      setPostAuthRedirectState(null);
+      window.sessionStorage.removeItem("post_auth_redirect");
+    }
+  }, [navigate, setPostAuthRedirectState]);
+
   const signOut = useCallback(
     () =>
       handleAuthOperation(async () => {
         // Clear state synchronously before Firebase sign-out to prevent race conditions
         setUser(null);
         persistUser(null);
+        if (typeof window !== "undefined") {
+          window.sessionStorage.removeItem("post_auth_action");
+          window.sessionStorage.removeItem("post_auth_redirect");
+          window.sessionStorage.removeItem("auth_trigger");
+          window.sessionStorage.removeItem("payment_context");
+        }
+        setPostAuthRedirectState(null);
+        setAuthTriggerState(null);
         await firebaseSignOut(auth);
       }),
     [handleAuthOperation],
@@ -238,6 +335,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  useEffect(() => {
+    const previousUser = previousUserRef.current;
+
+    if (user && !previousUser) {
+      const hasPostAction =
+        typeof window !== "undefined" ? Boolean(window.sessionStorage.getItem("post_auth_action")) : false;
+
+      void handlePostAuthNavigation();
+
+      trackEvent("user_authenticated", {
+        trigger: authTriggerState || "unknown",
+        hasPostAction,
+      });
+
+      if (typeof window !== "undefined") {
+        window.sessionStorage.removeItem("auth_trigger");
+      }
+      setAuthTriggerState(null);
+    }
+
+    previousUserRef.current = user;
+  }, [user, authTriggerState, handlePostAuthNavigation]);
+
+  const updatePostAuthRedirect = useCallback(
+    (url: string | null) => {
+      setPostAuthRedirectState(url);
+    },
+    [setPostAuthRedirectState],
+  );
+
+  const updateAuthTrigger = useCallback(
+    (trigger: string | null) => {
+      setAuthTriggerState(trigger);
+      if (typeof window !== "undefined") {
+        if (trigger) {
+          window.sessionStorage.setItem("auth_trigger", trigger);
+        } else {
+          window.sessionStorage.removeItem("auth_trigger");
+        }
+      }
+    },
+    [setAuthTriggerState],
+  );
+
   const value = useMemo<AuthContextType>(
     () => ({
       user,
@@ -246,10 +387,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signUp,
       signInWithGoogle,
+      signInWithRedirect,
+      signInForFeature,
       signOut,
       getIdToken,
       hasActiveSubscription,
       getSubscriptionStatus,
+      postAuthRedirect: postAuthRedirectState,
+      setPostAuthRedirect: updatePostAuthRedirect,
+      authTrigger: authTriggerState,
+      setAuthTrigger: updateAuthTrigger,
+      handlePostAuthNavigation,
       clearError,
     }),
     [
@@ -259,10 +407,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signUp,
       signInWithGoogle,
+      signInWithRedirect,
+      signInForFeature,
       signOut,
       getIdToken,
       hasActiveSubscription,
       getSubscriptionStatus,
+      postAuthRedirectState,
+      updatePostAuthRedirect,
+      authTriggerState,
+      updateAuthTrigger,
+      handlePostAuthNavigation,
       clearError,
     ],
   );

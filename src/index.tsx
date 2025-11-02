@@ -17,14 +17,14 @@ initializePalette();
 watchThemeChanges();
 
 render(
-  <FeatureFlagsProvider>
-    <AuthProvider>
-      <SubscriptionProvider>
-        <BrowserRouter>
+  <BrowserRouter>
+    <FeatureFlagsProvider>
+      <AuthProvider>
+        <SubscriptionProvider>
           <App />
-        </BrowserRouter>
-      </SubscriptionProvider>
-    </AuthProvider>
-  </FeatureFlagsProvider>,
+        </SubscriptionProvider>
+      </AuthProvider>
+    </FeatureFlagsProvider>
+  </BrowserRouter>,
   document.getElementById("root")
 );
