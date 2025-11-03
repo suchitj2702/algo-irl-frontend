@@ -6,6 +6,8 @@ import { useSubscription } from "../hooks/useSubscription";
 import { useAuthDialog } from "../contexts/AuthDialogContext";
 import { AuthProviderList } from "./auth/AuthProviderList";
 import { secureLog } from "../utils/secureLogger";
+import { loadRazorpayScript } from "../utils/payment";
+import type { RazorpayConstructor, RazorpayErrorResponse, RazorpayInstance, RazorpayOptions } from "@types/razorpay";
 
 interface PremiumGateProps {
   children: ReactNode;
@@ -109,7 +111,7 @@ export function PremiumGate({
   if (flags.requireSubscription && !hasActiveSubscription) {
     // If payments are not enabled, allow access without subscription requirement
     if (!flags.paymentsEnabled || !flags.razorpayCheckoutEnabled) {
-      return <>{children}</>;
+      return <ComingSoonModal feature={feature} message={message} />;
     }
 
     return (
@@ -201,42 +203,44 @@ function UpgradeModal({ isOpen, onClose, monthlyPrice }: UpgradeModalProps) {
         return;
       }
 
-      // Step 3: Option B - Use Razorpay Checkout.js for embedded modal (better UX)
-      const razorpay = new (window as any).Razorpay({
+      const scriptReady = await loadRazorpayScript();
+      if (!scriptReady) {
+        throw new Error("Payment gateway unavailable. Please check your connection and try again.");
+      }
+
+      const razorpayConstructor = (window as typeof window & { Razorpay?: RazorpayConstructor }).Razorpay;
+      if (!razorpayConstructor) {
+        throw new Error("Payment gateway unavailable. Please refresh and try again.");
+      }
+
+      const options: RazorpayOptions = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         subscription_id: data.subscriptionId,
         name: "AlgoIRL",
         description: "Premium Study Plans Subscription",
-        image: "/logo.png", // Your logo
-        handler: async (response: any) => {
-          // Payment successful
-          secureLog.dev('Payment', 'Payment successful');
-
-          // Razorpay will trigger webhook, which updates Firestore
-          // Frontend will detect the change via useSubscription() hook
-
-          // Optionally verify payment on backend
-          // await fetch('/api/billing/verify-payment', { ... });
-
-          // Close modal and show success
+        image: "/logo.png",
+        handler: async () => {
+          secureLog.dev("Payment", "Payment successful");
           onClose();
           alert("Payment successful! Your premium features are now active.");
         },
         prefill: {
-          email: user?.email || "", // User email from AuthContext
+          email: user?.email || "",
         },
         theme: {
-          color: "#10B981", // Your brand color (mint-600)
+          color: "#10B981",
         },
         modal: {
           ondismiss: () => {
-            secureLog.dev('Payment', 'Checkout dismissed');
+            secureLog.dev("Payment", "Checkout dismissed");
             setLoading(false);
           },
         },
-      });
+      };
 
-      razorpay.on("payment.failed", (response: any) => {
+      const razorpay: RazorpayInstance = new razorpayConstructor(options);
+
+      razorpay.on("payment.failed", (response) => {
         secureLog.error('Payment', new Error('Payment failed'), { hasResponse: !!response });
         setError("Payment failed. Please try again.");
         setLoading(false);

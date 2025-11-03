@@ -13,6 +13,7 @@ import { useFeatureFlags } from '@/contexts/FeatureFlagsContext';
 import PaymentModal from '@/components/PaymentModal';
 import { storePaymentContext, trackPaymentEvent } from '@/utils/payment';
 import { toast } from '@/utils/toast';
+import { secureLog } from '@/utils/secureLogger';
 
 // Six fixed company IDs
 const FIXED_COMPANY_IDS = ['meta', 'apple', 'amazon', 'netflix', 'google', 'microsoft'];
@@ -58,7 +59,10 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
 
  // Debug logging
  useEffect(() => {
-  console.log('[StudyPlanForm] flags.paymentsEnabled:', flags.paymentsEnabled);
+  if (import.meta.env.DEV) {
+   console.log('[StudyPlanForm] flags.paymentsEnabled:', flags.paymentsEnabled);
+  }
+  secureLog.dev('FeatureFlags', 'Payments enabled flag', { paymentsEnabled: flags.paymentsEnabled });
  }, [flags.paymentsEnabled]);
 
  useEffect(() => {
@@ -128,7 +132,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
      cacheCompanies(response);
     }
    } catch (err) {
-    console.error('Error fetching companies:', err);
+    secureLog.error('StudyPlanForm', err as Error, { operation: 'fetchCompanies' });
    } finally {
     setIsLoadingCompanies(false);
    }
@@ -297,9 +301,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
  const handlePaymentFailure = useCallback((error: Error) => {
   trackPaymentEvent('full_dataset_payment_failed');
   setFullButtonBusy(false);
-  if (import.meta.env.DEV) {
-   console.error('Full dataset payment failed', error);
-  }
+  secureLog.error('StudyPlanForm', error, { operation: 'fullDatasetPayment' });
  }, []);
 
  const handlePaymentClose = useCallback(() => {

@@ -129,9 +129,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const mappedUser = mapFirebaseUser(firebaseUser);
           setUser(mappedUser);
           persistUser(mappedUser);
+
+          // Track authenticated user in Sentry
+          secureLog.setUserContext(mappedUser.uid, {
+            isAnonymous: false,
+          });
         } else {
           setUser(null);
           persistUser(null);
+
+          // Track anonymous user in Sentry
+          const anonId = secureLog.getAnonymousUserId();
+          secureLog.setUserContext(anonId, {
+            isAnonymous: true,
+          });
         }
         setLoading(false);
       },
@@ -274,6 +285,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         setPostAuthRedirectState(null);
         setAuthTriggerState(null);
+
+        // Switch to anonymous user tracking in Sentry (don't clear entirely)
+        const anonId = secureLog.getAnonymousUserId();
+        secureLog.setUserContext(anonId, {
+          isAnonymous: true,
+        });
+
         await firebaseSignOut(auth);
       }),
     [handleAuthOperation],

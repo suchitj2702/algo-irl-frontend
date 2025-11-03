@@ -60,6 +60,7 @@ import { getCompanyDisplayName } from '../utils/companyDisplay';
 import { extractCleanProblemTitle } from '../utils/problemTitleExtractor';
 import { saveBlind75ViewState, loadBlind75ViewState, Blind75ViewState, createDefaultBlind75ViewState } from '../utils/blind75ViewState';
 import { normalizeStudyPlanDatasetType } from '../utils/studyPlanDataset';
+import { secureLog } from '../utils/secureLogger';
 
 interface TestResultsFromParent {
  passed: boolean;
@@ -80,7 +81,10 @@ export function AppRouter() {
 
  // Debug logging
  useEffect(() => {
-  console.log('[AppRouter] flags.paymentsEnabled:', flags.paymentsEnabled);
+  if (import.meta.env.DEV) {
+   console.log('[AppRouter] flags.paymentsEnabled:', flags.paymentsEnabled);
+  }
+  secureLog.dev('FeatureFlags', 'Payments enabled flag changed', { paymentsEnabled: flags.paymentsEnabled });
  }, [flags.paymentsEnabled]);
 
  // Problem state
@@ -148,7 +152,7 @@ export function AppRouter() {
  } = usePlanProgressState({
    planId: currentStudyPlanId,
    onError: (error) => {
-     console.error('[Plan Progress] Error:', error);
+     secureLog.error('PlanProgress', error as Error, { planId: currentStudyPlanId });
    }
  });
 
@@ -172,10 +176,13 @@ export function AppRouter() {
    hasPendingChanges: hasPendingPlanChanges
  } = useStudyPlanAutoSave({
    onError: (error) => {
-     console.error('[Study Plan Auto-Save] Error:', error);
+     secureLog.error('AutoSave', error as Error, { context: 'StudyPlanAutoSave' });
    },
    onSyncComplete: (planId) => {
-     console.log(`[Study Plan Auto-Save] Sync complete for plan ${planId}`);
+     if (import.meta.env.DEV) {
+       console.log(`[Study Plan Auto-Save] Sync complete for plan ${planId}`);
+     }
+     secureLog.dev('AutoSave', 'Study plan sync complete', { planId });
    }
  });
 
@@ -197,7 +204,13 @@ export function AppRouter() {
     // CRITICAL: Safety check - only save if we're still on this problem
     // This prevents race conditions when navigating during debounce period
     if (activeProblemIdRef.current !== data.problemId) {
-      console.log(`⚠️ [Auto-Save] Skipping stale save - problem changed (${data.problemId} → ${activeProblemIdRef.current})`);
+      if (import.meta.env.DEV) {
+        console.log(`⚠️ [Auto-Save] Skipping stale save - problem changed (${data.problemId} → ${activeProblemIdRef.current})`);
+      }
+      secureLog.dev('AutoSave', 'Skipping stale save - problem changed', {
+        oldProblemId: data.problemId,
+        currentProblemId: activeProblemIdRef.current
+      });
       return;
     }
 
@@ -215,7 +228,11 @@ export function AppRouter() {
         setCodeSaveStatus(undefined);
       }, 2000);
     } catch (error) {
-      console.error('[Auto-Save] Cloud save error:', error);
+      secureLog.error('AutoSave', error as Error, {
+        planId: data.planId,
+        problemId: data.problemId,
+        operation: 'cloudSave'
+      });
       setCodeSaveStatus('error');
 
       // Auto-hide error after 3 seconds
@@ -225,7 +242,7 @@ export function AppRouter() {
     }
   },
   onError: (error) => {
-    console.error('[Auto-Save] Error:', error);
+    secureLog.error('AutoSave', error as Error, { operation: 'autoSave' });
     setCodeSaveStatus('error');
     setHasUnsyncedCode(true);
     setTimeout(() => {
@@ -280,7 +297,10 @@ export function AppRouter() {
    // Check cache first for instant load
    const cachedPlan = getPlanFromCache(activePlanId);
    if (cachedPlan) {
-     console.log(`💾 [Progress Sync] Loading from cache for plan ${activePlanId}`);
+     if (import.meta.env.DEV) {
+       console.log(`💾 [Progress Sync] Loading from cache for plan ${activePlanId}`);
+     }
+     secureLog.dev('ProgressSync', 'Loading from cache', { planId: activePlanId });
      initializePlanProgressState(
        new Set(cachedPlan.progress.completedProblems || []),
        new Set(cachedPlan.progress.bookmarkedProblems || []),
@@ -290,7 +310,10 @@ export function AppRouter() {
    }
 
    // Fallback to Firestore only if not cached
-   console.log(`☁️ [Progress Sync] Loading from Firestore for plan ${activePlanId}`);
+   if (import.meta.env.DEV) {
+     console.log(`☁️ [Progress Sync] Loading from Firestore for plan ${activePlanId}`);
+   }
+   secureLog.dev('ProgressSync', 'Loading from Firestore', { planId: activePlanId });
    const firestorePlan = await getStudyPlanFromFirestore(activePlanId);
    if (!firestorePlan) return;
 
@@ -300,7 +323,7 @@ export function AppRouter() {
      new Set(firestorePlan.progress.inProgressProblems || [])
    );
   } catch (error) {
-   console.error('Failed to sync plan progress:', error);
+   secureLog.error('ProgressSync', error as Error, { planId: activePlanId });
   }
  }, [currentStudyPlanId, initializePlanProgressState]);
 
@@ -335,7 +358,10 @@ const handleHomeClick = () => navigate('/');
    // This prevents stale view state from previous plans causing incorrect highlighting
    const savedViewState = loadViewStateFromSession(planId);
    setStudyPlanViewState(savedViewState || createDefaultViewState());
-   console.log(`🔄 [ViewState] ${savedViewState ? 'Restored' : 'Reset to default'} view state for plan ${planId}`);
+   if (import.meta.env.DEV) {
+     console.log(`🔄 [ViewState] ${savedViewState ? 'Restored' : 'Reset to default'} view state for plan ${planId}`);
+   }
+   secureLog.dev('ViewState', savedViewState ? 'Restored view state' : 'Reset to default', { planId });
 
    // Load from cache first for instant display
   const cachedPlan = getPlanFromCache(planId);
@@ -354,7 +380,10 @@ const handleHomeClick = () => navigate('/');
     }
 
      // Instant load from cache
-     console.log(`💾 [Cache] Loading plan ${planId} from cache`);
+     if (import.meta.env.DEV) {
+       console.log(`💾 [Cache] Loading plan ${planId} from cache`);
+     }
+     secureLog.dev('Cache', 'Loading plan from cache', { planId });
      setCurrentStudyPlanId(planId);
      setStudyPlanConfig(planForState.config);
      setStudyPlanResponse(planForState.response);
@@ -375,11 +404,14 @@ const handleHomeClick = () => navigate('/');
      // Cross-device sync happens on page load via MyStudyPlansPage
    } else {
      // No cache, load from Firestore
-     console.log(`☁️ [Firestore] Loading plan ${planId} from Firestore (not cached)`);
+     if (import.meta.env.DEV) {
+       console.log(`☁️ [Firestore] Loading plan ${planId} from Firestore (not cached)`);
+     }
+     secureLog.dev('Firestore', 'Loading plan from Firestore', { planId });
      const plan = await getStudyPlanFromFirestore(planId);
 
      if (!plan) {
-       console.error('Study plan not found:', planId);
+       secureLog.error('Firestore', new Error('Study plan not found'), { planId });
        return;
      }
 
@@ -412,7 +444,7 @@ const handleHomeClick = () => navigate('/');
      navigate('/study-plan-view');
    }
   } catch (error) {
-   console.error('Failed to load study plan:', error);
+   secureLog.error('StudyPlan', error as Error, { planId, operation: 'load' });
   }
  };
 
@@ -434,7 +466,13 @@ const handleHomeClick = () => navigate('/');
   // Set flag to show back button in ProblemSolver
   setReturnToBlind75(true);
 
-  console.log('📸 Captured Blind75 view state:', {
+  if (import.meta.env.DEV) {
+    console.log('📸 Captured Blind75 view state:', {
+      scrollY: capturedViewState.scrollY,
+      problemSlug: capturedViewState.lastViewedProblemSlug
+    });
+  }
+  secureLog.dev('ViewState', 'Captured Blind75 view state', {
     scrollY: capturedViewState.scrollY,
     problemSlug: capturedViewState.lastViewedProblemSlug
   });
@@ -560,9 +598,11 @@ const handleHomeClick = () => navigate('/');
    navigate('/problem', { replace: true });
 
   } catch (err) {
-   if (import.meta.env.DEV) {
-    console.error('Error preparing contextualized problem:', err);
-   }
+   secureLog.error('ProblemPreparation', err as Error, {
+     companyId: data.company,
+     problemSlug: selectedProblemSlug,
+     context: 'contextualized'
+   });
 
    if (err instanceof APIAuthenticationError) {
     setError(err.message + ' Please refresh the page and try again.');
@@ -600,7 +640,13 @@ const handleHomeClick = () => navigate('/');
    // Set flag to show back button in ProblemSolver
    setReturnToBlind75(true);
 
-   console.log('📸 Captured Blind75 view state (Resume):', {
+   if (import.meta.env.DEV) {
+     console.log('📸 Captured Blind75 view state (Resume):', {
+       scrollY: capturedViewState.scrollY,
+       problemSlug: capturedViewState.lastViewedProblemSlug
+     });
+   }
+   secureLog.dev('ViewState', 'Captured Blind75 view state on resume', {
      scrollY: capturedViewState.scrollY,
      problemSlug: capturedViewState.lastViewedProblemSlug
    });
@@ -693,7 +739,7 @@ const handleHomeClick = () => navigate('/');
    setResumeDataLoaded(true);
 
   } catch (err) {
-   console.error('Error resuming problem:', err);
+   secureLog.error('ProblemResume', err as Error, { problemId });
 
    if (err instanceof APIAuthenticationError) {
     setError(err.message + ' Please refresh the page and try again.');
@@ -795,7 +841,11 @@ const handleHomeClick = () => navigate('/');
    navigate('/problem', { replace: true });
 
   } catch (err) {
-   console.error('Error preparing problem:', err);
+   secureLog.error('ProblemPreparation', err as Error, {
+     companyId: data.company,
+     difficulty: data.difficulty,
+     problemSlug: data.specificProblemSlug
+   });
    setError(err instanceof Error ? err.message : 'An unexpected error occurred');
    navigate('/form');
   }
@@ -900,7 +950,7 @@ const handleHomeClick = () => navigate('/');
    // No duplicate, proceed with generation
    await executeStudyPlanGeneration(config);
   } catch (err) {
-   console.error('Error in handleGenerateStudyPlan:', err);
+   secureLog.error('StudyPlan', err as Error, { operation: 'generate', config });
    setStudyPlanError(err instanceof Error ? err.message : 'Failed to generate study plan.');
    setIsGeneratingStudyPlan(false);
    navigate('/study-plan-form');
@@ -937,7 +987,10 @@ const handleHomeClick = () => navigate('/');
    // 🎯 FIX: Reset to default view state for brand new plan
    // This ensures no stale highlighting from previous plans
    setStudyPlanViewState(createDefaultViewState());
-   console.log('🔄 [ViewState] Reset to default for new plan');
+   if (import.meta.env.DEV) {
+     console.log('🔄 [ViewState] Reset to default for new plan');
+   }
+   secureLog.dev('ViewState', 'Reset to default for new plan', { planId });
 
    setStudyPlanResponse(response);
    syncPlanStructures(response);
@@ -945,7 +998,7 @@ const handleHomeClick = () => navigate('/');
    setIsGeneratingStudyPlan(false);
    navigate('/study-plan-view');
   } catch (err) {
-   console.error('Error generating study plan:', err);
+   secureLog.error('StudyPlan', err as Error, { operation: 'generateAPI', config });
 
    if (err instanceof APIAuthenticationError) {
     setStudyPlanError(err.message + ' Please refresh the page and try again.');
@@ -1002,7 +1055,7 @@ const handleHomeClick = () => navigate('/');
    }
 
    if (!targetProblemId) {
-    console.warn('Study plan problem is missing problemId');
+    secureLog.warn('StudyPlan', 'Problem missing problemId', { problem });
     return;
    }
 
@@ -1031,11 +1084,19 @@ const handleHomeClick = () => navigate('/');
     saveViewStateToSession(activePlanId, capturedViewState);
    }
 
-   console.log('📸 Captured view state:', {
-    scrollY: capturedViewState.scrollY,
-    expandedDays: capturedViewState.expandedDays,
-    currentProblemId: capturedViewState.currentProblemId,
-    currentProblemDay: capturedViewState.currentProblemDay
+   if (import.meta.env.DEV) {
+     console.log('📸 Captured view state:', {
+      scrollY: capturedViewState.scrollY,
+      expandedDays: capturedViewState.expandedDays,
+      currentProblemId: capturedViewState.currentProblemId,
+      currentProblemDay: capturedViewState.currentProblemDay
+     });
+   }
+   secureLog.dev('ViewState', 'Captured view state', {
+     scrollY: capturedViewState.scrollY,
+     expandedDaysCount: capturedViewState.expandedDays.length,
+     currentProblemId: capturedViewState.currentProblemId,
+     currentProblemDay: capturedViewState.currentProblemDay
    });
 
    if (!activeStudyPlanConfig) {
@@ -1074,12 +1135,18 @@ const handleHomeClick = () => navigate('/');
    // 🚀 Check cache BEFORE making API call (unless forcing refresh for regenerate)
    // This prevents unnecessary API calls when problem data already exists
    if (!forceRefresh) {
-    console.log(`💾 [Start] Checking cache for problem ${targetProblemId}`);
+    if (import.meta.env.DEV) {
+      console.log(`💾 [Start] Checking cache for problem ${targetProblemId}`);
+    }
+    secureLog.dev('Cache', 'Checking cache for problem', { planId: activePlanId, problemId: targetProblemId });
     const cachedProblem = getProblemFromCache(activePlanId, targetProblemId);
 
     if (cachedProblem && cachedProblem.problem && cachedProblem.codeDetails) {
      // Problem exists in cache, use it directly!
-     console.log(`✅ [Start] Found problem in cache, skipping API call`);
+     if (import.meta.env.DEV) {
+       console.log(`✅ [Start] Found problem in cache, skipping API call`);
+     }
+     secureLog.dev('Cache', 'Found problem in cache, skipping API call', { problemId: targetProblemId });
 
     // Navigate to problem page
     navigate('/loading');
@@ -1117,12 +1184,18 @@ const handleHomeClick = () => navigate('/');
      return;
     }
    } else {
-    console.log(`🔄 [Start] Force refresh requested, bypassing cache and calling API`);
+    if (import.meta.env.DEV) {
+      console.log(`🔄 [Start] Force refresh requested, bypassing cache and calling API`);
+    }
+    secureLog.dev('Cache', 'Force refresh requested, bypassing cache', { problemId: targetProblemId });
    }
 
    // No cache found (or force refresh), proceed with API call
    if (!forceRefresh) {
-    console.log(`🌐 [Start] No cache found for problem ${targetProblemId}, calling API`);
+    if (import.meta.env.DEV) {
+      console.log(`🌐 [Start] No cache found for problem ${targetProblemId}, calling API`);
+    }
+    secureLog.dev('Cache', 'No cache found, calling API', { problemId: targetProblemId });
    }
 
    // Now safe to navigate - state is clean (unless caller already navigated)
@@ -1196,9 +1269,16 @@ const handleHomeClick = () => navigate('/');
       updatedInProgress
     );
 
-    console.log('✅ Problem details and status saved to Firestore');
+    if (import.meta.env.DEV) {
+      console.log('✅ Problem details and status saved to Firestore');
+    }
+    secureLog.dev('Firestore', 'Problem details and status saved', { planId: activePlanId, problemId: targetProblemId });
    } catch (error) {
-    console.error('Failed to save problem to Firestore:', error);
+    secureLog.error('Firestore', error as Error, {
+      planId: activePlanId,
+      problemId: targetProblemId,
+      operation: 'saveProblem'
+    });
 
     // Fallback: save to localStorage for backwards compatibility
     setCachedProblemData(uniqueProblemId, formattedProblem, formattedCodeDetails);
@@ -1222,7 +1302,7 @@ const handleHomeClick = () => navigate('/');
       updatedInProgress
     );
 
-    console.warn('⚠️ Using localStorage fallback');
+    secureLog.warn('Cache', 'Using localStorage fallback', { planId: activePlanId, problemId: targetProblemId });
    }
 
    // 💾 CRITICAL: Save to unified cache for instant future access (Next/Prev navigation)
@@ -1232,7 +1312,10 @@ const handleHomeClick = () => navigate('/');
      codeDetails: formattedCodeDetails,
      userCode: formattedCodeDetails.defaultUserCode || ''
    });
-   console.log('💾 Problem saved to unified cache for instant future access');
+   if (import.meta.env.DEV) {
+     console.log('💾 Problem saved to unified cache for instant future access');
+   }
+   secureLog.dev('Cache', 'Problem saved to unified cache', { planId: activePlanId, problemId: targetProblemId });
 
    setApiResponseReceived(true);
    setProblem(formattedProblem);
@@ -1242,7 +1325,11 @@ const handleHomeClick = () => navigate('/');
    navigate('/study-plan/problem', { replace: true });
 
   } catch (err) {
-   console.error('Error preparing problem from study plan:', err);
+   secureLog.error('StudyPlan', err as Error, {
+     planId: activePlanId,
+     problemId: targetProblemId,
+     operation: 'prepareProblem'
+   });
 
    if (err instanceof APIAuthenticationError) {
     setError(err.message + ' Please refresh the page and try again.');
@@ -1284,7 +1371,11 @@ const handleHomeClick = () => navigate('/');
 
    // Bookmark is preserved automatically (separate Set)
   } catch (error) {
-   console.error('Failed to regenerate:', error);
+   secureLog.error('StudyPlan', error as Error, {
+     planId: currentStudyPlanId,
+     problemId: currentPlanProblemId,
+     operation: 'regenerate'
+   });
    setError('Failed to regenerate problem');
   }
  }, [currentPlanProblemId, currentStudyPlanId, planProblemMap, handleStartProblemFromPlan]);
@@ -1345,20 +1436,38 @@ const handleHomeClick = () => navigate('/');
      saveViewStateToSession(activePlanId, capturedViewState);
     }
 
-    console.log('📸 Captured view state (Resume/Review):', {
-     scrollY: capturedViewState.scrollY,
-     expandedDays: capturedViewState.expandedDays,
-     currentProblemId: capturedViewState.currentProblemId,
-     currentProblemDay: capturedViewState.currentProblemDay
+    if (import.meta.env.DEV) {
+      console.log('📸 Captured view state (Resume/Review):', {
+       scrollY: capturedViewState.scrollY,
+       expandedDays: capturedViewState.expandedDays,
+       currentProblemId: capturedViewState.currentProblemId,
+       currentProblemDay: capturedViewState.currentProblemDay
+      });
+    }
+    secureLog.dev('ViewState', 'Captured view state on resume/review', {
+      scrollY: capturedViewState.scrollY,
+      expandedDaysCount: capturedViewState.expandedDays.length,
+      currentProblemId: capturedViewState.currentProblemId,
+      currentProblemDay: capturedViewState.currentProblemDay
     });
 
     // SIMPLIFIED LOGIC: Check unified cache ONLY (single source of truth)
-    console.log(`💾 [Resume] Checking unified cache for problem ${problem.problemId}`);
+    if (import.meta.env.DEV) {
+      console.log(`💾 [Resume] Checking unified cache for problem ${problem.problemId}`);
+    }
+    secureLog.dev('Cache', 'Checking unified cache for resume', { planId: activePlanId, problemId: problem.problemId });
     const cachedProblem = getProblemFromCache(activePlanId, problem.problemId);
 
     if (cachedProblem) {
       // Load from cache - this has the latest code from auto-save!
-      console.log(`✅ [Resume] Loaded from cache with ${cachedProblem.userCode.length} chars of code`);
+      if (import.meta.env.DEV) {
+        console.log(`✅ [Resume] Loaded from cache with ${cachedProblem.userCode.length} chars of code`);
+      }
+      secureLog.dev('Cache', 'Loaded from cache on resume', {
+        planId: activePlanId,
+        problemId: problem.problemId,
+        codeLength: cachedProblem.userCode.length
+      });
       setCurrentStudyPlanId(activePlanId);
       setCurrentPlanProblemId(problem.problemId);
       setCurrentCompanyId(companyId);
@@ -1376,17 +1485,28 @@ const handleHomeClick = () => navigate('/');
     }
 
     // No cache - fetch fresh from API (same as starting new)
-    console.log(`🆕 [Resume] No cached data found, starting fresh from API`);
+    if (import.meta.env.DEV) {
+      console.log(`🆕 [Resume] No cached data found, starting fresh from API`);
+    }
+    secureLog.dev('Cache', 'No cached data found, starting fresh', { problemId: problem.problemId });
     await handleStartProblemFromPlan(problem, activePlanId);
    } catch (resumeErr) {
-    console.error('Error resuming study plan problem:', resumeErr);
+    secureLog.error('StudyPlan', resumeErr as Error, {
+      planId: activePlanId,
+      problemId: problem.problemId,
+      operation: 'resume'
+    });
     // Try to start fresh as fallback, but don't redirect to Blind75
     const fallbackPlanId = planId || currentStudyPlanId;
     if (fallbackPlanId) {
      try {
       await handleStartProblemFromPlan(problem, fallbackPlanId);
      } catch (fallbackErr) {
-      console.error('Failed to start problem as fallback:', fallbackErr);
+      secureLog.error('StudyPlan', fallbackErr as Error, {
+        planId: fallbackPlanId,
+        problemId: problem.problemId,
+        operation: 'fallbackStart'
+      });
       // Navigate back to study plan view instead of Blind75
       if (fallbackPlanId) {
         navigate('/study-plan-view');
@@ -1401,7 +1521,10 @@ const handleHomeClick = () => navigate('/');
  const handleNavigateStudyPlanProblem = useCallback(async (direction: 'next' | 'prev') => {
   // Prevent double navigation
   if (isNavigating) {
-   console.log('[Navigation] Already navigating, ignoring request');
+   if (import.meta.env.DEV) {
+     console.log('[Navigation] Already navigating, ignoring request');
+   }
+   secureLog.dev('Navigation', 'Already navigating, ignoring request', { direction });
    return;
   }
 
@@ -1440,11 +1563,20 @@ const handleHomeClick = () => navigate('/');
                         inProgressPlanProblems.has(targetProblem.problemId) ||
                         completedPlanProblems.has(targetProblem.problemId);
 
-   console.log(`[Navigation] ${direction} to ${targetProblem.title}:`, {
-    hasCachedData: Boolean(cachedProblem),
-    isInProgress: inProgressPlanProblems.has(targetProblem.problemId),
-    isCompleted: completedPlanProblems.has(targetProblem.problemId),
-    shouldResume
+   if (import.meta.env.DEV) {
+     console.log(`[Navigation] ${direction} to ${targetProblem.title}:`, {
+      hasCachedData: Boolean(cachedProblem),
+      isInProgress: inProgressPlanProblems.has(targetProblem.problemId),
+      isCompleted: completedPlanProblems.has(targetProblem.problemId),
+      shouldResume
+     });
+   }
+   secureLog.dev('Navigation', `Navigating ${direction} to problem`, {
+     direction,
+     problemTitle: targetProblem.title,
+     problemId: targetProblem.problemId,
+     hasCachedData: Boolean(cachedProblem),
+     shouldResume
    });
 
    if (shouldResume) {
@@ -1510,7 +1642,10 @@ const forceFullSync = useCallback(async () => {
  const needsPlanSync = hasPendingPlanChanges;
 
  if (!needsCodeSync && !needsProgressSync && !needsPlanSync) {
-   console.log('ℹ️ [Sync] No pending study plan changes to sync');
+   if (import.meta.env.DEV) {
+     console.log('ℹ️ [Sync] No pending study plan changes to sync');
+   }
+   secureLog.dev('Sync', 'No pending study plan changes to sync', {});
    return;
  }
 
@@ -1539,9 +1674,12 @@ const forceFullSync = useCallback(async () => {
    }
 
    await Promise.all(syncPromises);
-   console.log('✅ Full sync complete');
+   if (import.meta.env.DEV) {
+     console.log('✅ Full sync complete');
+   }
+   secureLog.dev('Sync', 'Full sync complete', { planId, problemId });
  } catch (error) {
-   console.error('❌ Force full sync failed:', error);
+   secureLog.error('Sync', error as Error, { planId, problemId, operation: 'forceFullSync' });
    throw error; // Re-throw so caller can handle
  }
 }, [
@@ -1559,7 +1697,10 @@ const forceFullSync = useCallback(async () => {
 
  // Direct navigation to plan view - no loading screen needed!
  const handleReturnToPlanViewImmediate = useCallback(() => {
-  console.log('⚡ [Return to Plan] Navigating instantly without loading screen');
+  if (import.meta.env.DEV) {
+    console.log('⚡ [Return to Plan] Navigating instantly without loading screen');
+  }
+  secureLog.dev('Navigation', 'Returning to plan view immediately', { planId: currentStudyPlanId });
 
   // Save in background (non-blocking) if needed
   const isCodeSyncInFlight =
@@ -1571,10 +1712,20 @@ const forceFullSync = useCallback(async () => {
     isCodeSyncInFlight;
 
   if (hasAnyPendingChanges) {
-    console.log('💾 [View Plan] Starting background save...');
+    if (import.meta.env.DEV) {
+      console.log('💾 [View Plan] Starting background save...');
+    }
+    secureLog.dev('AutoSave', 'Starting background save', { planId: currentStudyPlanId });
     forceFullSync()
-      .then(() => console.log('✅ [Background Save] Completed'))
-      .catch(error => console.error('❌ [Background Save] Failed:', error));
+      .then(() => {
+        if (import.meta.env.DEV) {
+          console.log('✅ [Background Save] Completed');
+        }
+        secureLog.dev('AutoSave', 'Background save completed', { planId: currentStudyPlanId });
+      })
+      .catch(error => {
+        secureLog.error('AutoSave', error as Error, { planId: currentStudyPlanId, operation: 'backgroundSave' });
+      });
   }
 
   // Navigate IMMEDIATELY - no loading screen, no delays!
@@ -1616,7 +1767,11 @@ const saveBeforeAction = useCallback(async (action: () => void | Promise<void>) 
    try {
      await forceFullSync();
    } catch (error) {
-     console.error('Failed to save before action:', error);
+     secureLog.error('Sync', error as Error, {
+       planId: currentStudyPlanId,
+       problemId: currentPlanProblemId,
+       operation: 'saveBeforeAction'
+     });
    }
  }
  await action();
@@ -1643,10 +1798,20 @@ const navigateWithBackgroundSave = useCallback((action: () => void | Promise<voi
    isCodeSyncInFlight;
 
  if (hasAnyPendingChanges) {
-   console.log('💾 [Navigation] Starting background save...');
+   if (import.meta.env.DEV) {
+     console.log('💾 [Navigation] Starting background save...');
+   }
+   secureLog.dev('AutoSave', 'Starting background save on navigation', { planId: currentStudyPlanId });
    forceFullSync()
-     .then(() => console.log('✅ [Background Save] Completed'))
-     .catch(error => console.error('❌ [Background Save] Failed:', error));
+     .then(() => {
+       if (import.meta.env.DEV) {
+         console.log('✅ [Background Save] Completed');
+       }
+       secureLog.dev('AutoSave', 'Background save completed on navigation', { planId: currentStudyPlanId });
+     })
+     .catch(error => {
+       secureLog.error('AutoSave', error as Error, { planId: currentStudyPlanId, operation: 'navigationBackgroundSave' });
+     });
  }
 
  // Execute action IMMEDIATELY - don't wait for save
@@ -1663,7 +1828,10 @@ const navigateWithBackgroundSave = useCallback((action: () => void | Promise<voi
 
  // Force sync before sign-out to prevent data loss
 const handleBeforeSignOut = useCallback(async () => {
- console.log('🔄 [Sign-Out] Force syncing before sign-out...');
+ if (import.meta.env.DEV) {
+   console.log('🔄 [Sign-Out] Force syncing before sign-out...');
+ }
+ secureLog.dev('Sync', 'Force syncing before sign-out', { planId: currentStudyPlanId });
  const isCodeSyncInFlight =
    Boolean(currentStudyPlanId && currentPlanProblemId && codeSaveStatus === 'saving');
  const shouldSync =
@@ -1673,15 +1841,21 @@ const handleBeforeSignOut = useCallback(async () => {
    isCodeSyncInFlight;
 
  if (!shouldSync) {
-   console.log('ℹ️ [Sign-Out] No pending study plan changes, skipping sync');
+   if (import.meta.env.DEV) {
+     console.log('ℹ️ [Sign-Out] No pending study plan changes, skipping sync');
+   }
+   secureLog.dev('Sync', 'No pending study plan changes, skipping sync', {});
    return;
  }
 
  try {
    await forceFullSync();
-   console.log('✅ [Sign-Out] Sync complete');
+   if (import.meta.env.DEV) {
+     console.log('✅ [Sign-Out] Sync complete');
+   }
+   secureLog.dev('Sync', 'Sign-out sync complete', { planId: currentStudyPlanId });
  } catch (error) {
-   console.error('❌ [Sign-Out] Sync failed:', error);
+   secureLog.error('Sync', error as Error, { planId: currentStudyPlanId, operation: 'signOutSync' });
    // Continue with sign-out even if sync fails (offline, network error, etc.)
  }
 }, [
@@ -1696,13 +1870,22 @@ const handleBeforeSignOut = useCallback(async () => {
 
  // Handle return to Blind75 with view state restoration
  const handleReturnToBlind75 = useCallback(() => {
-  console.log('⚡ [Return to Blind75] Navigating with view state');
+  if (import.meta.env.DEV) {
+    console.log('⚡ [Return to Blind75] Navigating with view state');
+  }
+  secureLog.dev('Navigation', 'Returning to Blind75 with view state', {});
 
   // Load view state from sessionStorage as backup (in case React state lost)
   const sessionViewState = loadBlind75ViewState();
   const viewStateToUse = sessionViewState || blind75ViewState;
 
-  console.log('📜 Restoring Blind75 view state:', {
+  if (import.meta.env.DEV) {
+    console.log('📜 Restoring Blind75 view state:', {
+      scrollY: viewStateToUse.scrollY,
+      problemSlug: viewStateToUse.lastViewedProblemSlug
+    });
+  }
+  secureLog.dev('ViewState', 'Restoring Blind75 view state', {
     scrollY: viewStateToUse.scrollY,
     problemSlug: viewStateToUse.lastViewedProblemSlug
   });

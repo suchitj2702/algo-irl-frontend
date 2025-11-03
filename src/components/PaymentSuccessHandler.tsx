@@ -18,13 +18,7 @@ type VerificationAttempt = {
 const POLL_INTERVAL_MS = 2000;
 const MAX_POLL_ATTEMPTS = 15;
 
-export function PaymentSuccessHandler() {
-  const { flags } = useFeatureFlags();
-
-  // Don't render if payments are disabled
-  if (!flags.paymentsEnabled) {
-    return null;
-  }
+function PaymentSuccessHandlerContent() {
   const { refresh } = useSubscription();
   const { getIdToken } = useAuth();
   const navigate = useNavigate();
@@ -289,6 +283,16 @@ export function PaymentSuccessHandler() {
   }, [isProcessing]);
 
   return processingOverlay;
+}
+
+export function PaymentSuccessHandler() {
+  const { flags } = useFeatureFlags();
+
+  if (!flags.paymentsEnabled) {
+    return null;
+  }
+
+  return <PaymentSuccessHandlerContent />;
 }
 
 export default PaymentSuccessHandler;

@@ -6,6 +6,7 @@ import { getCompanyDisplayName } from '../../../utils/companyDisplay';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { isBlind75StudyPlan, normalizeStudyPlanDatasetType } from '../../../utils/studyPlanDataset';
+import { secureLog } from '../../../utils/secureLogger';
 
 interface MyStudyPlansPageProps {
  onCreateNew: () => void;
@@ -36,10 +37,16 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
 
     // Firestore-first approach: Always fetch from server as source of truth
     // This eliminates ghost deleted plans that may still be in localStorage
-    console.log('☁️ [Firestore] Loading plans from server (source of truth)');
+    if (import.meta.env.DEV) {
+     console.log('☁️ [Firestore] Loading plans from server (source of truth)');
+    }
+    secureLog.dev('Firestore', 'Loading plans from server (source of truth)');
     const firestorePlans = await getStudyPlansFromFirestore();
 
-    console.log(`☁️ [Sync] Fetched ${firestorePlans.length} plans from Firestore`);
+    if (import.meta.env.DEV) {
+     console.log(`☁️ [Sync] Fetched ${firestorePlans.length} plans from Firestore`);
+    }
+    secureLog.dev('Firestore', 'Fetched plans from Firestore', { count: firestorePlans.length });
 
     // Update cache with validated data from Firestore
     // First, get existing cache to find plans that should be removed
@@ -78,7 +85,10 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
     // Remove deleted plans from cache (ghosts)
     const ghostPlans = cachedPlans.filter(cached => !firestorePlanIds.has(cached.planId));
     if (ghostPlans.length > 0) {
-      console.log(`🗑️ [Cache] Removing ${ghostPlans.length} deleted plan(s) from cache`);
+      if (import.meta.env.DEV) {
+       console.log(`🗑️ [Cache] Removing ${ghostPlans.length} deleted plan(s) from cache`);
+      }
+      secureLog.dev('CacheCleanup', 'Removing deleted plans from cache', { count: ghostPlans.length });
       ghostPlans.forEach(ghost => {
         removePlanFromCache(ghost.planId);
       });
@@ -95,7 +105,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
     setStudyPlans(normalizedPlans);
     setLoading(false);
    } catch (err) {
-    console.error('Failed to load study plans:', err);
+    secureLog.error('Firestore', err as Error, { operation: 'loadStudyPlans' });
     setError('Failed to load study plans. Please try refreshing the page.');
     setLoading(false);
    }
@@ -117,9 +127,12 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
     // Delete from Firestore in background
     await deleteStudyPlanFromFirestore(planId);
 
-    console.log(`🗑️ Plan ${planId} deleted successfully`);
+    if (import.meta.env.DEV) {
+     console.log(`🗑️ Plan ${planId} deleted successfully`);
+    }
+    secureLog.dev('Firestore', 'Plan deleted successfully', { planId });
    } catch (err) {
-    console.error('Failed to delete study plan:', err);
+    secureLog.error('Firestore', err as Error, { operation: 'deletePlan', planId });
     alert('Failed to delete study plan. Please try again.');
 
     // Reload plans on error
@@ -162,7 +175,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
    <div className="max-w-6xl mx-auto">
     {/* Header */}
     <div className="mb-8">
-     <h1 className="text-3xl font-bold text-content mb-2 font-playfair">
+     <h1 className="text-3xl font-medium tracking-tight text-content mb-2 font-playfair">
       My Study Plans
      </h1>
      <p className="text-content-muted dark:text-content-subtle">

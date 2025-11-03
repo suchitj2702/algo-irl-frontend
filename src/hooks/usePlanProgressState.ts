@@ -6,6 +6,7 @@ import {
   toggleProblemBookmark
 } from '../services/studyPlanFirestoreService';
 import { deepEqual } from '../utils/stateComparison';
+import { secureLog } from '../utils/secureLogger';
 
 interface PlanProgressState {
   completedProblems: Set<string>;
@@ -74,14 +75,27 @@ export function usePlanProgressState({
       // If all updates are identical to last sync, skip
       if (updatesToSync.length === 0) {
         saveSkipCount.current++;
-        console.log(`☁️ [Plan Progress] No changes detected, skipping Firebase write (${saveSkipCount.current} saves skipped)`);
+        if (import.meta.env.DEV) {
+          console.log(`☁️ [Plan Progress] No changes detected, skipping Firebase write (${saveSkipCount.current} saves skipped)`);
+        }
+        secureLog.dev('PlanProgress', 'No changes detected, skipping Firebase write', {
+          savesSkipped: saveSkipCount.current,
+          pendingCount: pendingUpdates.current.size
+        });
         pendingUpdates.current.clear();
         return;
       }
 
       try {
         isSyncingRef.current = true;
-        console.log(`☁️ [Plan Progress] Syncing ${updatesToSync.length} updates to Firestore (${pendingUpdates.current.size - updatesToSync.length} skipped)`);
+        if (import.meta.env.DEV) {
+          console.log(`☁️ [Plan Progress] Syncing ${updatesToSync.length} updates to Firestore (${pendingUpdates.current.size - updatesToSync.length} skipped)`);
+        }
+        secureLog.dev('PlanProgress', 'Syncing updates to Firestore', {
+          updatesToSync: updatesToSync.length,
+          skipped: pendingUpdates.current.size - updatesToSync.length,
+          planId
+        });
 
         // Process all pending updates
         await Promise.all(
@@ -112,9 +126,19 @@ export function usePlanProgressState({
 
         // Clear pending updates after successful sync
         pendingUpdates.current.clear();
-        console.log('☁️ [Plan Progress] Sync complete');
+        if (import.meta.env.DEV) {
+          console.log('☁️ [Plan Progress] Sync complete');
+        }
+        secureLog.dev('PlanProgress', 'Sync complete', {
+          syncedCount: updatesToSync.length,
+          planId
+        });
       } catch (error) {
-        console.error('[Plan Progress] Sync failed:', error);
+        secureLog.error('PlanProgress', error as Error, {
+          operation: 'sync',
+          updatesCount: updatesToSync.length,
+          planId
+        });
         if (onError && error instanceof Error) {
           onError(error);
         }
@@ -162,7 +186,14 @@ export function usePlanProgressState({
         isBookmarked: !isCurrentlyBookmarked
       });
 
-      console.log(`💾 [Plan Progress] Bookmark toggled locally for ${problemId}`);
+      if (import.meta.env.DEV) {
+        console.log(`💾 [Plan Progress] Bookmark toggled locally for ${problemId}`);
+      }
+      secureLog.dev('PlanProgressLocal', 'Bookmark toggled locally', {
+        problemId,
+        isBookmarked: !isCurrentlyBookmarked,
+        planId
+      });
 
       // Trigger debounced sync
       debouncedSync();
@@ -202,7 +233,14 @@ export function usePlanProgressState({
         status: newStatus
       });
 
-      console.log(`💾 [Plan Progress] Completion toggled locally for ${problemId} -> ${newStatus}`);
+      if (import.meta.env.DEV) {
+        console.log(`💾 [Plan Progress] Completion toggled locally for ${problemId} -> ${newStatus}`);
+      }
+      secureLog.dev('PlanProgressLocal', 'Completion toggled locally', {
+        problemId,
+        status: newStatus,
+        planId
+      });
 
       // Trigger debounced sync
       debouncedSync();
@@ -239,7 +277,14 @@ export function usePlanProgressState({
         status
       });
 
-      console.log(`💾 [Plan Progress] Status updated locally for ${problemId} -> ${status}`);
+      if (import.meta.env.DEV) {
+        console.log(`💾 [Plan Progress] Status updated locally for ${problemId} -> ${status}`);
+      }
+      secureLog.dev('PlanProgressLocal', 'Status updated locally', {
+        problemId,
+        status,
+        planId
+      });
 
       // Trigger debounced sync
       debouncedSync();
@@ -262,7 +307,13 @@ export function usePlanProgressState({
       isSyncingRef.current = true;
       const updates = Array.from(pendingUpdates.current.values());
 
-      console.log(`☁️ [Plan Progress - Force] Syncing ${updates.length} updates to Firestore`);
+      if (import.meta.env.DEV) {
+        console.log(`☁️ [Plan Progress - Force] Syncing ${updates.length} updates to Firestore`);
+      }
+      secureLog.dev('PlanProgress', 'Force syncing updates to Firestore', {
+        updatesCount: updates.length,
+        planId
+      });
 
       // Process all pending updates (skip state comparison for force sync)
       await Promise.all(
@@ -293,9 +344,19 @@ export function usePlanProgressState({
 
       // Clear pending updates after successful sync
       pendingUpdates.current.clear();
-      console.log('☁️ [Plan Progress - Force] Sync complete');
+      if (import.meta.env.DEV) {
+        console.log('☁️ [Plan Progress - Force] Sync complete');
+      }
+      secureLog.dev('PlanProgress', 'Force sync complete', {
+        syncedCount: updates.length,
+        planId
+      });
     } catch (error) {
-      console.error('[Plan Progress - Force] Sync failed:', error);
+      secureLog.error('PlanProgress', error as Error, {
+        operation: 'force sync',
+        updatesCount: Array.from(pendingUpdates.current.values()).length,
+        planId
+      });
       if (onError && error instanceof Error) {
         onError(error);
       }

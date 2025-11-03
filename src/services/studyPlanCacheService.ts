@@ -5,6 +5,7 @@
 
 import { Problem, CodeDetails } from '../types';
 import { StudyPlanConfig, StudyPlanResponse, CachedStudyPlan } from '../types/studyPlan';
+import { secureLog } from '../utils/secureLogger';
 
 const CACHE_KEY_PREFIX = 'algoirl_study_plan_';
 const PLANS_INDEX_KEY = 'algoirl_study_plans_index';
@@ -55,7 +56,7 @@ export function getPlansIndex(): PlansIndex {
     }
     return JSON.parse(data);
   } catch (error) {
-    console.error('[Cache] Failed to read plans index:', error);
+    secureLog.error('CacheService', error as Error, { operation: 'readPlansIndex' });
     return { planIds: [], lastUpdated: Date.now() };
   }
 }
@@ -71,7 +72,7 @@ function updatePlansIndex(planIds: string[]): void {
     };
     localStorage.setItem(PLANS_INDEX_KEY, JSON.stringify(index));
   } catch (error) {
-    console.error('[Cache] Failed to update plans index:', error);
+    secureLog.error('CacheService', error as Error, { operation: 'updatePlansIndex' });
   }
 }
 
@@ -103,12 +104,15 @@ export function savePlanToCache(data: CachedPlanData): void {
     const key = getPlanCacheKey(data.planId);
     localStorage.setItem(key, JSON.stringify(data));
     addToIndex(data.planId);
-    console.log(`💾 [Cache] Saved plan ${data.planId} to localStorage`);
+    if (import.meta.env.DEV) {
+      console.log(`💾 [Cache] Saved plan ${data.planId} to localStorage`);
+    }
+    secureLog.dev('CacheService', `Saved plan to localStorage`, { planId: data.planId });
   } catch (error) {
-    console.error('[Cache] Failed to save plan:', error);
+    secureLog.error('CacheService', error as Error, { operation: 'savePlan', planId: data.planId });
     // Handle quota exceeded error
     if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-      console.warn('[Cache] Storage quota exceeded, cleaning old data...');
+      secureLog.warn('CacheService', 'Storage quota exceeded, cleaning old data', { planId: data.planId });
       cleanOldCacheEntries();
       // Retry once after cleanup
       try {
@@ -116,7 +120,7 @@ export function savePlanToCache(data: CachedPlanData): void {
         localStorage.setItem(key, JSON.stringify(data));
         addToIndex(data.planId);
       } catch (retryError) {
-        console.error('[Cache] Failed to save plan after cleanup:', retryError);
+        secureLog.error('CacheService', retryError as Error, { operation: 'savePlanRetry', planId: data.planId });
       }
     }
   }
@@ -136,15 +140,18 @@ export function getPlanFromCache(planId: string): CachedPlanData | null {
 
     // Version check
     if (parsed.version !== CACHE_VERSION) {
-      console.warn(`[Cache] Version mismatch for plan ${planId}, invalidating cache`);
+      secureLog.warn('CacheService', 'Version mismatch, invalidating cache', { planId, expectedVersion: CACHE_VERSION, actualVersion: parsed.version });
       removePlanFromCache(planId);
       return null;
     }
 
-    console.log(`💾 [Cache] Loaded plan ${planId} from localStorage`);
+    if (import.meta.env.DEV) {
+      console.log(`💾 [Cache] Loaded plan ${planId} from localStorage`);
+    }
+    secureLog.dev('CacheService', `Loaded plan from localStorage`, { planId });
     return parsed;
   } catch (error) {
-    console.error('[Cache] Failed to load plan:', error);
+    secureLog.error('CacheService', error as Error, { operation: 'loadPlan', planId });
     return null;
   }
 }
@@ -176,7 +183,7 @@ export function updatePlanProgressInCache(
 ): void {
   const plan = getPlanFromCache(planId);
   if (!plan) {
-    console.warn(`[Cache] Plan ${planId} not found in cache`);
+    secureLog.warn('CacheService', 'Plan not found in cache', { planId, operation: 'updateProgress' });
     return;
   }
 
@@ -204,7 +211,7 @@ export function updateProblemInCache(
 ): void {
   const plan = getPlanFromCache(planId);
   if (!plan) {
-    console.warn(`[Cache] Plan ${planId} not found in cache`);
+    secureLog.warn('CacheService', 'Plan not found in cache', { planId, problemId, operation: 'updateProblem' });
     return;
   }
 
@@ -249,9 +256,12 @@ export function removePlanFromCache(planId: string): void {
     const key = getPlanCacheKey(planId);
     localStorage.removeItem(key);
     removeFromIndex(planId);
-    console.log(`💾 [Cache] Removed plan ${planId} from localStorage`);
+    if (import.meta.env.DEV) {
+      console.log(`💾 [Cache] Removed plan ${planId} from localStorage`);
+    }
+    secureLog.dev('CacheService', `Removed plan from localStorage`, { planId });
   } catch (error) {
-    console.error('[Cache] Failed to remove plan:', error);
+    secureLog.error('CacheService', error as Error, { operation: 'removePlan', planId });
   }
 }
 
@@ -284,7 +294,13 @@ function cleanOldCacheEntries(): void {
   }
 
   updatePlansIndex(plansToKeep);
-  console.log(`💾 [Cache] Cleaned ${index.planIds.length - plansToKeep.length} old cache entries`);
+  if (import.meta.env.DEV) {
+    console.log(`💾 [Cache] Cleaned ${index.planIds.length - plansToKeep.length} old cache entries`);
+  }
+  secureLog.dev('CacheService', `Cleaned old cache entries`, {
+    removedCount: index.planIds.length - plansToKeep.length,
+    remainingCount: plansToKeep.length
+  });
 }
 
 /**
@@ -296,7 +312,10 @@ export function clearAllCachedPlans(): void {
     removePlanFromCache(planId);
   }
   localStorage.removeItem(PLANS_INDEX_KEY);
-  console.log('💾 [Cache] Cleared all cached plans');
+  if (import.meta.env.DEV) {
+    console.log('💾 [Cache] Cleared all cached plans');
+  }
+  secureLog.dev('CacheService', 'Cleared all cached plans', { count: index.planIds.length });
 }
 
 /**
@@ -344,7 +363,12 @@ export function migrateToCachedPlanData(
       }
     });
 
-    console.log(`💾 [Migration] Populated ${Object.keys(problemDetails).length} problem details from Firestore`);
+    if (import.meta.env.DEV) {
+      console.log(`💾 [Migration] Populated ${Object.keys(problemDetails).length} problem details from Firestore`);
+    }
+    secureLog.dev('CacheMigration', 'Populated problem details from Firestore', {
+      problemCount: Object.keys(problemDetails).length
+    });
   }
 
   return {
@@ -375,7 +399,7 @@ export async function loadProblemDetailsIntoCache(
 ): Promise<void> {
   const plan = getPlanFromCache(planId);
   if (!plan) {
-    console.warn(`[Cache] Cannot load problem details - plan ${planId} not in cache`);
+    secureLog.warn('CacheService', 'Cannot load problem details - plan not in cache', { planId });
     return;
   }
 
@@ -413,7 +437,10 @@ export async function loadProblemDetailsIntoCache(
 
   if (loadedCount > 0) {
     savePlanToCache(plan);
-    console.log(`💾 [Cache] Loaded ${loadedCount} problem details into cache for plan ${planId}`);
+    if (import.meta.env.DEV) {
+      console.log(`💾 [Cache] Loaded ${loadedCount} problem details into cache for plan ${planId}`);
+    }
+    secureLog.dev('CacheService', 'Loaded problem details into cache', { planId, loadedCount });
   }
 }
 
@@ -438,7 +465,13 @@ export async function warmUpCacheForPlan(planId: string): Promise<void> {
     .map(([id]) => id);
   recentProblems.forEach(id => problemsToWarmUp.add(id));
 
-  console.log(`🔥 [Cache] Warming up cache for ${problemsToWarmUp.size} problems`);
+  if (import.meta.env.DEV) {
+    console.log(`🔥 [Cache] Warming up cache for ${problemsToWarmUp.size} problems`);
+  }
+  secureLog.dev('CacheWarmup', 'Warming up cache for problems', {
+    planId,
+    problemCount: problemsToWarmUp.size
+  });
 
   // Note: Actual fetching would require async operations
   // This is a placeholder for the warm-up logic

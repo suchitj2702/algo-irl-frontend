@@ -6,6 +6,7 @@ import { DayScheduleCard } from '../../DayScheduleCard';
 import { getCompanyDisplayName } from '../../../utils/companyDisplay';
 import { warmUpCacheForPlan, getPlanFromCache } from '../../../services/studyPlanCacheService';
 import { isBlind75StudyPlan } from '../../../utils/studyPlanDataset';
+import { secureLog } from '../../../utils/secureLogger';
 
 // Filter state reducer for batched updates
 type FilterAction =
@@ -162,12 +163,13 @@ export function StudyPlanView({
     }
    });
 
-   console.log(`📚 [StudyPlanView] Loaded ${Object.keys(titleMap).length} problem titles from unified cache`);
+   if (import.meta.env.DEV) {
+    console.log(`📚 [StudyPlanView] Loaded ${Object.keys(titleMap).length} problem titles from unified cache`);
+   }
+   secureLog.dev('StudyPlanView', 'Loaded problem titles from unified cache', { count: Object.keys(titleMap).length });
    return titleMap;
   } catch (error) {
-   if (import.meta.env.DEV) {
-    console.error('Error reading problem titles from unified cache:', error);
-   }
+   secureLog.error('StudyPlanView', error as Error, { operation: 'readProblemTitles' });
    return {} as Record<string, string>;
   }
  }, [studyPlanId, companyId, completedProblemCount, inProgressProblemCount]);
@@ -181,7 +183,7 @@ export function StudyPlanView({
   if (studyPlanId) {
    // Warm up cache in background - non-blocking
    warmUpCacheForPlan(studyPlanId).catch(err => {
-    console.warn('[Cache] Failed to warm up cache:', err);
+    secureLog.warn('StudyPlanView', 'Failed to warm up cache', { studyPlanId, error: err });
    });
   }
  }, [studyPlanId]);
@@ -208,7 +210,7 @@ export function StudyPlanView({
    );
 
    if (!problemExists) {
-    console.warn(`⚠️ [ViewState] Problem ${viewState.currentProblemId} from view state not found in current plan, skipping highlight`);
+    secureLog.warn('ViewState', 'Problem from view state not found in current plan, skipping highlight', { problemId: viewState.currentProblemId });
     // Clear the invalid highlight state
     setHighlightedProblemId(undefined);
     return; // Don't proceed with highlighting
@@ -228,7 +230,14 @@ export function StudyPlanView({
    });
    hasRestoredScroll.current = true;
 
-   console.log('📜 Restored view state:', {
+   if (import.meta.env.DEV) {
+    console.log('📜 Restored view state:', {
+     scrollY: viewState.scrollY,
+     expandedDays: viewState.expandedDays,
+     highlightedProblem: viewState.currentProblemId
+    });
+   }
+   secureLog.dev('ViewState', 'Restored view state', {
     scrollY: viewState.scrollY,
     expandedDays: viewState.expandedDays,
     highlightedProblem: viewState.currentProblemId
@@ -269,7 +278,7 @@ export function StudyPlanView({
      </button>
 
      <div className="flex flex-wrap items-center gap-3 mb-2">
-      <h1 className="text-3xl font-bold text-content font-playfair">
+      <h1 className="text-3xl font-medium tracking-tight text-content font-playfair">
        Your Study Plan
       </h1>
       <div className="flex items-center gap-2">
@@ -323,7 +332,7 @@ export function StudyPlanView({
     {/* Daily Schedule */}
     <div className="space-y-4">
      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-      <h2 className="text-2xl font-bold text-content font-playfair">
+      <h2 className="text-2xl font-medium tracking-tight text-content font-playfair">
        Daily Schedule
       </h2>
       <div className="flex flex-wrap items-center gap-2 sm:gap-3">

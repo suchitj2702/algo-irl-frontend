@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { deepEqual } from '../utils/stateComparison';
+import { secureLog } from '../utils/secureLogger';
 
 interface AutoSaveOptions {
   localDebounceMs?: number;
@@ -34,10 +35,17 @@ export function useDebounceAutoSave({
       try {
         if (onLocalSave) {
           onLocalSave(data);
-          console.log('💾 [Auto-Save] Saved to localStorage');
+          if (import.meta.env.DEV) {
+            console.log('💾 [Auto-Save] Saved to localStorage');
+          }
+          secureLog.dev('AutoSave', 'Saved to localStorage', {
+            hasData: !!data
+          });
         }
       } catch (error) {
-        console.error('[Auto-Save] localStorage save failed:', error);
+        secureLog.error('AutoSave', error as Error, {
+          operation: 'localStorage save'
+        });
         if (onError && error instanceof Error) {
           onError(error);
         }
@@ -50,14 +58,22 @@ export function useDebounceAutoSave({
   const debouncedCloudSave = useDebouncedCallback(
     async (data: any) => {
       if (isSavingRef.current) {
-        console.log('☁️ [Auto-Save] Cloud save already in progress, skipping');
+        if (import.meta.env.DEV) {
+          console.log('☁️ [Auto-Save] Cloud save already in progress, skipping');
+        }
+        secureLog.dev('AutoSaveCloud', 'Cloud save already in progress, skipping', {});
         return;
       }
 
       // State-aware: Check if data has actually changed since last sync
       if (lastSyncedState.current !== null && deepEqual(data, lastSyncedState.current)) {
         saveSkipCount.current++;
-        console.log(`☁️ [Auto-Save] No changes detected, skipping Firebase write (${saveSkipCount.current} saves skipped)`);
+        if (import.meta.env.DEV) {
+          console.log(`☁️ [Auto-Save] No changes detected, skipping Firebase write (${saveSkipCount.current} saves skipped)`);
+        }
+        secureLog.dev('AutoSaveCloud', 'No changes detected, skipping Firebase write', {
+          savesSkipped: saveSkipCount.current
+        });
         return;
       }
 
@@ -67,10 +83,17 @@ export function useDebounceAutoSave({
           await onCloudSave(data);
           lastCloudSaveTime.current = Date.now();
           lastSyncedState.current = structuredClone(data); // Deep clone to prevent reference issues
-          console.log('☁️ [Auto-Save] Saved to Firestore');
+          if (import.meta.env.DEV) {
+            console.log('☁️ [Auto-Save] Saved to Firestore');
+          }
+          secureLog.dev('AutoSaveCloud', 'Saved to Firestore', {
+            timestamp: lastCloudSaveTime.current
+          });
         }
       } catch (error) {
-        console.error('[Auto-Save] Cloud save failed:', error);
+        secureLog.error('AutoSaveCloud', error as Error, {
+          operation: 'cloud save'
+        });
         if (onError && error instanceof Error) {
           onError(error);
         }
@@ -98,17 +121,29 @@ export function useDebounceAutoSave({
     try {
       if (onLocalSave) {
         onLocalSave(data);
-        console.log('💾 [Force-Save] Saved to localStorage');
+        if (import.meta.env.DEV) {
+          console.log('💾 [Force-Save] Saved to localStorage');
+        }
+        secureLog.dev('ForceSave', 'Saved to localStorage', {
+          hasData: !!data
+        });
       }
       if (onCloudSave) {
         isSavingRef.current = true;
         await onCloudSave(data);
         lastCloudSaveTime.current = Date.now();
         lastSyncedState.current = structuredClone(data); // Update synced state
-        console.log('☁️ [Force-Save] Saved to Firestore');
+        if (import.meta.env.DEV) {
+          console.log('☁️ [Force-Save] Saved to Firestore');
+        }
+        secureLog.dev('ForceSaveCloud', 'Saved to Firestore', {
+          timestamp: lastCloudSaveTime.current
+        });
       }
     } catch (error) {
-      console.error('[Force-Save] Failed:', error);
+      secureLog.error('ForceSaveCloud', error as Error, {
+        operation: 'force save'
+      });
       if (onError && error instanceof Error) {
         onError(error);
       }

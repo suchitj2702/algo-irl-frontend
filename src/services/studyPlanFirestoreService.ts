@@ -6,6 +6,7 @@
 import { auth } from '../config/firebase';
 import { buildApiUrl } from '../config/api';
 import { Problem, CodeDetails } from '../types';
+import { secureLog } from '../utils/secureLogger';
 import {
   StudyPlanConfig,
   StudyPlanResponse,
@@ -154,7 +155,10 @@ export async function migrateLocalStorageToFirestore(localPlans: CachedStudyPlan
         planId: plan.id,
         error: error instanceof Error ? error.message : 'Unknown error'
       });
-      console.error(`Migration failed for plan ${plan.id}:`, error);
+      secureLog.error('FirestoreMigration', error as Error, {
+        operation: 'migratePlan',
+        planId: plan.id
+      });
     }
   }
 
@@ -178,7 +182,10 @@ export async function getStudyPlanByIdFromFirestore(planId: string): Promise<Cac
     const record: StudyPlanRecord = await res.json();
     return adaptStudyPlanFromBackend(record);
   } catch (error) {
-    console.error(`Failed to fetch study plan ${planId}:`, error);
+    secureLog.error('FirestoreService', error as Error, {
+      operation: 'getStudyPlanById',
+      planId
+    });
     return null;
   }
 }
@@ -403,7 +410,11 @@ export async function getProblemDetailsFromFirestore(
 
     return { problem, codeDetails, code };
   } catch (error) {
-    console.error(`Failed to fetch problem details for ${problemId}:`, error);
+    secureLog.error('FirestoreService', error as Error, {
+      operation: 'getProblemDetails',
+      planId,
+      problemId
+    });
     return null;
   }
 }

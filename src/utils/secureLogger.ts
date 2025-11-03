@@ -206,14 +206,53 @@ function performance(context: string, operation: string, duration: number, thres
 }
 
 /**
- * Set user context for Sentry (non-PII only)
+ * Generate stable anonymous user ID for tracking before authentication
+ * Uses browser fingerprint + persistent localStorage ID
  */
-function setUserContext(userId: string, metadata?: { isPremium?: boolean; signupDate?: string }): void {
+function getAnonymousUserId(): string {
+  const ANON_ID_KEY = 'algoirl_anon_id';
+
+  // Check if we already have an anonymous ID
+  let anonId: string | null = null;
+  try {
+    anonId = localStorage.getItem(ANON_ID_KEY);
+  } catch {
+    // localStorage not available (SSR, private mode, etc.)
+  }
+
+  if (!anonId) {
+    // Generate stable ID from browser fingerprint + timestamp
+    const browserFingerprint = [
+      typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+      typeof navigator !== 'undefined' ? navigator.language : 'unknown',
+      typeof window !== 'undefined' ? new Date().getTimezoneOffset() : 0,
+      typeof screen !== 'undefined' ? `${screen.width}x${screen.height}` : 'unknown',
+    ].join('|');
+
+    // Create hash-like ID
+    try {
+      anonId = `anon_${btoa(browserFingerprint).substring(0, 16)}_${Date.now()}`;
+      localStorage.setItem(ANON_ID_KEY, anonId);
+    } catch {
+      // Fallback if btoa or localStorage fails
+      anonId = `anon_temp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    }
+  }
+
+  return anonId;
+}
+
+/**
+ * Set user context for Sentry (non-PII only)
+ * Supports both authenticated and anonymous users
+ */
+function setUserContext(userId: string, metadata?: { isPremium?: boolean; signupDate?: string; isAnonymous?: boolean }): void {
   if (import.meta.env.PROD) {
     Sentry.setUser({
       id: userId,
       ...(metadata?.isPremium !== undefined && { isPremium: metadata.isPremium }),
       ...(metadata?.signupDate && { signupDate: metadata.signupDate }),
+      ...(metadata?.isAnonymous !== undefined && { isAnonymous: metadata.isAnonymous }),
     });
   }
 }
@@ -252,4 +291,5 @@ export const secureLog = {
   setUserContext,
   clearUserContext,
   addBreadcrumb,
+  getAnonymousUserId,
 };

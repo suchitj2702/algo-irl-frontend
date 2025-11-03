@@ -3,6 +3,7 @@ import { CheckCircleIcon, ClockIcon, AlertTriangleIcon, XIcon } from 'lucide-rea
 import { getAllCachedProblems, CachedProblem, clearCache } from '../../../utils/cache';
 import { blind75Data } from '../../../constants/blind75';
 import { Blind75ViewState } from '../../../utils/blind75ViewState';
+import { secureLog } from '../../../utils/secureLogger';
 
 interface Blind75Props {
  onPracticeWithContext: (problemSlug: string) => void;
@@ -50,7 +51,13 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
      setHighlightedProblem(viewState.lastViewedProblemSlug);
     }
 
-    console.log('📜 Restored Blind75 view state:', {
+    if (import.meta.env.DEV) {
+     console.log('📜 Restored Blind75 view state:', {
+      scrollY: viewState.scrollY,
+      highlightedProblem: viewState.lastViewedProblemSlug
+     });
+    }
+    secureLog.dev('ViewState', 'Restored Blind75 view state', {
      scrollY: viewState.scrollY,
      highlightedProblem: viewState.lastViewedProblemSlug
     });

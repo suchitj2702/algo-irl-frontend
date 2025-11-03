@@ -1,10 +1,11 @@
 import "./index.css";
 import React from "react";
-import { render } from "react-dom";
+import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { App } from "./App";
 import { setEnvironmentBasedCSP } from "./utils/csp";
 import { FeatureFlagsProvider } from "./contexts/FeatureFlagsContext";
+import { RazorpayScriptLoader } from "./components/RazorpayScriptLoader";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { initializePalette, watchThemeChanges } from "./utils/generatePalette";
@@ -16,15 +17,23 @@ setEnvironmentBasedCSP();
 initializePalette();
 watchThemeChanges();
 
-render(
+const container = document.getElementById("root");
+
+if (!container) {
+  throw new Error("Root element not found");
+}
+
+const root = createRoot(container);
+
+root.render(
   <BrowserRouter>
     <FeatureFlagsProvider>
+      <RazorpayScriptLoader />
       <AuthProvider>
         <SubscriptionProvider>
           <App />
         </SubscriptionProvider>
       </AuthProvider>
     </FeatureFlagsProvider>
-  </BrowserRouter>,
-  document.getElementById("root")
+  </BrowserRouter>
 );

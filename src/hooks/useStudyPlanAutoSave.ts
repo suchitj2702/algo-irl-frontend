@@ -15,6 +15,7 @@ import {
 import { StudyPlanConfig, StudyPlanResponse } from '../types/studyPlan';
 import { Problem, CodeDetails } from '../types';
 import { deepEqual } from '../utils/stateComparison';
+import { secureLog } from '../utils/secureLogger';
 
 interface PendingPlanUpdate {
   planId: string;
@@ -58,13 +59,30 @@ export function useStudyPlanAutoSave({
       try {
         if (update.type === 'progress') {
           updatePlanProgressInCache(update.planId, update.data);
-          console.log(`💾 [Auto-Save] Progress saved to localStorage for plan ${update.planId}`);
+          if (import.meta.env.DEV) {
+            console.log(`💾 [Auto-Save] Progress saved to localStorage for plan ${update.planId}`);
+          }
+          secureLog.dev('AutoSave', 'Progress saved to localStorage', {
+            planId: update.planId,
+            updateType: 'progress'
+          });
         } else if (update.type === 'problem') {
           updateProblemInCache(update.planId, update.data.problemId, update.data);
-          console.log(`💾 [Auto-Save] Problem saved to localStorage for plan ${update.planId}`);
+          if (import.meta.env.DEV) {
+            console.log(`💾 [Auto-Save] Problem saved to localStorage for plan ${update.planId}`);
+          }
+          secureLog.dev('AutoSave', 'Problem saved to localStorage', {
+            planId: update.planId,
+            problemId: update.data.problemId,
+            updateType: 'problem'
+          });
         }
       } catch (error) {
-        console.error('[Auto-Save] localStorage save failed:', error);
+        secureLog.error('AutoSave', error as Error, {
+          planId: update.planId,
+          updateType: update.type,
+          operation: 'localStorage save'
+        });
         if (onError && error instanceof Error) {
           onError(error);
         }
@@ -94,14 +112,26 @@ export function useStudyPlanAutoSave({
       // If all updates are identical to last sync, skip
       if (updatesToSync.length === 0) {
         saveSkipCount.current++;
-        console.log(`☁️ [Auto-Save] No changes detected, skipping Firebase write (${saveSkipCount.current} saves skipped)`);
+        if (import.meta.env.DEV) {
+          console.log(`☁️ [Auto-Save] No changes detected, skipping Firebase write (${saveSkipCount.current} saves skipped)`);
+        }
+        secureLog.dev('AutoSaveCloud', 'No changes detected, skipping Firebase write', {
+          savesSkipped: saveSkipCount.current,
+          pendingCount: pendingUpdates.current.size
+        });
         pendingUpdates.current.clear();
         return;
       }
 
       try {
         isSyncingRef.current = true;
-        console.log(`☁️ [Auto-Save] Syncing ${updatesToSync.length} updates to Firestore (${pendingUpdates.current.size - updatesToSync.length} skipped)`);
+        if (import.meta.env.DEV) {
+          console.log(`☁️ [Auto-Save] Syncing ${updatesToSync.length} updates to Firestore (${pendingUpdates.current.size - updatesToSync.length} skipped)`);
+        }
+        secureLog.dev('AutoSaveCloud', 'Syncing updates to Firestore', {
+          updatesToSync: updatesToSync.length,
+          skipped: pendingUpdates.current.size - updatesToSync.length
+        });
 
         // Group updates by plan ID and type
         const grouped = new Map<string, { progress?: any[], problems?: any[] }>();
@@ -155,9 +185,17 @@ export function useStudyPlanAutoSave({
 
         // Clear pending updates after successful sync
         pendingUpdates.current.clear();
-        console.log('☁️ [Auto-Save] Sync complete');
+        if (import.meta.env.DEV) {
+          console.log('☁️ [Auto-Save] Sync complete');
+        }
+        secureLog.dev('AutoSaveCloud', 'Sync complete', {
+          syncedCount: updatesToSync.length
+        });
       } catch (error) {
-        console.error('[Auto-Save] Cloud sync failed:', error);
+        secureLog.error('AutoSaveCloud', error as Error, {
+          operation: 'cloud sync',
+          updatesCount: updatesToSync.length
+        });
         if (onError && error instanceof Error) {
           onError(error);
         }
@@ -198,7 +236,13 @@ export function useStudyPlanAutoSave({
     };
 
     savePlanToCache(cachedPlan);
-    console.log(`💾 [Auto-Save] Plan created locally with temp ID: ${tempId}`);
+    if (import.meta.env.DEV) {
+      console.log(`💾 [Auto-Save] Plan created locally with temp ID: ${tempId}`);
+    }
+    secureLog.dev('AutoSave', 'Plan created locally', {
+      tempId,
+      configType: config.type
+    });
 
     // Mark as pending creation
     pendingPlanCreations.current.add(tempId);
@@ -206,7 +250,13 @@ export function useStudyPlanAutoSave({
     // Sync to Firestore in background
     const creationTask = saveStudyPlanToFirestore(config, response)
       .then((realPlanId) => {
-        console.log(`☁️ [Auto-Save] Plan synced to Firestore with ID: ${realPlanId}`);
+        if (import.meta.env.DEV) {
+          console.log(`☁️ [Auto-Save] Plan synced to Firestore with ID: ${realPlanId}`);
+        }
+        secureLog.dev('AutoSaveCloud', 'Plan synced to Firestore', {
+          realPlanId,
+          tempId
+        });
 
         // Update cache with real ID
         cachedPlan.planId = realPlanId;
@@ -220,7 +270,10 @@ export function useStudyPlanAutoSave({
         return realPlanId;
       })
       .catch((error) => {
-        console.error('[Auto-Save] Failed to sync plan to Firestore:', error);
+        secureLog.error('AutoSaveCloud', error as Error, {
+          operation: 'plan sync to Firestore',
+          tempId
+        });
         if (onError && error instanceof Error) {
           onError(error);
         }
@@ -312,12 +365,22 @@ export function useStudyPlanAutoSave({
     try {
       isSyncingRef.current = true;
       if (pendingCreationPromises.current.size > 0) {
-        console.log(`⏳ [Force-Save] Waiting for ${pendingCreationPromises.current.size} pending plan creation(s)`);
+        if (import.meta.env.DEV) {
+          console.log(`⏳ [Force-Save] Waiting for ${pendingCreationPromises.current.size} pending plan creation(s)`);
+        }
+        secureLog.dev('ForceSave', 'Waiting for pending plan creations', {
+          pendingCount: pendingCreationPromises.current.size
+        });
         await Promise.allSettled(Array.from(pendingCreationPromises.current.values()));
       }
 
       const updates = Array.from(pendingUpdates.current.values());
-      console.log(`☁️ [Force-Save] Syncing ${updates.length} updates immediately`);
+      if (import.meta.env.DEV) {
+        console.log(`☁️ [Force-Save] Syncing ${updates.length} updates immediately`);
+      }
+      secureLog.dev('ForceSaveCloud', 'Syncing updates immediately', {
+        updatesCount: updates.length
+      });
 
       // Group updates by plan ID and type
       const grouped = new Map<string, { progress?: any[], problems?: any[] }>();
@@ -373,9 +436,17 @@ export function useStudyPlanAutoSave({
 
       // Clear pending updates
       pendingUpdates.current.clear();
-      console.log('☁️ [Force-Save] Sync complete');
+      if (import.meta.env.DEV) {
+        console.log('☁️ [Force-Save] Sync complete');
+      }
+      secureLog.dev('ForceSaveCloud', 'Sync complete', {
+        syncedCount: updates.length
+      });
     } catch (error) {
-      console.error('[Force-Save] Failed:', error);
+      secureLog.error('ForceSaveCloud', error as Error, {
+        operation: 'force sync',
+        updatesCount: Array.from(pendingUpdates.current.values()).length
+      });
       if (onError && error instanceof Error) {
         onError(error);
       }
