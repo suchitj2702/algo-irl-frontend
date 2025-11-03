@@ -275,9 +275,6 @@ export function CompanyContextForm({ onSubmit, onCancel, problemSlug }: CompanyC
          }`}
         >
          <div className="text-sm font-medium">{role.name}</div>
-         <div className="text-xs text-content-muted dark:text-content-subtle mt-1">
-          {role.description}
-         </div>
         </button>
        ))}
       </div>
