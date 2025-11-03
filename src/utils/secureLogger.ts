@@ -62,16 +62,18 @@ function buildExtras(extras?: LogContext): { raw?: LogContext; sanitized?: LogCo
 function sendMessageToSentry(level: Sentry.SeverityLevel, context: string, message: string, extras?: LogContext): void {
   if (!SENTRY_ENABLED) return;
 
-  Sentry.withScope(scope => {
-    scope.setLevel(level);
-    scope.setTag('loggerContext', context);
+  const event = {
+    type: 'log',
+    level,
+    message,
+    logger: context,
+    tags: {
+      loggerContext: context,
+    },
+    extra: extras ? { ...extras } : undefined,
+  };
 
-    if (extras) {
-      scope.setExtra('data', extras);
-    }
-
-    Sentry.captureMessage(message);
-  });
+  Sentry.captureEvent(event);
 }
 
 function dev(context: string, message: string, data?: unknown): void {
