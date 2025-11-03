@@ -9,11 +9,12 @@
  * - 30% error sampling = ~3,000-4,000 errors/month (leaves buffer)
  * - 5% performance sampling = stays well under limit
  * - Fatal errors always captured (bypasses sampling)
- * - Warnings/info not sent to Sentry (Vercel logs only)
+ * - All log levels routed to Sentry (info/warn/error/fatal)
  */
 
 import * as Sentry from '@sentry/react';
 import { sanitizeResponse } from '../utils/responseSanitizer';
+import { secureLog } from '../utils/secureLogger';
 
 /**
  * Initialize Sentry with free tier optimization
@@ -51,15 +52,9 @@ export function initSentry(): void {
     replaysSessionSampleRate: 0,   // Never sample normal sessions
     replaysOnErrorSampleRate: 0.1, // Only 10% of error sessions
 
-    // Only send errors and fatal (not warnings/info)
-    beforeSend(event, hint) {
-      // Always capture fatal errors (bypasses sampling)
-      if (event.level === 'fatal') {
-        return event;
-      }
-
-      // Don't send warnings or info to Sentry
-      if (event.level !== 'error' && event.level !== 'fatal') {
+    beforeSend(event) {
+      // Drop extremely low-value noise
+      if (event.level === 'log' || event.level === 'debug') {
         return null;
       }
 
@@ -169,6 +164,11 @@ export function initSentry(): void {
   });
 
   console.info('[Sentry] Initialized successfully');
+
+  if (typeof window !== 'undefined') {
+    const anonId = secureLog.getAnonymousUserId();
+    secureLog.setUserContext(anonId, { isAnonymous: true });
+  }
 }
 
 /**
@@ -176,26 +176,6 @@ export function initSentry(): void {
  */
 export function isSentryEnabled(): boolean {
   return import.meta.env.PROD && !!import.meta.env.VITE_SENTRY_DSN;
-}
-
-/**
- * Manually capture message (use sparingly - counts against quota)
- */
-export function captureMessage(message: string, level: Sentry.SeverityLevel = 'info'): void {
-  if (isSentryEnabled()) {
-    Sentry.captureMessage(message, level);
-  }
-}
-
-/**
- * Manually capture exception (use secureLog.error instead)
- */
-export function captureException(error: Error, context?: any): void {
-  if (isSentryEnabled()) {
-    Sentry.captureException(error, {
-      extra: context ? sanitizeResponse(context) : undefined,
-    });
-  }
 }
 
 /**
