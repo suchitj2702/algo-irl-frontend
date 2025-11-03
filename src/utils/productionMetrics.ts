@@ -22,14 +22,10 @@ function trackEvent(eventName: string, properties?: Record<string, any>): void {
   }
 
   try {
-    // Send to Vercel Analytics
     track(eventName, properties);
-
-    // Also log for debugging
-    secureLog.info('Analytics', `Tracked: ${eventName}`, properties);
   } catch (error) {
-    // Don't let analytics errors break the app
-    secureLog.warn('Analytics', 'Failed to track event', { eventName, error });
+    const err = error instanceof Error ? error : new Error(String(error));
+    secureLog.error('Analytics', err, { eventName });
   }
 }
 

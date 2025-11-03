@@ -9,7 +9,7 @@
  * - 30% error sampling = ~3,000-4,000 errors/month (leaves buffer)
  * - 5% performance sampling = stays well under limit
  * - Fatal errors always captured (bypasses sampling)
- * - All log levels routed to Sentry (info/warn/error/fatal)
+ * - Only error/fatal events routed to Sentry
  */
 
 import * as Sentry from '@sentry/react';

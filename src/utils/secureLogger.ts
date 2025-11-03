@@ -63,7 +63,6 @@ function sendMessageToSentry(level: Sentry.SeverityLevel, context: string, messa
   if (!SENTRY_ENABLED) return;
 
   const event = {
-    type: 'log',
     level,
     message,
     logger: context,
@@ -97,32 +96,12 @@ function dev(context: string, message: string, data?: unknown): void {
   }
 }
 
-function info(context: string, message: string, data?: LogContext): void {
-  const formattedMessage = formatLogMessage('info', context, message);
-  const { raw, sanitized } = buildExtras(data);
-  const consolePayload = IS_PROD ? sanitized : raw;
-
-  if (consolePayload) {
-    rawConsole.info(formattedMessage, consolePayload);
-  } else {
-    rawConsole.info(formattedMessage);
-  }
-
-  sendMessageToSentry('info', context, message, sanitized);
+function info(_context: string, _message: string, _data?: LogContext): void {
+  // Info-level logging is currently disabled (no-op).
 }
 
-function warn(context: string, message: string, data?: LogContext): void {
-  const formattedMessage = formatLogMessage('warn', context, message);
-  const { raw, sanitized } = buildExtras(data);
-  const consolePayload = IS_PROD ? sanitized : raw;
-
-  if (consolePayload) {
-    rawConsole.warn(formattedMessage, consolePayload);
-  } else {
-    rawConsole.warn(formattedMessage);
-  }
-
-  sendMessageToSentry('warning', context, message, sanitized);
+function warn(_context: string, _message: string, _data?: LogContext): void {
+  // Warning-level logging is currently disabled (no-op).
 }
 
 function error(context: string, err: Error | string, extras?: LogContext): void {
@@ -203,11 +182,13 @@ function performance(
     return;
   }
 
-  warn(context, `Slow operation: ${operation} took ${duration}ms`, {
-    operation,
-    duration,
-    threshold,
-  });
+  if (import.meta.env.DEV) {
+    rawConsole.warn(`[Performance][${context}]`, `Slow operation: ${operation} took ${duration}ms`, {
+      operation,
+      duration,
+      threshold,
+    });
+  }
 }
 
 function getAnonymousUserId(): string {
@@ -364,20 +345,17 @@ function normalizeConsoleArgs(args: unknown[]): NormalizedConsoleCall {
 }
 
 function routeConsoleCall(method: ConsoleMethod, args: unknown[]): void {
+  if (method !== 'error') {
+    if (!IS_PROD) {
+      const original = rawConsole[method];
+      original(...args);
+    }
+    return;
+  }
+
   const normalized = normalizeConsoleArgs(args);
-
-  if (method === 'error') {
-    const err = normalized.error ?? normalized.message;
-    secureLog.error(normalized.context, err, normalized.extras);
-    return;
-  }
-
-  if (method === 'warn') {
-    secureLog.warn(normalized.context, normalized.message, normalized.extras);
-    return;
-  }
-
-  secureLog.info(normalized.context, normalized.message, normalized.extras);
+  const err = normalized.error ?? normalized.message;
+  secureLog.error(normalized.context, err, normalized.extras);
 }
 
 function patchConsoleMethods(): void {

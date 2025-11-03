@@ -1,8 +1,9 @@
-import "./index.css";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { App } from "./App";
+import "./index.css";
+import "./utils/secureLogger";
 import { setEnvironmentBasedCSP } from "./utils/csp";
 import { FeatureFlagsProvider } from "./contexts/FeatureFlagsContext";
 import { RazorpayScriptLoader } from "./components/RazorpayScriptLoader";
