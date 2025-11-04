@@ -954,11 +954,17 @@ const handleHomeClick = () => navigate('/');
    setStudyPlanError(err instanceof Error ? err.message : 'Failed to generate study plan.');
    setIsGeneratingStudyPlan(false);
    navigate('/study-plan-form');
-  }
- };
+ }
+};
 
- // Execute the actual API call and save
- const executeStudyPlanGeneration = async (config: StudyPlanConfig, overwritePlanId?: string) => {
+const handleGenerateStudyPlanRef = useRef<typeof handleGenerateStudyPlan>();
+
+useEffect(() => {
+  handleGenerateStudyPlanRef.current = handleGenerateStudyPlan;
+});
+
+// Execute the actual API call and save
+const executeStudyPlanGeneration = async (config: StudyPlanConfig, overwritePlanId?: string) => {
   try {
    setStudyPlanConfig(config);
    setStudyPlanError(null);
@@ -1003,16 +1009,67 @@ const handleHomeClick = () => navigate('/');
    if (err instanceof APIAuthenticationError) {
     setStudyPlanError(err.message + ' Please refresh the page and try again.');
    } else {
-    setStudyPlanError(err instanceof Error ? err.message : 'Failed to generate study plan. Please try again.');
-   }
-
-   setIsGeneratingStudyPlan(false);
-   navigate('/study-plan-form');
+   setStudyPlanError(err instanceof Error ? err.message : 'Failed to generate study plan. Please try again.');
   }
- };
 
- // Duplicate modal handlers
- const handleOverwriteStudyPlan = async () => {
+  setIsGeneratingStudyPlan(false);
+  navigate('/study-plan-form');
+ }
+};
+
+useEffect(() => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const handleInlineStudyPlanGeneration = async (event: Event): Promise<void> => {
+    const customEvent = event as CustomEvent<string | StudyPlanConfig | null>;
+    if (!customEvent.detail) {
+      return;
+    }
+
+    let parsedConfig: StudyPlanConfig | null = null;
+
+    if (typeof customEvent.detail === 'string') {
+      try {
+        parsedConfig = JSON.parse(customEvent.detail) as StudyPlanConfig;
+      } catch (parseError) {
+        secureLog.error('StudyPlan', parseError as Error, {
+          operation: 'parseInlineStudyPlanConfig',
+        });
+        return;
+      }
+    } else {
+      parsedConfig = customEvent.detail as StudyPlanConfig;
+    }
+
+    if (!parsedConfig) {
+      return;
+    }
+
+    if (!handleGenerateStudyPlanRef.current) {
+      secureLog.warn('StudyPlan', 'No handler available for inline study plan generation event');
+      return;
+    }
+
+    await handleGenerateStudyPlanRef.current(parsedConfig);
+  };
+
+  window.addEventListener(
+    'generate-study-plan',
+    handleInlineStudyPlanGeneration as EventListener,
+  );
+
+  return () => {
+    window.removeEventListener(
+      'generate-study-plan',
+      handleInlineStudyPlanGeneration as EventListener,
+    );
+  };
+}, []);
+
+// Duplicate modal handlers
+const handleOverwriteStudyPlan = async () => {
   if (pendingStudyPlanConfig && duplicateStudyPlan) {
    setShowDuplicateModal(false);
    await executeStudyPlanGeneration(pendingStudyPlanConfig, duplicateStudyPlan.id);

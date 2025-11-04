@@ -27,6 +27,7 @@ import {
   prepareProblem,
 } from '../../../utils/api-service';
 import SectionBlock from './components/SectionBlock';
+import { InlineStudyPlanBuilder } from './InlineStudyPlanBuilder';
 
 const PROBLEM_OPTIONS = [
   { id: 'two-sum', label: 'Two Sum' },
@@ -47,11 +48,11 @@ const COMPANY_OPTIONS = [
   { id: 'apple', label: 'Apple' },
   { id: 'netflix', label: 'Netflix' },
   { id: 'uber', label: 'Uber' },
-  { id: 'lyft', label: 'Lyft' },
+  { id: 'bytedance', label: 'ByteDance' },
   { id: 'doordash', label: 'DoorDash' },
   { id: 'airbnb', label: 'Airbnb' },
   { id: 'coinbase', label: 'Coinbase' },
-  { id: 'dropbox', label: 'Dropbox' },
+  { id: 'linkedin', label: 'LinkedIn' },
   { id: 'stripe', label: 'Stripe' },
 ] as const;
 
@@ -132,15 +133,15 @@ const DATA_FACTORS = [
 const STUDY_PLAN_STEPS = [
   {
     icon: Target,
-    title: 'Sign in and choose your dataset',
+    title: 'Choose your dataset',
     description:
-      'Choose Blind 75 (free, 75 curated problems) or unlock the full 2,000+ dataset for deeper coverage—study plans adapt to whichever you select, with automatic progress sync across all devices.',
+      'Choose Blind 75 or the full 2,000+ dataset for deeper coverage. Study plans adapt to whichever you select, with automatic progress sync across all devices.',
   },
   {
     icon: Cpu,
     title: 'Define company, role, and timeline',
     description:
-      'Select your target company from the 20 tracked companies (more companies coming soon), specify your role (Backend, ML, Frontend, Infrastructure, Security), set your interview timeline, and optionally filter by difficulty or focus topics, the algorithm uses all this to match you with the most relevant problems.',
+      'Select your target company from the tracked companies, specify your role (Backend, ML, Frontend, Infrastructure, Security), set your interview timeline, and optionally filter by difficulty or focus topics, the algorithm uses all this to match you with the most relevant problems.',
   },
   {
     icon: Layers,
@@ -171,12 +172,12 @@ const BASE_FAQ_ITEMS = [
   {
     question: 'When should I start using AlgoIRL for my interview prep?',
     answer:
-      'Start 2-3 weeks before your interview. Use LeetCode first to master core patterns (aim for 50-200 problems solved). Once you\'re comfortable with the fundamentals, switch to AlgoIRL to train pattern recognition in company-specific contexts. This timeline gives you enough exposure to realistic scenarios without burning out. Our study plans automatically adjust problem difficulty and pacing based on your interview date, prioritizing recently-asked questions and company-specific patterns that matter most.',
+      'Start 2 - 3 weeks before your interview. Use LeetCode first to master core patterns (aim for 50 - 200 problems solved). Once you\'re comfortable with the fundamentals, switch to AlgoIRL to train pattern recognition in company-specific contexts. This timeline gives you enough exposure to realistic scenarios without burning out. Our study plans automatically adjust problem difficulty and pacing based on your interview date, prioritizing recently-asked questions and company-specific patterns that matter most.',
   },
   {
     question: 'Should I use AlgoIRL with LeetCode, or instead of it?',
     answer:
-      'Use LeetCode first, then AlgoIRL. LeetCode builds your foundational algorithmic skills through pattern repetition. AlgoIRL is designed to train users the skill of recognizing those same patterns when they\'re wrapped in company-specific context and jargon. Think of LeetCode as learning chess moves, and AlgoIRL as practicing against opponents with different playing styles. Most successful users solve 50-200 LeetCode problems first, then spend 2-3 weeks on AlgoIRL to build context-switching confidence before their interview.',
+      'Use LeetCode first, then AlgoIRL. LeetCode builds your foundational algorithmic skills through pattern repetition. AlgoIRL is designed to train users the skill of recognizing those same patterns when they\'re wrapped in company-specific context and jargon. Think of LeetCode as learning chess moves, and AlgoIRL as practicing against opponents with different playing styles. Most successful users solve 50 - 200 LeetCode problems first, then spend 2 - 3 weeks on AlgoIRL to build context-switching confidence before their interview.',
   },
 ] as const;
 
@@ -256,6 +257,7 @@ export function IntroSection() {
   const [demoState, setDemoState] = useState<DemoState | null>(null);
   const [demoError, setDemoError] = useState<string | null>(null);
   const [isTransforming, setIsTransforming] = useState(false);
+  const [openStudyPlanSteps, setOpenStudyPlanSteps] = useState<number[]>([0]);
 
 
   useEffect(() => {
@@ -731,34 +733,68 @@ export function IntroSection() {
         </div>
       </SectionBlock>
 
-      <SectionBlock surface="base" containerClassName="text-center">
-        <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4 text-center">
-          <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">
-            Study plans tailored to your timeline, role, and target company
-          </h2>
-          <p className="text-sm text-content-muted leading-relaxed sm:text-base">
-            Set your company, role, and timeline to get a personalized plan tuned to the latest interview signals.
-          </p>
+      <SectionBlock surface="muted" containerClassName="py-16">
+        <div className="max-w-6xl mx-auto space-y-10">
+          <div className="space-y-3 text-center">
+            <h2 className="text-3xl font-thin text-content font-playfair text-center sm:text-4xl">Study plans tailored to your timeline, role, and target company</h2>
+            <p className="mx-auto max-w-2xl text-sm text-content-muted leading-relaxed sm:text-base">
+              Understand every step behind the scenes. Expand each card to see how AlgoIRL shapes an adaptive plan from your inputs to day-by-day execution.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
+            <div className="mx-auto w-full max-w-3xl space-y-6 px-1 flex-none lg:mx-0 lg:w-[48rem] lg:max-w-3xl">
+              <div className="w-full overflow-hidden rounded-2xl border border-outline-subtle/25 bg-background/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] dark:shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
+                {STUDY_PLAN_STEPS.map((step, index) => {
+                  const isOpen = openStudyPlanSteps.includes(index);
+                  return (
+                    <details
+                      key={step.title}
+                      open={isOpen}
+                      onToggle={(event) => {
+                        const { open } = event.currentTarget;
+                        setOpenStudyPlanSteps((prev) => {
+                          if (open) {
+                            if (prev.includes(index)) {
+                              return prev;
+                            }
+                            return [...prev, index];
+                          }
+                          return prev.filter((value) => value !== index);
+                        });
+                      }}
+                      className="group relative border-t border-outline-subtle/20 transition-colors first:border-t-0 open:bg-panel-50/60 dark:open:bg-panel-200/30"
+                    >
+                      <summary className="flex w-full cursor-pointer list-none items-start justify-between gap-3 sm:gap-4 py-4 sm:py-5 pl-5 pr-5 sm:pl-6 sm:pr-6 text-left text-base font-medium leading-snug text-content transition-colors duration-200 sm:text-lg">
+                        <span className="flex flex-1 items-start gap-3 sm:gap-4">
+                          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-mint-50/70 text-mint-500 dark:bg-mint-500/5 dark:text-mint-200">
+                            <step.icon className="h-5 w-5" />
+                          </span>
+                          <span className="flex-1 min-w-0">
+                            <span className="text-xs font-medium tracking-wide text-content-muted">Step {index + 1}</span>
+                            <span className="mt-1 block text-base font-medium text-content sm:text-lg">{step.title}</span>
+                          </span>
+                        </span>
+                        <span className="relative mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center">
+                          <span className="absolute block h-px w-4 bg-content transition-transform duration-200 ease-out group-open:rotate-90" />
+                          <span className="block h-4 w-px bg-content transition-opacity duration-200 ease-out group-open:opacity-0" />
+                        </span>
+                      </summary>
+                      <div className="pb-5 pl-5 pr-5 sm:pb-6 sm:pl-6 sm:pr-6 pt-1 text-sm leading-relaxed text-content-muted sm:text-base">
+                        {step.description}
+                      </div>
+                      <span className="pointer-events-none absolute left-0 top-0 h-full w-[3px] bg-mint/50 opacity-0 transition-opacity duration-200 ease-out group-open:opacity-100" />
+                    </details>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="w-full lg:flex-1 lg:min-w-0 lg:max-w-xl">
+              <InlineStudyPlanBuilder onAuthModalOpen={() => setShowAuthModal(true)} />
+            </div>
+          </div>
         </div>
-        <ol className="space-y-3 sm:space-y-4">
-          {STUDY_PLAN_STEPS.map((step, index) => (
-            <li
-              key={step.title}
-              className="flex flex-col items-center gap-3 sm:gap-4 rounded-3xl border border-outline-subtle/25 bg-background p-4 sm:p-6 sm:flex-row sm:items-start"
-            >
-              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-outline-subtle/25 text-sm font-semibold text-mint">
-                {String(index + 1).padStart(2, '0')}
-              </div>
-              <div className="flex-1 text-left">
-                <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-lg font-thin text-content font-playfair">{step.title}</h3>
-                  <step.icon className="h-5 w-5 text-mint" />
-                </div>
-                <p className="mt-2 text-sm text-content-muted">{step.description}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
       </SectionBlock>
 
       {flags.paymentsEnabled && (

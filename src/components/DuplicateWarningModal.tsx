@@ -51,9 +51,9 @@ export function DuplicateWarningModal({
       <motion.div
        initial={{ opacity: 0, scale: 0.95, y: 10 }}
        animate={{ opacity: 1, scale: 1, y: 0 }}
-       exit={{ opacity: 0, scale: 0.95, y: 10 }}
+       exit={{ opacity: 0 }}
        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-       className="bg-panel-muted dark:bg-panel-300 rounded-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-panel-200 dark:border-panel-300 max-w-md w-full overflow-hidden"
+       className="bg-white/95 dark:bg-surface-elevated/90 backdrop-blur-xl rounded-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-outline-subtle/80 dark:border-outline-subtle/60 max-w-md w-full overflow-hidden"
       >
        {/* Header */}
        <div className="bg-panel-100 dark:bg-panel-300 border-b border-panel-200 dark:border-panel-300 px-6 py-4">
@@ -163,7 +163,7 @@ export function DuplicateWarningModal({
        <div className="px-6 pb-6 space-y-2">
         <button
          onClick={onOverwrite}
-         className="w-full px-4 py-2.5 text-sm font-medium text-button-foreground bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 rounded-[10px] transition-all duration-200 active:scale-[0.98] shadow-[0_1px_2px_rgba(0,0,0,0.2)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.25)]"
+         className="w-full px-4 py-2.5 text-sm font-semibold text-white bg-error-600 hover:bg-error-700 dark:bg-error-600 dark:hover:bg-error-700 border border-error-600/60 dark:border-error-500/60 rounded-[10px] shadow-[0_8px_20px_rgba(239,68,68,0.25)] hover:shadow-[0_10px_24px_rgba(220,38,38,0.3)] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error-500/60 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-0 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
         >
          Overwrite Study Plan
         </button>

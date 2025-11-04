@@ -156,6 +156,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!user || typeof window === "undefined") {
+      return;
+    }
+
+    const postAuthAction = window.sessionStorage.getItem("postAuthAction");
+    if (postAuthAction !== "generate-study-plan") {
+      return;
+    }
+
+    const pendingConfig = window.sessionStorage.getItem("pendingStudyPlanConfig");
+    if (pendingConfig) {
+      window.dispatchEvent(
+        new CustomEvent("generate-study-plan", {
+          detail: pendingConfig,
+        }),
+      );
+    }
+
+    window.sessionStorage.removeItem("postAuthAction");
+    window.sessionStorage.removeItem("pendingStudyPlanConfig");
+  }, [user]);
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);

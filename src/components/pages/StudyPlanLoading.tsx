@@ -2,7 +2,6 @@ import { ThinkingIndicator } from '../ThinkingIndicator';
 
 const STUDY_PLAN_STATES = [
   "Analyzing your goals and timeline...",
-  "Selecting optimal problems for your level...",
   "Crafting your personalized schedule...",
   "Balancing difficulty and topics...",
   "Finalizing your study roadmap..."
