@@ -734,7 +734,7 @@ export function IntroSection() {
       </SectionBlock>
 
       <SectionBlock surface="muted" containerClassName="py-16">
-        <div className="max-w-6xl mx-auto space-y-10">
+        <div className="space-y-10">
           <div className="space-y-3 text-center">
             <h2 className="text-3xl font-thin text-content font-playfair text-center sm:text-4xl">Study plans tailored to your timeline, role, and target company</h2>
             <p className="mx-auto max-w-2xl text-sm text-content-muted leading-relaxed sm:text-base">
@@ -742,8 +742,8 @@ export function IntroSection() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between">
-            <div className="mx-auto w-full max-w-3xl space-y-6 px-1 flex-none lg:mx-0 lg:w-[48rem] lg:max-w-3xl">
+          <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-8">
+            <div className="w-full space-y-6 px-1 flex-none lg:w-1/2 lg:max-w-none">
               <div className="w-full overflow-hidden rounded-2xl border border-outline-subtle/25 bg-background/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] dark:shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
                 {STUDY_PLAN_STEPS.map((step, index) => {
                   const isOpen = openStudyPlanSteps.includes(index);
@@ -790,7 +790,7 @@ export function IntroSection() {
               </div>
             </div>
 
-            <div className="w-full lg:flex-1 lg:min-w-0 lg:max-w-xl">
+            <div className="w-full flex-none lg:w-1/2 lg:max-w-none">
               <InlineStudyPlanBuilder onAuthModalOpen={() => setShowAuthModal(true)} />
             </div>
           </div>
