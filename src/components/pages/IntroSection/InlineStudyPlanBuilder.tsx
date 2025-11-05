@@ -236,9 +236,9 @@ export const InlineStudyPlanBuilder: React.FC<InlineStudyPlanBuilderProps> = ({
           type="button"
           onClick={handleGenerateClick}
           disabled={isGenerating}
-          className="w-full inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-mint-600 to-mint-700 px-6 py-3 text-base font-medium text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:from-mint-700 hover:to-mint-800 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:transform-none"
+          className="w-full inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#14B8A6] to-[#0D9488] px-6 py-3 text-base font-medium text-white shadow-teal-glow transition-all duration-200 hover:-translate-y-0.5 hover:from-[#0D9488] hover:to-[#0F766E] hover:shadow-lg hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:transform-none"
         >
-          {isGenerating ? 'Generating your study plan...' : 'Generate My Study Plan'}
+          {isGenerating ? 'Generating your study plan...' : 'Generate my study plan'}
         </button>
       </div>
     </div>

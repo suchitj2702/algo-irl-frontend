@@ -209,7 +209,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
       </p>
       <button
        onClick={onCreateNew}
-       className="inline-flex items-center gap-2 px-6 py-3 bg-button-600 hover:bg-button-500 text-button-foreground text-sm font-medium rounded-[12px] border border-button-700 shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_1px_20px_rgba(0,0,0,0.3)_inset] transition-all duration-200 active:scale-[0.98]"
+       className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#5B8FDF] to-[#4A7FD4] hover:from-[#4A7FD4] hover:to-[#3968C4] text-white text-sm font-medium rounded-[12px] border border-[#4A7FD4]/30 shadow-[0_2px_8px_rgba(91,143,223,0.25),0_1px_20px_rgba(255,255,255,0.25)_inset] hover:shadow-[0_4px_16px_rgba(91,143,223,0.35),0_2px_30px_rgba(255,255,255,0.35)_inset] hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98]"
       >
        <Plus className="w-4 h-4" />
        Create Your First Plan

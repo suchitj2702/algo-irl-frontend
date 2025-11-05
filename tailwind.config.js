@@ -257,6 +257,18 @@ export default {
       boxShadow: {
         'subtle': '0 2px 8px rgba(0, 0, 0, 0.08)',
         'medium': '0 4px 12px rgba(0, 0, 0, 0.08)',
+        'teal-glow': '0 4px 16px rgba(20, 184, 166, 0.25)',
+        'lightblue-glow': '0 4px 16px rgba(125, 211, 252, 0.25)',
+        'amber-glow': '0 4px 16px rgba(245, 158, 11, 0.25)',
+        'blue-glow': '0 4px 16px rgba(99, 102, 241, 0.25)',
+        'navy-glow': '0 4px 16px rgba(91, 143, 223, 0.25)',
+      },
+      backgroundImage: {
+        'gradient-teal': 'linear-gradient(to right, #14B8A6, #0D9488)',
+        'gradient-lightblue': 'linear-gradient(to right, #7DD3FC, #60A5FA)',
+        'gradient-amber': 'linear-gradient(to right, #F59E0B, #D97706)',
+        'gradient-blue-indigo': 'linear-gradient(to right, #3B82F6, #6366F1)',
+        'gradient-navy': 'linear-gradient(to right, #5B8FDF, #4A7FD4)',
       },
       keyframes: {
         'accordion-down': {

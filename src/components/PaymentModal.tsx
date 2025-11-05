@@ -436,7 +436,7 @@ export function PaymentModal({
                   type="button"
                   onClick={handleProceedToPayment}
                   disabled={isActionDisabled}
-                  className="flex w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-mint-600 to-mint-500 px-6 py-4 text-sm font-semibold text-white shadow-lg transition hover:from-mint-700 hover:to-mint-600 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:hover:from-mint-600 disabled:hover:to-mint-500"
+                  className="flex w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#7DD3FC] to-[#60A5FA] px-6 py-4 text-sm font-semibold text-white shadow-lightblue-glow transition hover:from-[#60A5FA] hover:to-[#3B82F6] hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:bg-slate-400 disabled:opacity-50 disabled:hover:from-[#7DD3FC] disabled:hover:to-[#60A5FA] disabled:hover:scale-100 disabled:hover:translate-y-0"
                 >
                   {(isProcessing || scriptStatus === "loading") && (
                     <svg

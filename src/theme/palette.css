@@ -17,13 +17,13 @@
      Used in: Primary buttons, CTAs, active navigation, links
      Components: Navbar active state, ProblemSolver submit button,
                  StudyPlanForm generate button, IntroSection CTA */
-  --primary: #9fbfeb;
+  --primary: #5B8FDF;
 
   /* Secondary
      Used in: Secondary actions, badges, progress indicators
      Components: MyStudyPlansPage badges, progress bars,
                  StudyPlanOverviewCard metrics, success states */
-  --secondary: #bbd0fa;
+  --secondary: #7DD3FC;
 
   /* Accent
      Used in: Special highlights, tooltips, feature badges
@@ -110,12 +110,12 @@
   /* Primary
      Used in: Primary buttons, CTAs, active states in dark mode
      Brighter medium blue for better contrast and vibrancy */
-  --primary: #6b95d4;
+  --primary: #4A7FD4;
 
   /* Secondary
      Used in: Secondary actions, highlights in dark mode
      Aligns with light mode blue for cohesive theming */
-  --secondary: #bbd0fa;
+  --secondary: #60A5FA;
 
   /* Accent
      Used in: Special accents, bright highlights in dark mode
@@ -171,6 +171,31 @@
   /* Logo Text - Dark Mode */
   --logo-text-fill: transparent;
   --logo-text-stroke: rgba(0, 201, 167, 0.05);
+
+  /* ==========================================
+     GRADIENT COLOR VARIABLES
+     Used for sophisticated button gradients
+     ========================================== */
+
+  /* Teal Gradient - For study plan generation and success actions */
+  --gradient-teal-start: #14B8A6;
+  --gradient-teal-end: #0D9488;
+
+  /* Light Blue Gradient - For premium and subscription actions */
+  --gradient-lightblue-start: #7DD3FC;
+  --gradient-lightblue-end: #60A5FA;
+
+  /* Amber Gradient - For urgent and start actions */
+  --gradient-amber-start: #F59E0B;
+  --gradient-amber-end: #D97706;
+
+  /* Blue-Indigo Gradient - For interactive and code execution */
+  --gradient-blue-indigo-start: #3B82F6;
+  --gradient-blue-indigo-end: #6366F1;
+
+  /* Navy Gradient - For primary actions */
+  --gradient-navy-start: #5B8FDF;
+  --gradient-navy-end: #4A7FD4;
 }
 
 /* ==========================================

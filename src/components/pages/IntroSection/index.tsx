@@ -514,7 +514,7 @@ export function IntroSection() {
           <div>
             <button
               onClick={handleSeeDemo}
-              className="inline-flex items-center justify-center px-8 py-3 text-base font-medium text-white bg-gradient-to-r from-mint-600 to-mint-700 hover:from-mint-700 hover:to-mint-800 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="inline-flex items-center justify-center px-8 py-3 text-base font-medium text-white bg-gradient-to-r from-[#14B8A6] to-[#0D9488] hover:from-[#0D9488] hover:to-[#0F766E] rounded-full transition-all duration-300 shadow-teal-glow hover:shadow-xl hover:scale-[1.02] transform hover:-translate-y-0.5"
             >
               See it in action
             </button>
@@ -600,7 +600,7 @@ export function IntroSection() {
                 <button
                   onClick={handleTransform}
                   disabled={isTransforming}
-                  className="w-full inline-flex items-center justify-center px-5 py-2 text-sm font-medium rounded-xl transition duration-200 bg-gradient-to-r from-mint-600 to-mint-700 text-white shadow-md hover:-translate-y-0.5 hover:from-mint-700 hover:to-mint-800 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint/40 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full inline-flex items-center justify-center px-5 py-2 text-sm font-medium rounded-xl transition duration-200 bg-gradient-to-r from-[#14B8A6] to-[#0D9488] text-white shadow-teal-glow hover:-translate-y-0.5 hover:from-[#0D9488] hover:to-[#0F766E] hover:shadow-lg hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/40 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isTransforming ? 'Contextualizing...' : 'Contextualize'}
                 </button>
@@ -880,7 +880,7 @@ export function IntroSection() {
               type="button"
               onClick={handleUnlockComprehensive}
               disabled={loading || hasActiveSubscription}
-              className={`${planButtonBaseClasses} bg-gradient-to-r from-mint-600 to-mint-700 text-white shadow-md hover:-translate-y-0.5 hover:from-mint-700 hover:to-mint-800 hover:shadow-lg ${
+              className={`${planButtonBaseClasses} bg-gradient-to-r from-[#7DD3FC] to-[#60A5FA] text-white shadow-lightblue-glow hover:-translate-y-0.5 hover:from-[#60A5FA] hover:to-[#3B82F6] hover:shadow-lg hover:scale-[1.02] ${
                 loading ? 'cursor-wait opacity-70' : ''
               } ${hasActiveSubscription ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
@@ -932,7 +932,7 @@ export function IntroSection() {
             <button
               type="button"
               onClick={handlePlansRedirect}
-              className={`${finalCtaClasses} w-full bg-gradient-to-r from-mint-600 to-mint-700 text-white shadow-md hover:-translate-y-0.5 hover:from-mint-700 hover:to-mint-800 hover:shadow-lg sm:w-auto`}
+              className={`${finalCtaClasses} w-full bg-gradient-to-r from-[#14B8A6] to-[#0D9488] text-white shadow-teal-glow hover:-translate-y-0.5 hover:from-[#0D9488] hover:to-[#0F766E] hover:shadow-lg hover:scale-[1.02] sm:w-auto`}
             >
               Create my free account
             </button>

@@ -624,7 +624,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
       <div className="pt-2 space-y-2">
        <button
         type="submit"
-        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium text-white bg-gradient-to-r from-mint-600 to-mint-700 border border-mint-700 shadow-md hover:from-mint-700 hover:to-mint-800 hover:shadow-lg rounded-[12px] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium text-white bg-gradient-to-r from-[#14B8A6] to-[#0D9488] border border-[#0D9488] shadow-teal-glow hover:from-[#0D9488] hover:to-[#0F766E] hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 rounded-[12px] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
         disabled={isLoading || isLoadingCompanies}
        >
         {isLoading ? (

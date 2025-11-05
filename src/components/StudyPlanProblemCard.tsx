@@ -212,7 +212,7 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
       className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium rounded-[12px] backdrop-blur-xl transition-all duration-200 flex-shrink-0 active:scale-[0.98] ${
        isCompleted && hasResumeHandler
         ? 'text-green-700 dark:text-emerald-300 bg-green-50 dark:bg-emerald-900/30 border border-green-300 dark:border-emerald-600 hover:bg-green-100 dark:hover:bg-emerald-900/40'
-        : 'text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_1px_20px_rgba(0,0,0,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.15),0_2px_30px_rgba(0,0,0,0.4)_inset]'
+        : 'text-white bg-button-600 hover:bg-button-500 border border-button-700 shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_1px_20px_rgba(0,0,0,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.15),0_2px_30px_rgba(0,0,0,0.4)_inset]'
       }`}
      >
       <span>{actionLabel}</span>

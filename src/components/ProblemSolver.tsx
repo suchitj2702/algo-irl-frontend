@@ -731,7 +731,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
        <button
         onClick={handleSubmit}
         disabled={isLoadingRun || isLoadingSubmit || isLoading}
-        className="inline-flex items-center gap-2 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-button-600 hover:bg-button-500 border border-button-700 rounded-[10px] backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
+        className="inline-flex items-center gap-2 px-3.5 py-1.5 text-[13px] font-medium text-white bg-gradient-to-r from-[#3B82F6] to-[#6366F1] hover:from-[#2563EB] hover:to-[#4F46E5] border border-[#6366F1]/30 rounded-[10px] backdrop-blur-xl shadow-[0_2px_8px_rgba(99,102,241,0.25),0_1px_20px_rgba(255,255,255,0.25)_inset] hover:shadow-[0_4px_16px_rgba(99,102,241,0.35),0_2px_30px_rgba(255,255,255,0.35)_inset] hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 disabled:opacity-40"
        >
         {isLoadingSubmit && (
          <div className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"></div>
