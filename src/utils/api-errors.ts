@@ -12,3 +12,13 @@ export class APIAuthenticationError extends Error {
     this.name = 'APIAuthenticationError';
   }
 }
+
+/**
+ * Rate limit exceeded error class for API requests
+ */
+export class APIRateLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'APIRateLimitError';
+  }
+}

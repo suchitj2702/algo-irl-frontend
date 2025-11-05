@@ -6,7 +6,8 @@
 import { buildApiUrl, API_CONFIG } from '../config/api';
 import { TestCase } from '../types';
 import { StudyPlanConfig, StudyPlanResponse } from '../types/studyPlan';
-import { APIAuthenticationError } from './api-errors';
+import { APIAuthenticationError, APIRateLimitError } from './api-errors';
+import { notifyRateLimitExceeded, getDefaultRateLimitMessage } from './rateLimitNotifier';
 
 /**
  * Handle API response errors
@@ -17,7 +18,9 @@ async function handleAPIResponse(response: Response) {
   }
 
   if (response.status === 429) {
-    throw new APIAuthenticationError('Too many requests. Please wait before trying again.');
+    const message = getDefaultRateLimitMessage();
+    notifyRateLimitExceeded(message);
+    throw new APIRateLimitError(message);
   }
 
   if (!response.ok) {

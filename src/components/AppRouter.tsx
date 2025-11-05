@@ -21,7 +21,8 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { Problem, CodeDetails, TestCase, FormData, Company } from '../types';
 import { StudyPlanConfig, StudyPlanResponse, EnrichedProblem, CachedStudyPlan, StudyPlanViewState } from '../types/studyPlan';
 import { prepareProblem as prepareProblemAPI, generateStudyPlan as generateStudyPlanAPI } from '../utils/api-service';
-import { APIAuthenticationError } from '../utils/api-errors';
+import { APIAuthenticationError, APIRateLimitError } from '../utils/api-errors';
+import { subscribeToRateLimit, getDefaultRateLimitMessage } from '../utils/rateLimitNotifier';
 import { saveViewStateToSession, loadViewStateFromSession, createDefaultViewState } from '../utils/viewStateStorage';
 import {
  addProblemToCache,
@@ -73,6 +74,7 @@ interface TestResultsFromParent {
 }
 
 export const MAX_LOADING_DURATION_SECONDS = 60;
+const RATE_LIMIT_TOOLTIP_DURATION_MS = 6000;
 
 export function AppRouter() {
  const navigate = useNavigate();
@@ -159,9 +161,14 @@ export function AppRouter() {
  // Auto-save state
  const [lastSaveTime, setLastSaveTime] = useState<number>(Date.now());
  const [currentCode, setCurrentCode] = useState<string>('');
- const [codeSaveStatus, setCodeSaveStatus] = useState<'saving' | 'saved' | 'error' | undefined>();
- const [hasUnsyncedCode, setHasUnsyncedCode] = useState(false);
- const [codeSaveTimestamp, setCodeSaveTimestamp] = useState<number | null>(null);
+const [codeSaveStatus, setCodeSaveStatus] = useState<'saving' | 'saved' | 'error' | undefined>();
+const [hasUnsyncedCode, setHasUnsyncedCode] = useState(false);
+const [codeSaveTimestamp, setCodeSaveTimestamp] = useState<number | null>(null);
+const [rateLimitTooltip, setRateLimitTooltip] = useState({
+ visible: false,
+ message: getDefaultRateLimitMessage()
+});
+const rateLimitTimeoutRef = useRef<number | null>(null);
 
  // Track active problem ID with ref for race condition prevention
  // This ensures debounced saves don't fire for wrong problem after navigation
@@ -251,13 +258,24 @@ export function AppRouter() {
   }
  });
 
- const clearPlanSessionContext = useCallback(() => {
- // CRITICAL FIX: Clear BOTH study plan context variables
- // This prevents study plan toolbar from appearing in Blind75 mode
- setCurrentPlanProblemId(null);
- setCurrentStudyPlanId(null);
- setHasUnsyncedCode(false);
+const clearPlanSessionContext = useCallback(() => {
+// CRITICAL FIX: Clear BOTH study plan context variables
+// This prevents study plan toolbar from appearing in Blind75 mode
+setCurrentPlanProblemId(null);
+setCurrentStudyPlanId(null);
+setHasUnsyncedCode(false);
 }, []);
+
+ const dismissRateLimitTooltip = useCallback(() => {
+  if (rateLimitTimeoutRef.current) {
+   window.clearTimeout(rateLimitTimeoutRef.current);
+   rateLimitTimeoutRef.current = null;
+  }
+  setRateLimitTooltip((prev) => ({
+   ...prev,
+   visible: false
+  }));
+ }, []);
 
  const syncPlanStructures = useCallback((response?: StudyPlanResponse | null) => {
   const source = response || studyPlanResponse;
