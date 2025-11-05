@@ -513,7 +513,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
             {/* Practice Button */}
             <button
              onClick={() => onPracticeWithContext(problem.slug)}
-             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-white bg-gradient-to-r from-[#F59E0B] to-[#D97706] hover:from-[#D97706] hover:to-[#B45309] border border-[#D97706]/30 rounded-[12px] backdrop-blur-xl shadow-[0_2px_8px_rgba(245,158,11,0.25),0_1px_20px_rgba(255,255,255,0.25)_inset] hover:shadow-[0_4px_16px_rgba(245,158,11,0.35),0_2px_30px_rgba(255,255,255,0.35)_inset] hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 flex-shrink-0 w-full sm:w-auto justify-center"
+             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-white bg-gradient-to-r from-[#818CF8] to-[#6366F1] hover:from-[#6366F1] hover:to-[#4F46E5] border border-[#6366F1]/30 rounded-[12px] backdrop-blur-xl shadow-[0_2px_8px_rgba(99,102,241,0.25),0_1px_20px_rgba(255,255,255,0.4)_inset] dark:shadow-[0_2px_8px_rgba(129,140,248,0.3),0_1px_20px_rgba(255,255,255,0.12)_inset] hover:shadow-[0_4px_16px_rgba(99,102,241,0.35),0_2px_30px_rgba(255,255,255,0.5)_inset] hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 flex-shrink-0 w-full sm:w-auto justify-center"
             >
              Practice
             </button>

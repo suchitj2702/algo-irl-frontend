@@ -155,7 +155,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
  const otherCompanies = companies.filter(c => !FIXED_COMPANY_IDS.includes(c.id));
 
  const activeOptionClasses =
-  'bg-gradient-to-r from-mint-600 to-mint-700 text-white border border-mint-700 shadow-sm hover:shadow-md transition-all duration-150';
+  'bg-gradient-to-r from-[#818CF8] to-[#6366F1] hover:from-[#6366F1] hover:to-[#4F46E5] text-white border border-[#6366F1]/30 shadow-[0_2px_8px_rgba(99,102,241,0.25),0_1px_20px_rgba(255,255,255,0.4)_inset] dark:shadow-[0_2px_8px_rgba(129,140,248,0.3),0_1px_20px_rgba(255,255,255,0.12)_inset] hover:shadow-[0_4px_16px_rgba(99,102,241,0.35),0_2px_30px_rgba(255,255,255,0.5)_inset] transition-all duration-200';
  const inactiveOptionClasses =
  'bg-cream-100 text-content border border-cream-200 hover:bg-cream-200 dark:bg-panel-500 dark:border-panel-600 dark:hover:bg-panel-400 transition-colors duration-150';
 
@@ -384,7 +384,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
           onClick={() => setCompanyId(company.id)}
           className={`py-2.5 px-3 text-sm font-normal rounded-[12px] ${
            companyId === company.id
-            ? `${activeOptionClasses} hover:from-mint-700 hover:to-mint-800`
+            ? activeOptionClasses
            : inactiveOptionClasses
           }`}
           disabled={isLoading}
@@ -433,7 +433,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
          onClick={handleBlindDatasetClick}
          className={`py-2.5 px-3 text-sm font-normal rounded-[12px] text-left ${
           datasetType === 'blind75'
-           ? `${activeOptionClasses} hover:from-mint-700 hover:to-mint-800`
+           ? activeOptionClasses
            : inactiveOptionClasses
          }`}
          disabled={isLoading}
@@ -453,7 +453,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
          onClick={handleFullDatasetClick}
          className={`py-2.5 px-3 text-sm font-normal rounded-[12px] text-left ${
           datasetType === 'full'
-           ? `${activeOptionClasses} hover:from-mint-700 hover:to-mint-800`
+           ? activeOptionClasses
            : inactiveOptionClasses
          }`}
          disabled={isLoading || fullButtonBusy}
@@ -486,7 +486,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
           onClick={() => setRoleFamily(role.id)}
           className={`py-2.5 px-3 text-sm font-medium rounded-[12px] ${
            roleFamily === role.id
-            ? `${activeOptionClasses} hover:from-mint-700 hover:to-mint-800`
+            ? activeOptionClasses
            : inactiveOptionClasses
           }`}
           disabled={isLoading}
@@ -567,7 +567,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
           onClick={() => toggleDifficulty(diff)}
           className={`py-2.5 px-3 text-sm font-normal rounded-[12px] ${
            difficultyPreference[diff]
-            ? `${activeOptionClasses} hover:from-mint-700 hover:to-mint-800`
+            ? activeOptionClasses
             : inactiveOptionClasses
           }`}
           disabled={isLoading}

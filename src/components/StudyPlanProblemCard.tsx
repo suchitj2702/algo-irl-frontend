@@ -169,7 +169,7 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
        </div>
       )}
 
-      {/* Bottom Row: Time + Hotness + Role Relevance */}
+      {/* Bottom Row: Time + Hotness */}
       <div className={`flex items-center gap-3 flex-wrap ${showTopics ? '' : 'mt-2'}`}>
        {/* Estimated Time */}
        <div className="flex items-center gap-1 text-xs text-content-muted dark:text-content-subtle">
@@ -183,19 +183,6 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
         onClick={() => setShowHotnessModal(true)}
         showTooltip={false}
        />
-
-       {/* Role Relevance Bar (mini) */}
-       <div className="hidden sm:flex items-center gap-2">
-        <span className="text-xs text-content-muted dark:text-content-subtle">
-         {problem.roleRelevance}% role fit
-        </span>
-        <div className="w-16 h-1.5 rounded-full overflow-hidden bg-panel-100 dark:bg-panel-400">
-         <div
-          className="h-full bg-purple-500"
-          style={{ width: `${problem.roleRelevance}%` }}
-         />
-        </div>
-       </div>
 
        {isInProgress && !isCompleted && (
         <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 text-[11px] font-medium text-indigo-700 dark:text-indigo-300">
@@ -212,7 +199,7 @@ const StudyPlanProblemCardComponent: React.FC<StudyPlanProblemCardProps> = ({
       className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium rounded-[12px] backdrop-blur-xl transition-all duration-200 flex-shrink-0 active:scale-[0.98] ${
        isCompleted && hasResumeHandler
         ? 'text-green-700 dark:text-emerald-300 bg-green-50 dark:bg-emerald-900/30 border border-green-300 dark:border-emerald-600 hover:bg-green-100 dark:hover:bg-emerald-900/40'
-        : 'text-white bg-button-600 hover:bg-button-500 border border-button-700 shadow-[0_1px_2px_rgba(0,0,0,0.15),0_1px_20px_rgba(255,255,255,0.25)_inset] dark:shadow-[0_1px_2px_rgba(0,0,0,0.1),0_1px_20px_rgba(0,0,0,0.3)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.2),0_2px_30px_rgba(255,255,255,0.35)_inset] dark:hover:shadow-[0_1px_3px_rgba(0,0,0,0.15),0_2px_30px_rgba(0,0,0,0.4)_inset]'
+        : 'text-white bg-gradient-to-r from-[#818CF8] to-[#6366F1] hover:from-[#6366F1] hover:to-[#4F46E5] border border-[#6366F1]/30 shadow-[0_2px_8px_rgba(99,102,241,0.25),0_1px_20px_rgba(255,255,255,0.4)_inset] dark:shadow-[0_2px_8px_rgba(129,140,248,0.3),0_1px_20px_rgba(255,255,255,0.12)_inset] hover:shadow-[0_4px_16px_rgba(99,102,241,0.35),0_2px_30px_rgba(255,255,255,0.5)_inset] hover:-translate-y-0.5 hover:scale-[1.02]'
       }`}
      >
       <span>{actionLabel}</span>

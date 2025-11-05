@@ -345,7 +345,7 @@ export function StudyPlanView({
         className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-slate-100 shadow-sm hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors"
         aria-pressed={filterState.showTopics}
        >
-        <span>{filterState.showTopics ? 'Hide topics' : 'Show topics'}</span>
+        <span>Show topics</span>
         <span
          className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
           filterState.showTopics ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-gray-300 dark:bg-slate-700'
@@ -364,7 +364,7 @@ export function StudyPlanView({
         className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-slate-100 shadow-sm hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors"
         aria-pressed={filterState.showDifficulty}
        >
-        <span>{filterState.showDifficulty ? 'Hide difficulty' : 'Show difficulty'}</span>
+        <span>Show difficulty</span>
         <span
          className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
           filterState.showDifficulty ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-gray-300 dark:bg-slate-700'
@@ -383,7 +383,7 @@ export function StudyPlanView({
         className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-slate-100 shadow-sm hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors"
         aria-pressed={filterState.showSavedOnly}
        >
-        <span>{filterState.showSavedOnly ? 'Show all problems' : 'Saved problems only'}</span>
+        <span>Saved problems only</span>
         <span
          className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
           filterState.showSavedOnly ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-gray-300 dark:bg-slate-700'

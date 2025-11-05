@@ -298,11 +298,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
         <ul className="space-y-2 text-emerald-700 dark:text-emerald-300">
          <li className="flex items-start gap-2">
           <span className="text-emerald-600 dark:text-emerald-400 flex-shrink-0">•</span>
-          <span><strong>Hotness badge:</strong> Click to see why each problem was prioritized for you</span>
-         </li>
-         <li className="flex items-start gap-2">
-          <span className="text-emerald-600 dark:text-emerald-400 flex-shrink-0">•</span>
-          <span><strong>Role fit %:</strong> Shows how relevant the problem is to your target role</span>
+          <span><strong>Heat badge:</strong> Click to see why each problem was prioritized for you</span>
          </li>
          <li className="flex items-start gap-2">
           <span className="text-emerald-600 dark:text-emerald-400 flex-shrink-0">•</span>

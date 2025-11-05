@@ -25,7 +25,7 @@ export function ResumeLoadingSequence({
 
  // Handle progress animation and completion
  useEffect(() => {
-  const interval = 50; // Update every 50ms
+  const interval = 10; // Update every 50ms
   
   const timer = setInterval(() => {
    setProgress(prev => {

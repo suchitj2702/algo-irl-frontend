@@ -125,7 +125,7 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
        Why this problem was prioritized
       </h2>
       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-       Hotness score <span className="font-semibold text-gray-900 dark:text-white">{hotnessScore}</span>
+       Heat score <span className="font-semibold text-gray-900 dark:text-white">{hotnessScore}</span>
       </p>
      </div>
      <button
