@@ -86,8 +86,38 @@ export function AppRouter() {
   if (import.meta.env.DEV) {
    console.log('[AppRouter] flags.paymentsEnabled:', flags.paymentsEnabled);
   }
-  secureLog.dev('FeatureFlags', 'Payments enabled flag changed', { paymentsEnabled: flags.paymentsEnabled });
- }, [flags.paymentsEnabled]);
+ secureLog.dev('FeatureFlags', 'Payments enabled flag changed', { paymentsEnabled: flags.paymentsEnabled });
+}, [flags.paymentsEnabled]);
+
+ useEffect(() => {
+  const unsubscribe = subscribeToRateLimit((message) => {
+   if (rateLimitTimeoutRef.current) {
+    window.clearTimeout(rateLimitTimeoutRef.current);
+    rateLimitTimeoutRef.current = null;
+   }
+
+   setRateLimitTooltip({
+    visible: true,
+    message
+   });
+
+   rateLimitTimeoutRef.current = window.setTimeout(() => {
+    setRateLimitTooltip((prev) => ({
+     ...prev,
+     visible: false
+    }));
+    rateLimitTimeoutRef.current = null;
+   }, RATE_LIMIT_TOOLTIP_DURATION_MS);
+  });
+
+  return () => {
+   unsubscribe();
+   if (rateLimitTimeoutRef.current) {
+    window.clearTimeout(rateLimitTimeoutRef.current);
+    rateLimitTimeoutRef.current = null;
+   }
+  };
+ }, []);
 
  // Problem state
  const [problem, setProblem] = useState<Problem | null>(null);
@@ -258,13 +288,13 @@ const rateLimitTimeoutRef = useRef<number | null>(null);
   }
  });
 
-const clearPlanSessionContext = useCallback(() => {
-// CRITICAL FIX: Clear BOTH study plan context variables
-// This prevents study plan toolbar from appearing in Blind75 mode
-setCurrentPlanProblemId(null);
-setCurrentStudyPlanId(null);
-setHasUnsyncedCode(false);
-}, []);
+ const clearPlanSessionContext = useCallback(() => {
+  // CRITICAL FIX: Clear BOTH study plan context variables
+  // This prevents study plan toolbar from appearing in Blind75 mode
+  setCurrentPlanProblemId(null);
+  setCurrentStudyPlanId(null);
+  setHasUnsyncedCode(false);
+ }, []);
 
  const dismissRateLimitTooltip = useCallback(() => {
   if (rateLimitTimeoutRef.current) {
@@ -622,11 +652,13 @@ const handleHomeClick = () => navigate('/');
      context: 'contextualized'
    });
 
-   if (err instanceof APIAuthenticationError) {
+  if (err instanceof APIRateLimitError) {
+    setError(null);
+  } else if (err instanceof APIAuthenticationError) {
     setError(err.message + ' Please refresh the page and try again.');
-   } else {
+  } else {
     setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-   }
+  }
    navigate('/company-context-form');
   }
  };
@@ -759,11 +791,13 @@ const handleHomeClick = () => navigate('/');
   } catch (err) {
    secureLog.error('ProblemResume', err as Error, { problemId });
 
-   if (err instanceof APIAuthenticationError) {
-    setError(err.message + ' Please refresh the page and try again.');
-   } else {
-    setError(err instanceof Error ? err.message : 'An unexpected error occurred while resuming');
-   }
+  if (err instanceof APIRateLimitError) {
+   setError(null);
+  } else if (err instanceof APIAuthenticationError) {
+   setError(err.message + ' Please refresh the page and try again.');
+  } else {
+   setError(err instanceof Error ? err.message : 'An unexpected error occurred while resuming');
+  }
    navigate('/blind75');
    setIsResuming(false);
    setResumeProblemId(null);
@@ -969,7 +1003,11 @@ const handleHomeClick = () => navigate('/');
    await executeStudyPlanGeneration(config);
   } catch (err) {
    secureLog.error('StudyPlan', err as Error, { operation: 'generate', config });
-   setStudyPlanError(err instanceof Error ? err.message : 'Failed to generate study plan.');
+   if (err instanceof APIRateLimitError) {
+    setStudyPlanError(null);
+   } else {
+    setStudyPlanError(err instanceof Error ? err.message : 'Failed to generate study plan.');
+   }
    setIsGeneratingStudyPlan(false);
    navigate('/study-plan-form');
  }
@@ -1024,16 +1062,18 @@ const executeStudyPlanGeneration = async (config: StudyPlanConfig, overwritePlan
   } catch (err) {
    secureLog.error('StudyPlan', err as Error, { operation: 'generateAPI', config });
 
-   if (err instanceof APIAuthenticationError) {
+   if (err instanceof APIRateLimitError) {
+    setStudyPlanError(null);
+   } else if (err instanceof APIAuthenticationError) {
     setStudyPlanError(err.message + ' Please refresh the page and try again.');
    } else {
-   setStudyPlanError(err instanceof Error ? err.message : 'Failed to generate study plan. Please try again.');
-  }
+    setStudyPlanError(err instanceof Error ? err.message : 'Failed to generate study plan. Please try again.');
+   }
 
-  setIsGeneratingStudyPlan(false);
-  navigate('/study-plan-form');
- }
-};
+   setIsGeneratingStudyPlan(false);
+   navigate('/study-plan-form');
+  }
+ };
 
 useEffect(() => {
   if (typeof window === 'undefined') {
@@ -1406,11 +1446,13 @@ const handleOverwriteStudyPlan = async () => {
      operation: 'prepareProblem'
    });
 
-   if (err instanceof APIAuthenticationError) {
+  if (err instanceof APIRateLimitError) {
+    setError(null);
+  } else if (err instanceof APIAuthenticationError) {
     setError(err.message + ' Please refresh the page and try again.');
-   } else {
+  } else {
     setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-   }
+  }
 
    navigate('/study-plan-view');
   }
@@ -2239,9 +2281,32 @@ const handleBeforeSignOut = useCallback(async () => {
          </div>
         </div>
        )}
-      </PremiumGate>
-     } />
-    </Routes>
+     </PremiumGate>
+    } />
+   </Routes>
+
+    {rateLimitTooltip.visible && (
+     <div
+      role="status"
+      aria-live="assertive"
+      className="fixed bottom-6 right-6 z-50 max-w-xs rounded-lg border border-border-subtle bg-surface-strong p-4 shadow-lg"
+     >
+      <div className="flex items-start gap-3">
+       <div className="mt-1 h-2.5 w-2.5 rounded-full bg-red-500" aria-hidden="true" />
+       <p className="flex-1 text-sm font-medium text-content-strong">
+        {rateLimitTooltip.message}
+       </p>
+       <button
+        type="button"
+        onClick={dismissRateLimitTooltip}
+        className="text-xs font-medium text-content-subtle transition hover:text-content-strong"
+        aria-label="Dismiss rate limit notice"
+       >
+        Dismiss
+       </button>
+      </div>
+     </div>
+    )}
     </div>
    </ErrorBoundary>
   </DarkModeProvider>

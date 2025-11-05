@@ -1,6 +1,6 @@
 import { TestCase } from '../types';
 import { executeCode as executeCodeAPI, checkSubmissionStatus as checkStatusAPI } from './api-service';
-import { APIAuthenticationError } from './api-errors';
+import { APIAuthenticationError, APIRateLimitError } from './api-errors';
 
 // Define interface for individual test results from execution
 export interface ExecutionTestResult {
@@ -88,7 +88,9 @@ const pollForResults = async ({
       console.error('Status polling error:', error);
     }
     
-    if (error instanceof APIAuthenticationError) {
+    if (error instanceof APIRateLimitError) {
+      onError(error.message, submissionId);
+    } else if (error instanceof APIAuthenticationError) {
       onError(error.message, submissionId);
     } else {
       const errorMsg = error instanceof Error ? error.message : 'An unknown error occurred during polling';
@@ -135,7 +137,9 @@ export const executeCodeAndPoll = async ({
   } catch (error) {
     console.error('Submission error:', error);
     
-    if (error instanceof APIAuthenticationError) {
+    if (error instanceof APIRateLimitError) {
+      onError(error.message);
+    } else if (error instanceof APIAuthenticationError) {
       onError(error.message);
     } else {
       const errorMsg = error instanceof Error ? error.message : 'An unknown error occurred during submission';
