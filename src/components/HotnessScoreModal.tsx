@@ -121,7 +121,7 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
     {/* Header */}
     <div className="sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-6 py-4 flex items-center justify-between shadow-sm">
      <div>
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white font-playfair">
+      <h2 className="text-2xl font-normal text-gray-900 dark:text-white font-playfair">
        Why this problem was prioritized
       </h2>
       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
