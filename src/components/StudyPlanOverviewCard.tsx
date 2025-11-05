@@ -260,7 +260,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
       </button>
 
       {/* Title */}
-      <h2 className="text-2xl font-bold text-content mb-4 pr-8 flex items-center gap-2 font-playfair">
+      <h2 className="text-2xl font-semibold text-content mb-4 pr-8 flex items-center gap-2 font-playfair">
        <InfoCircle className="w-6 h-6 text-blue-600 dark:text-blue-400" strokeWidth={ICON_STROKE_WIDTH} />
        How to Use This Study Plan
       </h2>

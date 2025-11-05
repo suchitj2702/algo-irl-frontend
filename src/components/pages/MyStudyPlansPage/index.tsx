@@ -186,7 +186,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
     {/* Create New Button */}
     <button
      onClick={onCreateNew}
-     className="group relative w-full mb-6 px-6 py-4 bg-gradient-to-r from-button-600 via-button-500 to-button-600 hover:from-button-500 hover:via-button-400 hover:to-button-500 text-button-foreground rounded-[16px] shadow-[0_4px_16px_rgba(159,191,235,0.4)] dark:shadow-[0_4px_20px_rgba(48,73,135,0.5)] hover:shadow-[0_6px_24px_rgba(159,191,235,0.5)] dark:hover:shadow-[0_6px_28px_rgba(48,73,135,0.6)] border-2 border-button-700/40 dark:border-button-400/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.99] overflow-hidden"
+     className="group relative w-full mb-6 px-6 py-4 bg-gradient-to-r from-[#3B82F6] to-[#6366F1] hover:from-[#2563EB] hover:to-[#4F46E5] text-white rounded-[16px] shadow-[0_4px_16px_rgba(99,102,241,0.35),0_2px_26px_rgba(255,255,255,0.5)_inset] dark:shadow-[0_4px_16px_rgba(99,102,241,0.4),0_2px_26px_rgba(255,255,255,0.16)_inset] hover:shadow-[0_6px_24px_rgba(99,102,241,0.45),0_3px_32px_rgba(255,255,255,0.6)_inset] dark:hover:shadow-[0_6px_28px_rgba(99,102,241,0.5),0_3px_36px_rgba(255,255,255,0.2)_inset] border-2 border-[#6366F1]/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.99] backdrop-blur-xl overflow-hidden"
     >
      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-[-100%] group-hover:translate-x-[100%] group-hover:transition-transform group-hover:duration-700"></div>
      <div className="relative flex items-center justify-center gap-3">
@@ -204,16 +204,9 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
       <h3 className="text-xl font-semibold text-content mb-2 font-playfair">
        No Study Plans Yet
       </h3>
-      <p className="text-content-muted dark:text-content-subtle mb-6 max-w-md mx-auto">
+      <p className="text-content-muted dark:text-content-subtle max-w-md mx-auto">
        Create your first personalized study plan to start preparing for your target company interview
       </p>
-      <button
-       onClick={onCreateNew}
-       className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#5B8FDF] to-[#4A7FD4] hover:from-[#4A7FD4] hover:to-[#3968C4] text-white text-sm font-medium rounded-[12px] border border-[#4A7FD4]/30 shadow-[0_2px_8px_rgba(91,143,223,0.25),0_1px_20px_rgba(255,255,255,0.25)_inset] hover:shadow-[0_4px_16px_rgba(91,143,223,0.35),0_2px_30px_rgba(255,255,255,0.35)_inset] hover:scale-[1.02] hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98]"
-      >
-       <Plus className="w-4 h-4" />
-       Create Your First Plan
-      </button>
      </div>
     ) : (
      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

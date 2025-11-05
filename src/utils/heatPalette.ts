@@ -6,11 +6,11 @@ export interface HeatPalette {
 }
 
 const HEAT_SPECTRUM = [
-  { stop: 0, color: '#8c1a0f' },
-  { stop: 25, color: '#ff4d18' },
-  { stop: 50, color: '#ffd23f' },
-  { stop: 75, color: '#fff4d6' },
-  { stop: 100, color: '#4da6ff' }
+  { stop: 25, color: '#4da6ff' },
+  { stop: 50, color: '#fff4d6' },
+  { stop: 70, color: '#ffd23f' },
+  { stop: 90, color: '#ff7045ff' },
+  { stop: 100, color: '#fe2828ff' }
 ];
 
 const clampScore = (score: number) => Math.min(Math.max(score, 0), 100);
@@ -52,7 +52,7 @@ export function getHeatPalette(score: number): HeatPalette {
   const midColor = lerpColor(Math.min(clamped + 12, 100));
   const accentColor = lerpColor(Math.min(clamped + 28, 100));
 
-  const textColor = clamped >= 55 ? '#111' : '#fff';
+  const textColor = clamped >= 35 && clamped <= 65 ? '#111' : '#fff';
   const glowColor = rgbToRgba(accentColor, 0.28);
 
   const gradientStops = [`${baseColor} 0%`, `${midColor} 50%`, `${accentColor} 100%`];

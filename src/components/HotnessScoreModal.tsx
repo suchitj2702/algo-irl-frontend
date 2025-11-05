@@ -121,7 +121,7 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
     {/* Header */}
     <div className="sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-6 py-4 flex items-center justify-between shadow-sm">
      <div>
-      <h2 className="text-2xl font-normal text-gray-900 dark:text-white font-playfair">
+      <h2 className="text-2xl font-normal text-gray-900 dark:text-white">
        Why this problem was prioritized
       </h2>
       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -162,7 +162,7 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
 
      {/* Narrative */}
      <div className="space-y-4">
-      <h3 className="text-base font-semibold text-content font-playfair">
+      <h3 className="text-base font-semibold text-content">
        What stood out
       </h3>
       <ul className="space-y-3">
@@ -186,7 +186,7 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
 
      {/* Topics Preview */}
      <div>
-      <h4 className="text-sm font-semibold text-content mb-2 font-playfair">
+      <h4 className="text-sm font-semibold text-content mb-2">
        Topics Covered
       </h4>
       <div className="flex flex-wrap gap-2">
