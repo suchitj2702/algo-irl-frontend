@@ -96,34 +96,38 @@ export const InlineStudyPlanBuilder: React.FC<InlineStudyPlanBuilderProps> = ({
     }
   };
 
-  const timelineSliderClasses = [
+  const sliderBaseClasses = [
     'w-full h-2.5 rounded-full appearance-none cursor-pointer relative',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint/40 focus-visible:ring-offset-1 focus-visible:ring-offset-background',
+  ].join(' ');
+
+  const sliderThumbClasses = [
+    '[&::-webkit-slider-thumb]:appearance-none [&::-moz-range-thumb]:appearance-none',
+    '[&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6',
+    '[&::-webkit-slider-thumb]:rounded-full [&::-moz-range-thumb]:rounded-full',
+    '[&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-mint-400 [&::-webkit-slider-thumb]:to-mint-500',
+    '[&::-moz-range-thumb]:bg-gradient-to-br [&::-moz-range-thumb]:from-mint-400 [&::-moz-range-thumb]:to-mint-500',
+    '[&::-webkit-slider-thumb]:mt-[-0.35rem]',
+    '[&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-white dark:[&::-webkit-slider-thumb]:border-neutral-900',
+    '[&::-moz-range-thumb]:border-[3px] [&::-moz-range-thumb]:border-white dark:[&::-moz-range-thumb]:border-neutral-900',
+    '[&::-webkit-slider-thumb]:shadow-[0_10px_20px_rgba(16,185,129,0.35)] [&::-moz-range-thumb]:shadow-[0_10px_20px_rgba(16,185,129,0.35)]',
+    '[&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:duration-150 [&::-webkit-slider-thumb]:ease-out',
+    '[&::-moz-range-thumb]:transition-transform [&::-moz-range-thumb]:duration-150 [&::-moz-range-thumb]:ease-out',
+    '[&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:hover:shadow-[0_12px_24px_rgba(16,185,129,0.45)]',
+    '[&::-moz-range-thumb]:hover:scale-110 [&::-moz-range-thumb]:hover:shadow-[0_12px_24px_rgba(16,185,129,0.45)]',
+    '[&::-webkit-slider-thumb]:active:scale-95 [&::-moz-range-thumb]:active:scale-95',
+  ].join(' ');
+
+  const timelineSliderClasses = [
+    sliderBaseClasses,
     'bg-gradient-to-r from-blue-500 via-blue-300 to-blue-100',
-    '[&::-webkit-slider-thumb]:appearance-none',
-    '[&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6',
-    '[&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white dark:[&::-webkit-slider-thumb]:bg-neutral-850',
-    '[&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:border-0',
-    '[&::-webkit-slider-thumb]:will-change-transform [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:duration-100',
-    '[&::-webkit-slider-thumb]:ease-out [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:active:scale-105',
-    '[&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full',
-    '[&::-moz-range-thumb]:bg-white dark:[&::-moz-range-thumb]:bg-neutral-850 [&::-moz-range-thumb]:border-0',
-    '[&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:will-change-transform [&::-moz-range-thumb]:transition-transform',
-    '[&::-moz-range-thumb]:duration-100 [&::-moz-range-thumb]:ease-out',
+    sliderThumbClasses,
   ].join(' ');
 
   const hoursSliderClasses = [
-    'w-full h-2.5 rounded-full appearance-none cursor-pointer relative',
+    sliderBaseClasses,
     'bg-gradient-to-r from-indigo-100 via-blue-300 to-indigo-500',
-    '[&::-webkit-slider-thumb]:appearance-none',
-    '[&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6',
-    '[&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white dark:[&::-webkit-slider-thumb]:bg-neutral-850',
-    '[&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:border-0',
-    '[&::-webkit-slider-thumb]:will-change-transform [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:duration-100',
-    '[&::-webkit-slider-thumb]:ease-out [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:active:scale-105',
-    '[&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:rounded-full',
-    '[&::-moz-range-thumb]:bg-white dark:[&::-moz-range-thumb]:bg-neutral-850 [&::-moz-range-thumb]:border-0',
-    '[&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:will-change-transform [&::-moz-range-thumb]:transition-transform',
-    '[&::-moz-range-thumb]:duration-100 [&::-moz-range-thumb]:ease-out',
+    sliderThumbClasses,
   ].join(' ');
 
   return (

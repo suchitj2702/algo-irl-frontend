@@ -132,30 +132,33 @@ const DATA_FACTORS = [
 
 const STUDY_PLAN_STEPS = [
   {
-    icon: Target,
-    title: 'Choose your dataset',
-    description:
-      'Choose Blind 75 or the full 2,000+ dataset for deeper coverage. Study plans adapt to whichever you select, with automatic progress sync across all devices.',
-  },
-  {
     icon: Cpu,
     title: 'Define company, role, and timeline',
-    description:
-      'Select your target company from the tracked companies, specify your role (Backend, ML, Frontend, Infrastructure, Security), set your interview timeline, and optionally filter by difficulty or focus topics, the algorithm uses all this to match you with the most relevant problems.',
+    description: (
+      <>
+        Select your target company from the tracked companies, specify your role (Backend, ML, Frontend, Infrastructure, Security), set your interview timeline, and optionally filter by difficulty or focus topics, the algorithm uses all this to match you with the most relevant problems.
+      </>
+    ),
   },
   {
     icon: Layers,
     title: 'AlgoIRL builds your personalized plan',
-    description:
-      'Our multi-dimensional scoring algorithm (frequency + recency + role alignment + company context) selects problems from verified interview data, then schedules them across your timeline with intelligent topic diversity to maximize coverage.',
+    description: (
+      <>
+        Our multi-dimensional scoring algorithm <strong>(frequency + recency + role alignment + company context)</strong> selects problems from our <strong>2000+ problem question bank</strong> and schedules them across your timeline with intelligent topic diversity to maximize coverage.
+      </>
+    ),
   },
   {
     icon: LineChart,
     title: 'Practice and track anywhere',
-    description:
-      'Solve company-contextualized problems with real-time code execution, mark progress as you go, and seamlessly resume from laptop, tablet, or phone, everything syncs automatically via our dual-layer persistence system.',
+    description: (
+      <>
+        Solve company-contextualized problems with <strong>real-time code execution</strong>, mark progress as you go, and seamlessly resume from laptop, tablet, or phone, everything syncs automatically via our dual-layer persistence system.
+      </>
+    ),
   },
-] as const;
+];
 
 // FAQ items - will be filtered based on payments feature flag
 const BASE_FAQ_ITEMS = [
@@ -257,8 +260,12 @@ export function IntroSection() {
   const [demoState, setDemoState] = useState<DemoState | null>(null);
   const [demoError, setDemoError] = useState<string | null>(null);
   const [isTransforming, setIsTransforming] = useState(false);
-  const [openStudyPlanSteps, setOpenStudyPlanSteps] = useState<number[]>([0]);
-
+  const [openStudyPlanSteps, setOpenStudyPlanSteps] = useState<number[]>(() => {
+    if (typeof window === 'undefined') {
+      return [0];
+    }
+    return window.innerWidth >= 1024 ? [0] : [];
+  });
 
   useEffect(() => {
     if (!user || postAuthAction !== 'unlock-comprehensive') {
@@ -653,6 +660,67 @@ export function IntroSection() {
         </div>
       </SectionBlock>
 
+      <SectionBlock surface="muted" containerClassName="py-16">
+        <div className="space-y-6">
+          <div className="space-y-3 text-center">
+            <h2 className="text-3xl font-thin text-content font-playfair text-center sm:text-4xl">Study plans tailored to your timeline, role, and target company</h2>
+            <p className="mx-auto max-w-2xl text-sm text-content-muted leading-relaxed sm:text-base">
+              Set your company, role, and timeline to get a personalized plan tuned to the latest interview signals.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-8">
+            <div className="w-full space-y-6 px-1 flex-none lg:w-1/2 lg:max-w-none">
+              <div className="w-full overflow-hidden rounded-2xl border border-outline-subtle/25 bg-background/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] dark:shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
+                {STUDY_PLAN_STEPS.map((step, index) => {
+                  const isOpen = openStudyPlanSteps.includes(index);
+                  return (
+                    <details
+                      key={step.title}
+                      open={isOpen}
+                      onToggle={(event) => {
+                        const { open } = event.currentTarget;
+                        setOpenStudyPlanSteps((prev) => {
+                          if (open) {
+                            if (prev.includes(index)) {
+                              return prev;
+                            }
+                            return [...prev, index];
+                          }
+                          return prev.filter((value) => value !== index);
+                        });
+                      }}
+                      className="group relative border-t border-outline-subtle/20 transition-colors first:border-t-0 open:bg-panel-50/60 dark:open:bg-panel-200/30"
+                    >
+                      <summary className="flex w-full cursor-pointer list-none items-start justify-between gap-3 sm:gap-4 py-4 sm:py-5 pl-5 pr-5 sm:pl-6 sm:pr-6 text-left text-base font-medium leading-snug text-content transition-colors duration-200 sm:text-lg">
+                        <span className="flex flex-1 items-start gap-3 sm:gap-4">
+                          <span className="flex-1 min-w-0">
+                            <span className="text-xs font-medium tracking-wide text-content-muted">Step {index + 1}</span>
+                            <span className="mt-1 block text-base font-thin text-content font-playfair sm:text-lg">{step.title}</span>
+                          </span>
+                        </span>
+                        <span className="relative mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center">
+                          <span className="absolute block h-px w-4 bg-content transition-transform duration-200 ease-out group-open:rotate-90" />
+                          <span className="block h-4 w-px bg-content transition-opacity duration-200 ease-out group-open:opacity-0" />
+                        </span>
+                      </summary>
+                      <div className="pb-5 pl-5 pr-5 sm:pb-6 sm:pl-6 sm:pr-6 pt-1 text-[0.9375rem] leading-relaxed text-content-muted">
+                        {step.description}
+                      </div>
+                      <span className="pointer-events-none absolute left-0 top-0 h-full w-[3px] bg-mint/50 opacity-0 transition-opacity duration-200 ease-out group-open:opacity-100" />
+                    </details>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="w-full flex-none lg:w-1/2 lg:max-w-none">
+              <InlineStudyPlanBuilder onAuthModalOpen={() => setShowAuthModal(true)} />
+            </div>
+          </div>
+        </div>
+      </SectionBlock>
+
       <SectionBlock surface="tinted">
         <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
           <div className="max-w-3xl mx-auto text-center space-y-1 sm:space-y-2">
@@ -728,70 +796,6 @@ export function IntroSection() {
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-        </div>
-      </SectionBlock>
-
-      <SectionBlock surface="muted" containerClassName="py-16">
-        <div className="space-y-10">
-          <div className="space-y-3 text-center">
-            <h2 className="text-3xl font-thin text-content font-playfair text-center sm:text-4xl">Study plans tailored to your timeline, role, and target company</h2>
-            <p className="mx-auto max-w-2xl text-sm text-content-muted leading-relaxed sm:text-base">
-              Understand every step behind the scenes. Expand each card to see how AlgoIRL shapes an adaptive plan from your inputs to day-by-day execution.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-8">
-            <div className="w-full space-y-6 px-1 flex-none lg:w-1/2 lg:max-w-none">
-              <div className="w-full overflow-hidden rounded-2xl border border-outline-subtle/25 bg-background/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] dark:shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
-                {STUDY_PLAN_STEPS.map((step, index) => {
-                  const isOpen = openStudyPlanSteps.includes(index);
-                  return (
-                    <details
-                      key={step.title}
-                      open={isOpen}
-                      onToggle={(event) => {
-                        const { open } = event.currentTarget;
-                        setOpenStudyPlanSteps((prev) => {
-                          if (open) {
-                            if (prev.includes(index)) {
-                              return prev;
-                            }
-                            return [...prev, index];
-                          }
-                          return prev.filter((value) => value !== index);
-                        });
-                      }}
-                      className="group relative border-t border-outline-subtle/20 transition-colors first:border-t-0 open:bg-panel-50/60 dark:open:bg-panel-200/30"
-                    >
-                      <summary className="flex w-full cursor-pointer list-none items-start justify-between gap-3 sm:gap-4 py-4 sm:py-5 pl-5 pr-5 sm:pl-6 sm:pr-6 text-left text-base font-medium leading-snug text-content transition-colors duration-200 sm:text-lg">
-                        <span className="flex flex-1 items-start gap-3 sm:gap-4">
-                          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-mint-50/70 text-mint-500 dark:bg-mint-500/5 dark:text-mint-200">
-                            <step.icon className="h-5 w-5" />
-                          </span>
-                          <span className="flex-1 min-w-0">
-                            <span className="text-xs font-medium tracking-wide text-content-muted">Step {index + 1}</span>
-                            <span className="mt-1 block text-base font-medium text-content sm:text-lg">{step.title}</span>
-                          </span>
-                        </span>
-                        <span className="relative mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center">
-                          <span className="absolute block h-px w-4 bg-content transition-transform duration-200 ease-out group-open:rotate-90" />
-                          <span className="block h-4 w-px bg-content transition-opacity duration-200 ease-out group-open:opacity-0" />
-                        </span>
-                      </summary>
-                      <div className="pb-5 pl-5 pr-5 sm:pb-6 sm:pl-6 sm:pr-6 pt-1 text-sm leading-relaxed text-content-muted sm:text-base">
-                        {step.description}
-                      </div>
-                      <span className="pointer-events-none absolute left-0 top-0 h-full w-[3px] bg-mint/50 opacity-0 transition-opacity duration-200 ease-out group-open:opacity-100" />
-                    </details>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="w-full flex-none lg:w-1/2 lg:max-w-none">
-              <InlineStudyPlanBuilder onAuthModalOpen={() => setShowAuthModal(true)} />
             </div>
           </div>
         </div>

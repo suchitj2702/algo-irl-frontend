@@ -264,9 +264,9 @@ input[type='range']::-moz-range-track {
 .dark {
   color-scheme: dark;
 }
-/* Improved transitions */
-* {
-  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow;
+/* Improved transitions - exclude framer-motion animated elements */
+*:not([data-framer-motion]) {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
 }

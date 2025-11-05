@@ -18,7 +18,10 @@ export function DuplicateWarningModal({
  onKeepOriginal,
  onCancel
 }: DuplicateWarningModalProps) {
- if (!isOpen) return null;
+ // Guard against invalid plan data
+ if (!existingPlan?.response?.studyPlan) {
+  return null;
+ }
 
  const completionPercentage = getCompletionPercentageFromPlan(existingPlan);
  const createdDate = new Date(existingPlan.createdAt).toLocaleDateString('en-US', {
@@ -39,19 +42,23 @@ export function DuplicateWarningModal({
     <>
      {/* Backdrop */}
      <motion.div
+      data-framer-motion="true"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       onClick={onCancel}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+      className="fixed inset-0 bg-black/50 z-40"
      />
 
-     {/* Modal */}
+     {/* Modal Container - Non-animated */}
      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Modal Content - Animated */}
       <motion.div
+       data-framer-motion="true"
        initial={{ opacity: 0, scale: 0.95, y: 10 }}
        animate={{ opacity: 1, scale: 1, y: 0 }}
-       exit={{ opacity: 0 }}
+       exit={{ opacity: 0, scale: 0.95, y: 10 }}
        transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
        className="bg-white/95 dark:bg-surface-elevated/90 backdrop-blur-xl rounded-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] border border-outline-subtle/80 dark:border-outline-subtle/60 max-w-md w-full overflow-hidden"
       >
