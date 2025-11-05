@@ -10,6 +10,10 @@ import { RazorpayScriptLoader } from "./components/RazorpayScriptLoader";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { initializePalette, watchThemeChanges } from "./utils/generatePalette";
+import { redirectFromLinkedInIOS } from "./utils/inAppBrowserRedirect";
+
+// Redirect from LinkedIn iOS in-app browser to Safari (for Google OAuth support)
+redirectFromLinkedInIOS();
 
 // Initialize environment-based CSP before rendering the app
 setEnvironmentBasedCSP();
