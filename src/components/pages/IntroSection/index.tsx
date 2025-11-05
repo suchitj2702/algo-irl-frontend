@@ -798,7 +798,9 @@ export function IntroSection() {
             <div className="space-y-2.5 sm:space-y-3">
               {DATA_FACTORS.map((factor) => (
                 <div key={factor.title} className="flex items-start gap-3">
-                  <factor.icon className="mt-1 h-5 w-5 text-mint" />
+                  <span className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-xl bg-mint/10 text-mint sm:mt-1 sm:h-8 sm:w-8">
+                    <factor.icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </span>
                   <div>
                     <div className="text-base font-thin text-content font-playfair">{factor.title}</div>
                     <p className="text-sm text-content-muted">{factor.description}</p>
@@ -948,9 +950,9 @@ export function IntroSection() {
           </div>
           <div className="flex flex-col gap-3 text-sm text-content-muted sm:flex-row sm:items-center sm:justify-center sm:gap-6">
             {FINAL_HIGHLIGHTS.map((highlight) => (
-              <span key={highlight} className="inline-flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-mint" />
-                {highlight}
+              <span key={highlight} className="inline-flex items-start gap-2 text-left">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-mint" />
+                <span className="leading-snug">{highlight}</span>
               </span>
             ))}
           </div>
