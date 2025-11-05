@@ -236,7 +236,7 @@ export const InlineStudyPlanBuilder: React.FC<InlineStudyPlanBuilderProps> = ({
           type="button"
           onClick={handleGenerateClick}
           disabled={isGenerating}
-          className="w-full inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#14B8A6] to-[#0D9488] px-6 py-3 text-base font-medium text-white shadow-teal-glow transition-all duration-200 hover:-translate-y-0.5 hover:from-[#0D9488] hover:to-[#0F766E] hover:shadow-lg hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:transform-none"
+          className="w-full inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#3B82F6] to-[#6366F1] px-6 py-3 text-base font-medium text-white border border-[#6366F1]/30 shadow-[0_2px_8px_rgba(99,102,241,0.25),0_1px_18px_rgba(255,255,255,0.4)_inset] dark:shadow-[0_2px_8px_rgba(99,102,241,0.3),0_1px_18px_rgba(255,255,255,0.12)_inset] transition-all duration-200 hover:-translate-y-0.5 hover:from-[#2563EB] hover:to-[#4F46E5] hover:shadow-[0_4px_16px_rgba(99,102,241,0.35),0_2px_26px_rgba(255,255,255,0.5)_inset] dark:hover:shadow-[0_4px_16px_rgba(99,102,241,0.4),0_2px_26px_rgba(255,255,255,0.16)_inset] hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6366F1]/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:transform-none backdrop-blur-xl"
         >
           {isGenerating ? 'Generating your study plan...' : 'Generate my study plan'}
         </button>

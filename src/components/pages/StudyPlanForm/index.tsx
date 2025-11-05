@@ -624,7 +624,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
       <div className="pt-2 space-y-2">
        <button
         type="submit"
-        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium text-white bg-gradient-to-r from-[#14B8A6] to-[#0D9488] border border-[#0D9488] shadow-teal-glow hover:from-[#0D9488] hover:to-[#0F766E] hover:shadow-lg hover:scale-[1.02] hover:-translate-y-0.5 rounded-[12px] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium text-white bg-gradient-to-r from-[#3B82F6] to-[#6366F1] border border-[#6366F1]/30 shadow-[0_2px_8px_rgba(99,102,241,0.25),0_1px_18px_rgba(255,255,255,0.4)_inset] dark:shadow-[0_2px_8px_rgba(99,102,241,0.3),0_1px_18px_rgba(255,255,255,0.12)_inset] hover:from-[#2563EB] hover:to-[#4F46E5] hover:shadow-[0_4px_16px_rgba(99,102,241,0.35),0_2px_26px_rgba(255,255,255,0.5)_inset] dark:hover:shadow-[0_4px_16px_rgba(99,102,241,0.4),0_2px_26px_rgba(255,255,255,0.16)_inset] hover:scale-[1.02] hover:-translate-y-0.5 rounded-[12px] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed backdrop-blur-xl"
         disabled={isLoading || isLoadingCompanies}
        >
         {isLoading ? (
