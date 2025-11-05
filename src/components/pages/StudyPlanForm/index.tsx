@@ -12,8 +12,9 @@ import { useAuthDialog } from '@/contexts/AuthDialogContext';
 import { useFeatureFlags } from '@/contexts/FeatureFlagsContext';
 import PaymentModal from '@/components/PaymentModal';
 import { storePaymentContext, trackPaymentEvent } from '@/utils/payment';
-import { toast } from '@/utils/toast';
+import { toast } from 'react-hot-toast';
 import { secureLog } from '@/utils/secureLogger';
+import { isRateLimitError, getRateLimitMessage } from '@/utils/errorHandling';
 
 // Six fixed company IDs
 const FIXED_COMPANY_IDS = ['meta', 'apple', 'amazon', 'netflix', 'google', 'microsoft'];
@@ -133,6 +134,11 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
     }
    } catch (err) {
     secureLog.error('StudyPlanForm', err as Error, { operation: 'fetchCompanies' });
+
+    // Check if it's a rate limit error
+    if (isRateLimitError(err)) {
+      toast.error(getRateLimitMessage());
+    }
    } finally {
     setIsLoadingCompanies(false);
    }

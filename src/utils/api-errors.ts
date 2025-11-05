@@ -14,10 +14,10 @@ export class APIAuthenticationError extends Error {
 }
 
 /**
- * Rate limit exceeded error class for API requests
+ * Rate limit error class for API requests
  */
 export class APIRateLimitError extends Error {
-  constructor(message: string) {
+  constructor(message: string = 'Rate limit exceeded. Please try again in a few moments.') {
     super(message);
     this.name = 'APIRateLimitError';
   }

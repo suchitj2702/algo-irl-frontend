@@ -26,7 +26,7 @@ import { ThinkingIndicator } from '../../ThinkingIndicator';
 import {
   prepareProblem,
 } from '../../../utils/api-service';
-import { APIRateLimitError } from '@/utils/api-errors';
+import { isRateLimitError, getRateLimitMessage } from '../../../utils/errorHandling';
 import SectionBlock from './components/SectionBlock';
 import { InlineStudyPlanBuilder } from './InlineStudyPlanBuilder';
 
@@ -446,11 +446,15 @@ export function IntroSection() {
     } catch (error) {
       if (!controller.signal.aborted) {
         console.error('[Landing] prepareProblem failed', error);
-        if (error instanceof APIRateLimitError) {
-          setDemoError(null);
+
+        // Check if it's a rate limit error
+        if (isRateLimitError(error)) {
+          toast.error(getRateLimitMessage());
+          setDemoError('Rate limit exceeded. Please try again in a few moments.');
         } else {
           setDemoError('We could not generate that scenario right now. Please try again or switch the company or role.');
         }
+
         recordLandingEvent('landing_demo_error', {
           problem: selectedProblem,
           company: selectedCompany,

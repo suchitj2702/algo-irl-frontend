@@ -87,15 +87,22 @@ const pollForResults = async ({
     if (import.meta.env.DEV) {
       console.error('Status polling error:', error);
     }
-    
+
+    // Stop polling on rate limit or authentication errors
     if (error instanceof APIRateLimitError) {
       onError(error.message, submissionId);
-    } else if (error instanceof APIAuthenticationError) {
-      onError(error.message, submissionId);
-    } else {
-      const errorMsg = error instanceof Error ? error.message : 'An unknown error occurred during polling';
-      onError(errorMsg, submissionId);
+      onLoadingChange(false);
+      return; // Don't schedule another poll
     }
+
+    if (error instanceof APIAuthenticationError) {
+      onError(error.message, submissionId);
+      onLoadingChange(false);
+      return; // Don't schedule another poll
+    }
+
+    const errorMsg = error instanceof Error ? error.message : 'An unknown error occurred during polling';
+    onError(errorMsg, submissionId);
     onLoadingChange(false);
   }
 };
@@ -136,15 +143,21 @@ export const executeCodeAndPoll = async ({
     });
   } catch (error) {
     console.error('Submission error:', error);
-    
+
     if (error instanceof APIRateLimitError) {
       onError(error.message);
-    } else if (error instanceof APIAuthenticationError) {
-      onError(error.message);
-    } else {
-      const errorMsg = error instanceof Error ? error.message : 'An unknown error occurred during submission';
-      onError(errorMsg);
+      onLoadingChange(false);
+      return;
     }
+
+    if (error instanceof APIAuthenticationError) {
+      onError(error.message);
+      onLoadingChange(false);
+      return;
+    }
+
+    const errorMsg = error instanceof Error ? error.message : 'An unknown error occurred during submission';
+    onError(errorMsg);
     onLoadingChange(false);
   }
 }; 

@@ -3,6 +3,8 @@
  * Ensures sensitive information is not exposed in production logs
  */
 
+import { APIRateLimitError } from './api-errors';
+
 /**
  * Safely logs errors only in development environment
  * @param context - Where the error occurred (e.g., 'API', 'Cache', 'CodeExecution')
@@ -44,23 +46,54 @@ export const sanitizeErrorMessage = (
 };
 
 /**
+ * Checks if an error is a rate limit error
+ * @param error - The error to check
+ * @returns true if the error is a rate limit error
+ */
+export const isRateLimitError = (error: unknown): boolean => {
+  if (error instanceof APIRateLimitError) {
+    return true;
+  }
+
+  // Check for CORS-masked rate limit errors
+  if (error instanceof Error) {
+    const errorMsg = error.message.toLowerCase();
+    return (
+      (errorMsg.includes('cors') && errorMsg.includes('429')) ||
+      errorMsg.includes('rate limit') ||
+      errorMsg.includes('too many requests')
+    );
+  }
+
+  return false;
+};
+
+/**
+ * Gets a user-friendly rate limit message
+ * @returns User-friendly rate limit message
+ */
+export const getRateLimitMessage = (): string => {
+  return 'Rate limit exceeded. Please try again in a few moments.';
+};
+
+/**
  * Handles API errors safely
  * @param response - The fetch Response object
  * @param context - Context for the API call
  * @returns Sanitized error message
  */
 export const handleApiError = async (
-  response: Response, 
+  response: Response,
   context: string
 ): Promise<string> => {
   try {
     const errorText = await response.text();
-    logError(`API Error - ${context}`, { 
-      status: response.status, 
+    logError(`API Error - ${context}`, {
+      status: response.status,
       statusText: response.statusText,
-      errorText 
+      errorText
     });
-    
+
     // Try to parse as JSON first
     try {
       const errorJson = JSON.parse(errorText);

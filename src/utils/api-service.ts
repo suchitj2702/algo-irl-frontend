@@ -7,7 +7,6 @@ import { buildApiUrl, API_CONFIG } from '../config/api';
 import { TestCase } from '../types';
 import { StudyPlanConfig, StudyPlanResponse } from '../types/studyPlan';
 import { APIAuthenticationError, APIRateLimitError } from './api-errors';
-import { notifyRateLimitExceeded, getDefaultRateLimitMessage } from './rateLimitNotifier';
 
 /**
  * Handle API response errors
@@ -18,9 +17,7 @@ async function handleAPIResponse(response: Response) {
   }
 
   if (response.status === 429) {
-    const message = getDefaultRateLimitMessage();
-    notifyRateLimitExceeded(message);
-    throw new APIRateLimitError(message);
+    throw new APIRateLimitError('Rate limit exceeded. Please try again in a few moments.');
   }
 
   if (!response.ok) {

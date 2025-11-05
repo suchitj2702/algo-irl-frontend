@@ -13,11 +13,13 @@ import {
  AlertCircle,
  Play as PlayIcon
 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import CodeEditor from './CodeEditor';
 import { executeCodeAndPoll, ExecutionResults } from '../utils/codeExecution';
 import { TestCase } from '../types';
 import { ThinkingIndicator } from './ThinkingIndicator';
 import { Button } from './ui/button';
+import { isRateLimitError, getRateLimitMessage } from '../utils/errorHandling';
 
 interface Problem {
  title: string;
@@ -297,8 +299,17 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   setIsLoadingSubmit(false); 
  };
  const commonExecutionHandler = (results: ExecutionResults) => setExecutionResults(results);
- 
- const commonErrorHandler = (errorMsg: string, submissionId?: string, intendedTestCasesCount?: number) => {
+
+ const commonErrorHandler = (errorMsg: string, submissionId?: string, intendedTestCasesCount?: number, loadingSetter?: (loading: boolean) => void) => {
+  // Check if this is a rate limit error
+  const isRateLimit = errorMsg.toLowerCase().includes('rate limit') ||
+                      errorMsg.toLowerCase().includes('too many requests') ||
+                      (errorMsg.toLowerCase().includes('cors') && errorMsg.toLowerCase().includes('429'));
+
+  if (isRateLimit) {
+    toast.error(getRateLimitMessage());
+  }
+
   setExecutionResults({
    passed: false,
    testCasesPassed: 0,
@@ -309,6 +320,11 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
    testCaseResults: [],
    submissionId
   });
+
+  // Clear loading state if provided
+  if (loadingSetter) {
+    loadingSetter(false);
+  }
  };
  
  const handleRun = () => {
@@ -328,15 +344,15 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
    setIsLoadingRun(false); 
    return; 
   }
-  setExecutionResults(null); 
-  executeCodeAndPoll({ 
-   code, 
-   language: codeDetails.language, 
-   boilerplateCode: codeDetails.boilerplateCode, 
+  setExecutionResults(null);
+  executeCodeAndPoll({
+   code,
+   language: codeDetails.language,
+   boilerplateCode: codeDetails.boilerplateCode,
    testCases: samplesToRun,
-   onResults: commonExecutionHandler, 
-   onError: (errorMsg, submissionId) => commonErrorHandler(errorMsg, submissionId, samplesToRun.length),
-   onLoadingChange: setIsLoadingRun 
+   onResults: commonExecutionHandler,
+   onError: (errorMsg, submissionId) => commonErrorHandler(errorMsg, submissionId, samplesToRun.length, setIsLoadingRun),
+   onLoadingChange: setIsLoadingRun
   });
  };
 
@@ -366,7 +382,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
        commonExecutionHandler(r);
      }
    },
-   onError: (errorMsg, submissionId) => commonErrorHandler(errorMsg, submissionId, submitTestCases.length),
+   onError: (errorMsg, submissionId) => commonErrorHandler(errorMsg, submissionId, submitTestCases.length, setIsLoadingSubmit),
    onLoadingChange: setIsLoadingSubmit
   });
  };
