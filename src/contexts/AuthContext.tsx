@@ -3,6 +3,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect as firebaseSignInWithRedirect,
+  getRedirectResult,
   onAuthStateChanged,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
@@ -54,8 +56,10 @@ const firebaseErrorMessages: Record<string, string> = {
   "auth/wrong-password": "Incorrect password. Please try again.",
   "auth/too-many-requests": "Too many attempts. Please wait and try again shortly.",
   "auth/network-request-failed": "Network error. Check your connection and try again.",
-  "auth/popup-blocked": "The sign-in popup was blocked. Please allow popups and try again.",
+  "auth/popup-blocked": "Popup blocked. Redirecting to secure sign-in page...",
   "auth/popup-closed-by-user": "The sign-in popup was closed before completing.",
+  "auth/cancelled-popup-request": "Another popup is already open. Please close it and try again.",
+  "auth/unauthorized-domain": "This domain is not authorized for OAuth. Please contact support.",
 };
 
 function mapFirebaseUser(firebaseUser: FirebaseUser): AppUser {
@@ -120,6 +124,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [postAuthRedirectState, setPostAuthRedirectState] = useState<string | null>(null);
   const [authTriggerState, setAuthTriggerState] = useState<string | null>(null);
   const previousUserRef = useRef<AppUser | null>(getStoredUser());
+
+  // Handle OAuth redirect result (when popup was blocked and user was redirected)
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          // Successfully authenticated via redirect
+          const mappedUser = mapFirebaseUser(result.user);
+          setUser(mappedUser);
+          persistUser(mappedUser);
+
+          // Track authenticated user in Sentry
+          secureLog.setUserContext(mappedUser.uid, {
+            isAnonymous: false,
+          });
+
+          // Track successful Google sign-in
+          trackEvent("sign_in", {
+            method: "google_redirect",
+          });
+        }
+      } catch (err) {
+        console.error("[AUTH] Redirect result error:", err);
+        const friendlyMessage = getFriendlyErrorMessage(err);
+        setError(friendlyMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    handleRedirectResult();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
@@ -229,10 +266,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [handleAuthOperation],
   );
 
-  const signInWithGoogle = useCallback(
-    () => handleAuthOperation(() => signInWithPopup(auth, googleProvider)),
-    [handleAuthOperation],
-  );
+  const signInWithGoogle = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Try popup first
+      await signInWithPopup(auth, googleProvider);
+    } catch (err) {
+      // Check if popup was blocked
+      if (err && typeof err === "object" && "code" in err) {
+        const firebaseError = err as FirebaseError;
+
+        if (firebaseError.code === "auth/popup-blocked") {
+          // Automatically fallback to redirect
+          console.log("[AUTH] Popup blocked, falling back to redirect");
+
+          try {
+            // Store current location for post-auth redirect
+            if (typeof window !== "undefined") {
+              window.sessionStorage.setItem("pre_auth_location", window.location.pathname);
+            }
+
+            // Use redirect instead (this will cause a page reload)
+            await firebaseSignInWithRedirect(auth, googleProvider);
+            // Note: Code won't continue here as page will redirect
+            return;
+          } catch (redirectErr) {
+            console.error("[AUTH] Redirect also failed:", redirectErr);
+            const friendlyMessage = getFriendlyErrorMessage(redirectErr);
+            setError(friendlyMessage);
+            setLoading(false);
+            throw new Error(friendlyMessage);
+          }
+        }
+      }
+
+      // Handle other errors normally
+      const friendlyMessage = getFriendlyErrorMessage(err);
+      setError(friendlyMessage);
+      setLoading(false);
+      throw new Error(friendlyMessage);
+    } finally {
+      // Only set loading to false if we didn't redirect
+      if (typeof window !== "undefined" && !window.sessionStorage.getItem("pre_auth_location")) {
+        setLoading(false);
+      }
+    }
+  }, []);
 
   const signInWithRedirect = useCallback(
     async (redirectUrl: string) => {
@@ -258,6 +339,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handlePostAuthNavigation = useCallback(async () => {
     if (typeof window === "undefined") {
+      return;
+    }
+
+    // Check for stored pre-auth location (from redirect flow when popup was blocked)
+    const preAuthLocation = window.sessionStorage.getItem("pre_auth_location");
+    if (preAuthLocation && preAuthLocation !== "/") {
+      window.sessionStorage.removeItem("pre_auth_location");
+      navigate(preAuthLocation);
       return;
     }
 
