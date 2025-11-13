@@ -80,7 +80,7 @@ export function IssueReportMenu({
       await reportIssue(payload, token);
 
       // Success!
-      toast.success("Issue reported successfully. We'll look into it!");
+      toast.success("Issue reported successfully. Thanks for the feedback. We'll look into it!");
       onClose();
     } catch (error) {
       // Handle specific error types
@@ -173,7 +173,7 @@ export function IssueReportMenu({
     <>
       {/* Main Issue Report Menu */}
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="sm:max-w-[450px]" hideCloseButton>
           <DialogHeader>
             <DialogTitle>Report an Issue</DialogTitle>
             <DialogDescription>
@@ -227,7 +227,7 @@ export function IssueReportMenu({
 
       {/* Regenerate Dialog (for Transformation Quality on Study Plan) */}
       <Dialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Try Regenerating First?</DialogTitle>
             <DialogDescription>

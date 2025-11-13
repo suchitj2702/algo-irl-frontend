@@ -68,7 +68,7 @@ export function IssueDescriptionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && !isSubmitting && onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]" hideCloseButton>
         <DialogHeader>
           <DialogTitle>Describe the issue</DialogTitle>
           <DialogDescription>
