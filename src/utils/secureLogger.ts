@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/react';
 import { sanitizeResponse, sanitizeError, containsSensitiveData } from './responseSanitizer';
+import { consoleTracker } from './consoleTracker';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
@@ -345,6 +346,10 @@ function normalizeConsoleArgs(args: unknown[]): NormalizedConsoleCall {
 }
 
 function routeConsoleCall(method: ConsoleMethod, args: unknown[]): void {
+  // Track all console calls for issue reporting
+  const normalized = normalizeConsoleArgs(args);
+  consoleTracker.track(method, normalized.message);
+
   if (method !== 'error') {
     if (!IS_PROD) {
       const original = rawConsole[method];
@@ -353,7 +358,6 @@ function routeConsoleCall(method: ConsoleMethod, args: unknown[]): void {
     return;
   }
 
-  const normalized = normalizeConsoleArgs(args);
   const err = normalized.error ?? normalized.message;
   secureLog.error(normalized.context, err, normalized.extras);
 }

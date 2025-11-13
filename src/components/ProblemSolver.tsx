@@ -11,7 +11,8 @@ import {
  BookOpenCheck,
  Check,
  AlertCircle,
- Play as PlayIcon
+ Play as PlayIcon,
+ Flag
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import CodeEditor from './CodeEditor';
@@ -20,6 +21,7 @@ import { TestCase } from '../types';
 import { ThinkingIndicator } from './ThinkingIndicator';
 import { Button } from './ui/button';
 import { isRateLimitError, getRateLimitMessage } from '../utils/errorHandling';
+import { IssueReportMenu } from './IssueReportMenu';
 
 interface Problem {
  title: string;
@@ -79,6 +81,10 @@ interface ProblemSolverProps {
  isLoading?: boolean; // New prop to show thinking indicator
  saveStatus?: 'saving' | 'saved' | 'error';
  lastSaveTime?: number | null;
+ // Issue reporting props
+ rawPrepareResponse?: unknown; // Full prepare API response for issue reporting
+ companyId?: string | null; // Company ID for context
+ roleId?: string | null; // Role ID for context
 }
 
 const THINKING_STATES = [
@@ -129,9 +135,13 @@ export function ProblemSolver({
  onReturnToBlind75,
  isLoading = false,
  saveStatus,
- lastSaveTime
+ lastSaveTime,
+ rawPrepareResponse,
+ companyId = null,
+ roleId = null
 }: ProblemSolverProps) {
  const processedProblem = useRef<Problem | null>(problem);
+ const [isIssueReportMenuOpen, setIsIssueReportMenuOpen] = useState(false);
 
  const getInitialCode = () => {
   if (!codeDetails) {
@@ -708,23 +718,38 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
       )}
      </div>
     <div className="glass-panel border border-transparent border-t border-outline-subtle/60 flex-shrink-0 flex justify-between items-center px-3 py-3 md:px-4">
-      {/* Left side: Save status indicator */}
-      <div className="flex-shrink-0 min-w-[80px]">
-       {saveStatus === 'saving' && (
-        <span className="text-xs text-content-muted">Saving...</span>
+      {/* Left side: Report Issue button and Save status indicator */}
+      <div className="flex items-center gap-3">
+       {/* Report Issue Button */}
+       {problem && rawPrepareResponse !== undefined && (
+        <button
+         onClick={() => setIsIssueReportMenuOpen(true)}
+         className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-content-muted hover:text-content bg-transparent hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-md transition-colors"
+         title="Report an issue with this problem"
+        >
+         <Flag className="h-3.5 w-3.5" />
+         <span>Report Issue</span>
+        </button>
        )}
-       {saveStatus === 'saved' && lastSaveTime && (
-        <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
-         <Check className="h-3.5 w-3.5" />
-         <span>Saved</span>
-        </div>
-       )}
-       {saveStatus === 'error' && (
-        <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
-         <AlertCircle className="h-3.5 w-3.5" />
-         <span>Error</span>
-        </div>
-       )}
+
+       {/* Save status indicator */}
+       <div className="flex-shrink-0 min-w-[80px]">
+        {saveStatus === 'saving' && (
+         <span className="text-xs text-content-muted">Saving...</span>
+        )}
+        {saveStatus === 'saved' && lastSaveTime && (
+         <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
+          <Check className="h-3.5 w-3.5" />
+          <span>Saved</span>
+         </div>
+        )}
+        {saveStatus === 'error' && (
+         <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
+          <AlertCircle className="h-3.5 w-3.5" />
+          <span>Error</span>
+         </div>
+        )}
+       </div>
       </div>
 
       {/* Right side: Action buttons */}
@@ -800,6 +825,21 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
      </div>,
      document.body
     )}
+
+  {/* Issue Report Menu */}
+  {problem && rawPrepareResponse !== undefined && (
+   <IssueReportMenu
+    isOpen={isIssueReportMenuOpen}
+    onClose={() => setIsIssueReportMenuOpen(false)}
+    problemId={problem.leetcodeUrl ? problem.leetcodeUrl.split('/').pop()?.replace('/', '') || problem.title.toLowerCase().replace(/\s+/g, '-') : problem.title.toLowerCase().replace(/\s+/g, '-')}
+    rawPrepareResponse={rawPrepareResponse}
+    companyId={companyId}
+    roleId={roleId}
+    userCode={code}
+    isStudyPlanPage={!!studyPlanContext}
+    onRegenerate={studyPlanContext?.onRegenerate}
+   />
+  )}
  </div>
 );
 }

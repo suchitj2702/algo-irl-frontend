@@ -98,6 +98,7 @@ export function AppRouter() {
  const [isResuming, setIsResuming] = useState(false);
  const [resumeProblemId, setResumeProblemId] = useState<string | null>(null);
  const [resumeDataLoaded, setResumeDataLoaded] = useState(false);
+ const [rawPrepareResponse, setRawPrepareResponse] = useState<unknown>(null);
 
  // Navigation state to prevent double-clicks
  const [isNavigating, setIsNavigating] = useState(false);
@@ -542,6 +543,9 @@ const handleHomeClick = () => navigate('/');
     apiPayload.roleFamily
    );
 
+   // Store raw response for issue reporting
+   setRawPrepareResponse(responseData);
+
    const apiTestCases = responseData.problem?.testCases || [];
    const formattedTestCases: TestCase[] = apiTestCases.map((tc: any) => ({
     id: tc.id || undefined,
@@ -700,6 +704,9 @@ const handleHomeClick = () => navigate('/');
     true
    );
 
+   // Store raw response for issue reporting
+   setRawPrepareResponse(responseData);
+
    const apiTestCases = responseData.problem?.testCases || [];
    const formattedTestCases: TestCase[] = apiTestCases.map((tc: any) => ({
     id: tc.id || undefined,
@@ -786,6 +793,9 @@ const handleHomeClick = () => navigate('/');
     apiPayload.difficulty,
     apiPayload.isBlind75
    );
+
+   // Store raw response for issue reporting
+   setRawPrepareResponse(responseData);
 
    const apiTestCases = responseData.problem?.testCases || [];
    const formattedTestCases: TestCase[] = apiTestCases.map((tc: any) => ({
@@ -1269,6 +1279,9 @@ const handleOverwriteStudyPlan = async () => {
     true, // isBlind75 - assume problems are from Blind75
     activeStudyPlanConfig.roleFamily
    );
+
+   // Store raw response for issue reporting
+   setRawPrepareResponse(responseData);
 
    const apiTestCases = responseData.problem?.testCases || [];
    const formattedTestCases: TestCase[] = apiTestCases.map((tc: any) => ({
@@ -2092,6 +2105,9 @@ const handleBeforeSignOut = useCallback(async () => {
        isLoading={!problem || !codeDetails || !apiResponseReceived}
        saveStatus={codeSaveStatus}
        lastSaveTime={codeSaveTimestamp}
+       rawPrepareResponse={rawPrepareResponse}
+       companyId={currentCompanyId}
+       roleId={null}
       />
      } />
 
@@ -2116,6 +2132,9 @@ const handleBeforeSignOut = useCallback(async () => {
         onReturnToBlind75={returnToBlind75 ? handleReturnToBlind75 : undefined}
         saveStatus={codeSaveStatus}
         lastSaveTime={codeSaveTimestamp}
+        rawPrepareResponse={rawPrepareResponse}
+        companyId={currentCompanyId}
+        roleId={null}
        />
       ) : (
        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
@@ -2143,6 +2162,9 @@ const handleBeforeSignOut = useCallback(async () => {
          studyPlanContext={studyPlanSolverContext}
          saveStatus={codeSaveStatus}
          lastSaveTime={codeSaveTimestamp}
+         rawPrepareResponse={rawPrepareResponse}
+         companyId={currentCompanyId}
+         roleId={studyPlanConfig?.roleFamily || null}
         />
        ) : (
         <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">

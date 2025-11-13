@@ -22,6 +22,9 @@ export const API_CONFIG = {
     // User study plan endpoints (require auth)
     USER_STUDY_PLANS: '/api/user/study-plans',
     USER_STUDY_PLAN_BY_ID: '/api/user/study-plans', // Append /{planId}
+
+    // Issue reporting endpoint
+    ISSUE_REPORT: '/api/issue/report',
   }
 };
 
