@@ -64,3 +64,43 @@ export function getHeatPalette(score: number): HeatPalette {
     glow: glowColor
   };
 }
+
+/**
+ * Get a dynamic badge label and style based on score range
+ */
+export function getScoreBadge(score: number): { label: string; className: string } {
+  const clamped = clampScore(score);
+
+  if (clamped >= 90) {
+    return {
+      label: 'Red Hot!',
+      className: 'text-red-600 dark:text-red-400 font-bold'
+    };
+  }
+
+  if (clamped >= 75) {
+    return {
+      label: 'Highly Relevant',
+      className: 'text-orange-600 dark:text-orange-400 font-semibold'
+    };
+  }
+
+  if (clamped >= 50) {
+    return {
+      label: 'Good Match',
+      className: 'text-yellow-600 dark:text-yellow-400 font-semibold'
+    };
+  }
+
+  if (clamped >= 25) {
+    return {
+      label: 'Worth Considering',
+      className: 'text-blue-600 dark:text-blue-400 font-medium'
+    };
+  }
+
+  return {
+    label: 'Foundational',
+    className: 'text-gray-600 dark:text-gray-400 font-medium'
+  };
+}

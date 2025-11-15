@@ -1,218 +1,250 @@
 // Hotness Score Modal Component
-// Explains why a problem earned its prioritization score
+// Beautiful split-panel design with glassmorphism effects
 
-import type { CSSProperties } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { X, BarChart3, Clock, User, Building2, ChevronDown, ChevronUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { EnrichedProblem } from '../types/studyPlan';
-import { getHeatPalette } from '../utils/heatPalette';
+import { getHeatPalette, getScoreBadge } from '../utils/heatPalette';
 import { getCompanyDisplayName } from '../utils/companyDisplay';
+import { CircularProgress } from './CircularProgress';
+import { ScoreBreakdownBar } from './ScoreBreakdownBar';
 
 interface HotnessScoreModalProps {
- problem: EnrichedProblem;
- companyId: string;
- roleName: string;
- onClose: () => void;
+  problem: EnrichedProblem;
+  companyId: string;
+  roleName: string;
+  onClose: () => void;
 }
 
-function getFrequencyNarrative(frequency: number): string {
- if (frequency >= 75) {
-  return 'This question keeps surfacing in interview feedback from candidates.';
- }
- if (frequency >= 55) {
-  return 'Interviewers bring it up regularly when assessing problem solving depth.';
- }
- if (frequency >= 30) {
-  return 'It appears from time to time and mirrors common themes interviewers explore.';
- }
- return 'Even when the exact prompt varies, it reinforces the same concepts interviewers look for.';
+function getFrequencyNarrative(frequency: number, companyName: string): string {
+  if (frequency >= 75) return `Asked very frequently at ${companyName}`;
+  if (frequency >= 55) return `Asked regularly at ${companyName}`;
+  if (frequency >= 30) return `Comes up occasionally at ${companyName}`;
+  return `Foundation concept at ${companyName}`;
 }
 
 function getRecencyLabel(recencyBuckets: string[]): string | null {
- if (recencyBuckets.includes('thirtyDays')) {
-  return 'within the past 30 days';
- }
- if (recencyBuckets.includes('threeMonths')) {
-  return 'within the past 3 months';
- }
- if (recencyBuckets.includes('sixMonths')) {
-  return 'within the past 6 months';
- }
- if (recencyBuckets.includes('moreThanSixMonths')) {
-  return 'over 6 months ago';
- }
- return null;
+  if (recencyBuckets.includes('thirtyDays')) return 'within the past 30 days';
+  if (recencyBuckets.includes('threeMonths')) return 'within the past 3 months';
+  if (recencyBuckets.includes('sixMonths')) return 'within the past 6 months';
+  if (recencyBuckets.includes('moreThanSixMonths')) return 'over 6 months ago';
+  return null;
 }
 
 function getRoleNarrative(roleScore: number, roleName: string): string {
- if (roleScore >= 75) {
-  return `It drills the exact problem-solving patterns ${roleName} interviewers rely on.`;
- }
- if (roleScore >= 55) {
-  return `The concepts align closely with how ${roleName} interviews measure depth and adaptability.`;
- }
- if (roleScore >= 35) {
-  return `It supports the reasoning skills that often appear in ${roleName} interviews.`;
- }
- return `It broadens your toolkit with fundamentals that still help in ${roleName} conversations.`;
+  const article = /^[aeiou]/i.test(roleName) ? 'an' : 'a';
+  if (roleScore >= 75) return `Highly relevant for ${article} ${roleName} role`;
+  if (roleScore >= 55) return `Good alignment for ${article} ${roleName} role`;
+  if (roleScore >= 35) return `Moderate relevance for ${article} ${roleName} role`;
+  return `Basic alignment for ${article} ${roleName} role`;
 }
 
 function getCompanyNarrative(score: number, companyName: string): string {
- if (score >= 12) {
-  return `It reflects ${companyName}’s tech stack and the way their teams reason about trade-offs.`;
- }
- if (score >= 8) {
-  return `The scenario is a natural fit for ${companyName}’s product surface area and engineering culture.`;
- }
- if (score >= 4) {
-  return `The setup is close to what ${companyName} uses when probing system intuition.`;
- }
- return `It still complements ${companyName}’s expectations, even if the company leans on broader problem families.`;
+  if (score >= 12) return `Directly uses ${companyName}'s tech stack`;
+  if (score >= 8) return `Aligns with ${companyName}'s engineering practices`;
+  if (score >= 4) return `Relevant to ${companyName}'s problem domain`;
+  return `Part of ${companyName}'s interview curriculum`;
 }
 
 export function HotnessScoreModal({ problem, companyId, roleName, onClose }: HotnessScoreModalProps) {
- const companyName = getCompanyDisplayName(companyId);
- const { hotnessScore, hotnessBreakdown, frequencyData, roleRelevance } = problem;
- const clampedScore = Math.min(Math.max(hotnessScore, 0), 100);
+  const companyName = getCompanyDisplayName(companyId);
+  const { hotnessScore, hotnessBreakdown, frequencyData, roleRelevance, enrichedTopics } = problem;
+  const clampedScore = Math.min(Math.max(hotnessScore, 0), 100);
 
- const palette = getHeatPalette(clampedScore);
- const badgeGradient = `linear-gradient(135deg, ${palette.stops.join(', ')})`;
- const badgeStyle: CSSProperties = {
-  background: badgeGradient,
-  color: palette.text,
-  boxShadow: `0 8px 18px ${palette.glow}, 0 0 22px ${palette.glow}`
- };
+  const palette = getHeatPalette(clampedScore);
+  const scoreBadge = getScoreBadge(clampedScore);
+  const badgeGradient = `linear-gradient(135deg, ${palette.stops.join(', ')})`;
 
- // Prevent body scroll when modal is open
- useEffect(() => {
-  document.body.style.overflow = 'hidden';
-  return () => {
-   document.body.style.overflow = '';
-  };
- }, []);
+  const [showAllTopics, setShowAllTopics] = useState(false);
 
- const recencyLabel = getRecencyLabel(frequencyData.recency);
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
- const narratives: string[] = [];
+  const recencyLabel = getRecencyLabel(frequencyData.recency);
 
- if (frequencyData.isActuallyAsked) {
-  narratives.push(
-   recencyLabel
-    ? `Interviewers at ${companyName} last asked this ${recencyLabel}.`
-    : `Interviewers at ${companyName} have confirmed this prompt recently.`
-  );
- } else if (recencyLabel) {
-  narratives.push(`Candidates preparing for ${companyName} reported variations of this problem ${recencyLabel}.`);
- } else {
-  narratives.push(`This prompt fits the kinds of questions ${companyName} uses, even when the wording shifts.`);
- }
+  // Organize all topics - limit to first 4 total
+  const algorithmPatterns = enrichedTopics.algorithmPatterns || [];
+  const dataStructures = enrichedTopics.dataStructures || [];
+  const domainConcepts = enrichedTopics.domainConcepts || [];
 
- narratives.push(
-  getFrequencyNarrative(frequencyData.overall)
- );
+  const allTopics = [
+    ...algorithmPatterns.map(t => ({ text: t, category: 'Algorithm' })),
+    ...dataStructures.map(t => ({ text: t, category: 'Data Structure' })),
+    ...domainConcepts.map(t => ({ text: t, category: 'Domain' }))
+  ].slice(0, 4);
 
- narratives.push(getRoleNarrative(roleRelevance, roleName));
- narratives.push(getCompanyNarrative(hotnessBreakdown.companyContext, companyName));
+  const hasTopics = allTopics.length > 0;
 
- return createPortal(
-  <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm">
-   <div className="bg-white/90 dark:bg-gray-800/90 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-    {/* Header */}
-    <div className="sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-6 py-4 flex items-center justify-between shadow-sm">
-     <div>
-      <h2 className="text-2xl font-normal text-gray-900 dark:text-white">
-       Why this problem was prioritized
-      </h2>
-      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-       Heat score <span className="font-semibold text-gray-900 dark:text-white">{hotnessScore}</span>
-      </p>
-     </div>
-     <button
-      onClick={onClose}
-      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-     >
-      <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-     </button>
-    </div>
-
-    {/* Content */}
-    <div className="px-6 py-6 space-y-6">
-     {/* Source Badge */}
-     <div>
-      {frequencyData.isActuallyAsked ? (
-       <div
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wide"
-        style={badgeStyle}
-       >
-        <span className="h-2 w-2 rounded-full bg-white/85" aria-hidden />
-        <span className="text-xs font-semibold uppercase tracking-wide">Interview insight</span>
-        <span className="text-sm font-medium normal-case">
-         Asked at {companyName}{recencyLabel ? ` ${recencyLabel}` : ''}
-        </span>
-       </div>
-      ) : (
-       <div className="inline-flex items-center gap-2 px-4 py-2 bg-mint-100 dark:bg-mint-900/30 text-mint-800 dark:text-mint-300 rounded-lg border border-mint-200 dark:border-mint-800">
-        <span className="h-2 w-2 rounded-full bg-mint-500 dark:bg-mint-300" aria-hidden />
-        <span className="text-xs font-semibold uppercase tracking-wide">Plan recommendation</span>
-        <span className="text-sm font-medium">Selected for its fit with {companyName}</span>
-       </div>
-      )}
-     </div>
-
-     {/* Narrative */}
-     <div className="space-y-4">
-      <h3 className="text-base font-semibold text-content">
-       What stood out
-      </h3>
-      <ul className="space-y-3">
-       {narratives.map((sentence, index) => (
-        <li key={index} className="flex items-start gap-3">
-         <span className="mt-1 text-sm text-rose-500 dark:text-rose-300">•</span>
-         <p className="text-sm text-content-subtle">{sentence}</p>
-        </li>
-       ))}
-      </ul>
-     </div>
-
-     {/* Additional Context */}
-     {!frequencyData.isActuallyAsked && (
-      <div className="bg-mint-50 dark:bg-mint-900/20 border border-mint-200 dark:border-mint-800 rounded-lg p-4">
-       <p className="text-sm text-mint-900 dark:text-mint-200">
-        <span className="font-semibold">Why it still matters:</span> Even if this exact wording hasn’t appeared, the reasoning maps closely to {companyName}’s interview conversations for {roleName} roles.
-       </p>
-      </div>
-     )}
-
-     {/* Topics Preview */}
-     <div>
-      <h4 className="text-sm font-semibold text-content mb-2">
-       Topics Covered
-      </h4>
-      <div className="flex flex-wrap gap-2">
-       {problem.enrichedTopics.algorithmPatterns.slice(0, 5).map(pattern => (
-        <span
-         key={pattern}
-         className="px-3 py-1 bg-mint-100 dark:bg-mint-900/30 text-mint-700 dark:text-mint-300 rounded-full text-xs font-medium"
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          transition={{ type: 'spring', duration: 0.5 }}
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-2xl w-[420px] h-[670px] overflow-hidden flex flex-col"
         >
-         {pattern}
-        </span>
-       ))}
-      </div>
-     </div>
-    </div>
+          {/* Compact Header */}
+          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-4 py-2 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-white truncate">
+                Why This Problem Was Prioritized
+              </h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
+            >
+              <X className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            </button>
+          </div>
 
-    {/* Footer */}
-    <div className="sticky bottom-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-6 py-4 shadow-[0_-2px_4px_0_rgb(0_0_0_/_0.05)]">
-     <button
-      onClick={onClose}
-      className="w-full px-4 py-2.5 bg-mint-600 hover:bg-mint-700 text-button-foreground font-medium rounded-lg transition-colors"
-     >
-      Got it!
-     </button>
-    </div>
-   </div>
-  </div>,
-  document.body
- );
+          {/* Single Column Content */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4 space-y-4">
+              {/* Score Focus Section */}
+              <div className="bg-gradient-to-br from-mint-50/80 to-blue-50/80 dark:from-gray-800/50 dark:to-gray-900/50 backdrop-blur-md p-4 rounded-xl flex flex-col items-center gap-3">
+                <div className="w-full flex flex-col items-center gap-3">
+                  {/* Heat Score Above */}
+                  <div className="text-center">
+                    <div
+                      className="text-base font-bold bg-clip-text text-transparent"
+                      style={{ backgroundImage: badgeGradient }}
+                    >
+                      {scoreBadge.label}
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      Heat Score
+                    </p>
+                  </div>
+
+                  {/* Circular Progress Below */}
+                  <CircularProgress
+                    value={clampedScore}
+                    gradient={palette.stops}
+                    scoreId={clampedScore.toString()}
+                  />
+                </div>
+
+                {/* Topics - Only show when expanded */}
+                {hasTopics && (
+                  <div className="w-full mt-2">
+                    <button
+                      onClick={() => setShowAllTopics(!showAllTopics)}
+                      className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300 hover:text-mint-600 dark:hover:text-mint-400 transition-colors mb-2"
+                    >
+                      <span>Topics</span>
+                      {showAllTopics ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      )}
+                      <span className="text-[10px] text-gray-500">({allTopics.length})</span>
+                    </button>
+                    <AnimatePresence>
+                      {showAllTopics && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="flex flex-wrap gap-1.5">
+                            {allTopics.map((topic, index) => (
+                              <motion.span
+                                key={`${topic.category}-${topic.text}`}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: index * 0.02 }}
+                                className="px-2 py-0.5 bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm text-gray-700 dark:text-gray-300 rounded-md text-[10px] font-medium border border-gray-200/50 dark:border-gray-600/50"
+                                title={`${topic.category}: ${topic.text}`}
+                              >
+                                {topic.text}
+                              </motion.span>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
+
+              {/* Breakdown Details Section */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                  Score Breakdown
+                </h3>
+                <div className="space-y-3">
+                  <ScoreBreakdownBar
+                    label="Frequency"
+                    value={hotnessBreakdown.frequency}
+                    maxValue={35}
+                    color="blue"
+                    description={getFrequencyNarrative(frequencyData.overall, companyName)}
+                    icon={BarChart3}
+                    compact
+                  />
+                  <ScoreBreakdownBar
+                    label="Recency"
+                    value={hotnessBreakdown.recency}
+                    maxValue={25}
+                    color="orange"
+                    description={recencyLabel ? `Asked ${recencyLabel}` : 'Recent interview activity'}
+                    icon={Clock}
+                    compact
+                  />
+                  <ScoreBreakdownBar
+                    label="Role Relevance"
+                    value={hotnessBreakdown.roleRelevance}
+                    maxValue={25}
+                    color="purple"
+                    description={getRoleNarrative(roleRelevance, roleName)}
+                    icon={User}
+                    compact
+                  />
+                  <ScoreBreakdownBar
+                    label="Company Context"
+                    value={hotnessBreakdown.companyContext}
+                    maxValue={15}
+                    color="green"
+                    description={getCompanyNarrative(hotnessBreakdown.companyContext, companyName)}
+                    icon={Building2}
+                    compact
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Compact Footer */}
+          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-4 py-2 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={onClose}
+              className="w-full px-4 py-2 bg-mint-600 hover:bg-mint-700 text-white font-medium rounded-lg transition-colors text-sm"
+            >
+              Got it!
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
+  );
 }
