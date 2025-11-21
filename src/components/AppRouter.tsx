@@ -61,6 +61,7 @@ import { extractCleanProblemTitle } from '../utils/problemTitleExtractor';
 import { saveBlind75ViewState, loadBlind75ViewState, Blind75ViewState, createDefaultBlind75ViewState } from '../utils/blind75ViewState';
 import { normalizeStudyPlanDatasetType } from '../utils/studyPlanDataset';
 import { secureLog } from '../utils/secureLogger';
+import { FineTuningCaseStudyPage } from './blog/FineTuningCaseStudyPage';
 
 interface TestResultsFromParent {
  passed: boolean;
@@ -2051,7 +2052,9 @@ const handleBeforeSignOut = useCallback(async () => {
      )}
 
      <Routes>
-      <Route path="/" element={<IntroSection />} />
+     <Route path="/" element={<IntroSection />} />
+      <Route path="/blogs" element={<FineTuningCaseStudyPage />} />
+      <Route path="/blogs/fine-tuning-case-study" element={<FineTuningCaseStudyPage />} />
       {flags.paymentsEnabled && (
         <Route path="/payment/status/:status" element={<PaymentStatusPage />} />
       )}
