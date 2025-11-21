@@ -16,13 +16,10 @@ import {
   Clock,
   FileJson,
   ArrowRight,
-  Scale,
   Target,
   TrendingUp,
-  Layers,
   BarChart3,
-  GitBranch,
-  Award
+  UserRoundCheck
 } from 'lucide-react';
 import {
   containerVariants,
@@ -40,20 +37,23 @@ interface ChartCardProps {
   subtitle?: string;
   icon?: ReactNode;
   children: ReactNode;
+  contentClassName?: string;
+  hideHeader?: boolean;
 }
 
-function ChartCard({ title, subtitle, icon, children }: ChartCardProps) {
+function ChartCard({ title, subtitle, children, contentClassName, hideHeader = false }: ChartCardProps) {
   const shouldReduceMotion = useReducedMotion();
 
   const content = (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
-      <div className="mb-5 space-y-1">
-        <div className="flex items-center gap-2">
-          {icon && <span className="text-indigo-500">{icon}</span>}
-          <p className="text-xs uppercase tracking-[0.2em] font-semibold text-slate-500">{title}</p>
+    <div
+      className={`rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow duration-300 ${contentClassName ?? ''}`}
+    >
+      {!hideHeader && (
+        <div className="mb-1 space-y-1">
+          <h5 className="text-l font-semibold text-slate-500">{title}</h5>
+          {subtitle && <p className="text-sm text-slate-600">{subtitle}</p>}
         </div>
-        {subtitle && <p className="text-sm text-slate-600">{subtitle}</p>}
-      </div>
+      )}
       {children}
     </div>
   );
@@ -91,12 +91,21 @@ const radarModels = [
   { key: 'gemini', label: 'Gemini 2.5 Pro', stroke: '#10b981', fill: 'rgba(16, 185, 129, 0.15)' }
 ] as const;
 
+type TeacherModelKey = typeof radarModels[number]['key'];
+type TeacherDatum = typeof teacherData[number];
+
+const teacherAverages: Record<TeacherModelKey, number> = radarModels.reduce((acc, model) => {
+  const total = teacherData.reduce((sum, datum) => sum + (datum[model.key as keyof TeacherDatum] as number), 0);
+  acc[model.key] = total / teacherData.length;
+  return acc;
+}, {} as Record<TeacherModelKey, number>);
+
 const roleDistribution = [
-  { label: 'Backend', value: 1510, icon: <Database size={14} /> },
-  { label: 'ML', value: 1208, icon: <Brain size={14} /> },
-  { label: 'Frontend', value: 1205, icon: <Layers size={14} /> },
-  { label: 'Infrastructure', value: 1055, icon: <GitBranch size={14} /> },
-  { label: 'Security', value: 1054, icon: <Scale size={14} /> }
+  { label: 'Backend', value: 1510 },
+  { label: 'ML', value: 1208 },
+  { label: 'Frontend', value: 1205 },
+  { label: 'Infrastructure', value: 1055 },
+  { label: 'Security', value: 1054 }
 ];
 
 const difficultyDistribution = [
@@ -175,80 +184,48 @@ export function TeacherModelComparisonDiagram() {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <ChartCard
-      title="Teacher Model Comparison"
-      subtitle="Radar plot highlights Claude 4's lead on fidelity and structure."
-      icon={<Brain size={16} />}
-    >
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
-        <motion.div
-          className="h-80 w-full lg:w-96"
-          initial={shouldReduceMotion ? {} : { opacity: 0, scale: 0.8 }}
-          whileInView={shouldReduceMotion ? {} : { opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart cx="50%" cy="50%" outerRadius="75%" data={teacherData}>
-              <PolarGrid stroke="#e2e8f0" />
-              <PolarAngleAxis
-                dataKey="subject"
-                tick={{ fill: '#64748b', fontSize: 11 }}
-                tickLine={false}
-              />
-              <PolarRadiusAxis angle={30} domain={[0, 1]} tick={false} axisLine={false} />
-              <Radar name="Claude Sonnet 4" dataKey="claude" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.4} strokeWidth={2} />
-              <Radar name="GPT-5" dataKey="gpt5" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.25} strokeWidth={2} />
-              <Radar name="Gemini 2.5 Pro" dataKey="gemini" stroke="#10b981" fill="#10b981" fillOpacity={0.15} strokeWidth={2} />
-              <Tooltip
-                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgb(0 0 0 / 0.15)' }}
-                formatter={(value: number) => value.toFixed(3)}
-              />
-            </RadarChart>
-          </ResponsiveContainer>
-        </motion.div>
+    <ChartCard title="Teacher model comparison" contentClassName="py-3" hideHeader>
+      <div className="space-y-3">
+        <h5 className="text-l font-semibold text-slate-500">Teacher model comparison</h5>
+        <div className="flex flex-col gap-4">
+          <motion.div
+            className="h-64 sm:h-80 md:h-96 lg:h-[28rem] xl:h-[32rem] w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto rounded-xl border border-slate-100 bg-slate-50/70 p-4 shadow-sm"
+            initial={shouldReduceMotion ? {} : { opacity: 0, scale: 0.9 }}
+            whileInView={shouldReduceMotion ? {} : { opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={teacherData}>
+                <PolarGrid stroke="#e2e8f0" />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: '#475569', fontSize: 11 }} tickLine={false} />
+                <PolarRadiusAxis angle={30} domain={[0, 1]} tick={false} axisLine={false} />
+                <Radar name="Claude Sonnet 4" dataKey="claude" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.35} strokeWidth={2} />
+                <Radar name="GPT-5" dataKey="gpt5" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} strokeWidth={2} />
+                <Radar name="Gemini 2.5 Pro" dataKey="gemini" stroke="#10b981" fill="#10b981" fillOpacity={0.12} strokeWidth={2} />
+                <Tooltip contentStyle={{ borderRadius: '6px', border: 'none', boxShadow: '0 2px 8px rgb(15 23 42 / 0.12)', fontSize: '12px', padding: '4px 8px' }} formatter={(value: number) => value.toFixed(3)} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </motion.div>
 
-        <motion.div
-          className="flex-1 space-y-3"
-          variants={gridContainerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          {radarModels.map((model, idx) => (
-            <motion.div
-              key={model.key}
-              variants={itemVariants}
-              className={`rounded-xl border p-4 flex items-center justify-between transition-all ${
-                idx === 0
-                  ? 'border-purple-200 bg-purple-50'
-                  : 'border-slate-100 bg-slate-50 hover:border-slate-200'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="h-3 w-3 rounded-full" style={{ background: model.stroke }} />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-slate-800">{model.label}</p>
-                    {idx === 0 && (
-                      <motion.span
-                        variants={badgePopVariants}
-                        className="bg-purple-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold"
-                      >
-                        WINNER
-                      </motion.span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-500">
-                    Avg. score: <span className="font-semibold text-slate-700">
-                      {(teacherData.reduce((sum, d) => sum + d[model.key], 0) / teacherData.length).toFixed(3)}
-                    </span>
-                  </p>
+          <motion.div
+            className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2"
+            variants={gridContainerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            {radarModels.map((model) => (
+              <motion.div key={model.key} variants={itemVariants} className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full flex-shrink-0" style={{ background: model.stroke }} />
+                <div className="flex flex-col leading-tight">
+                  <span className="text-sm font-medium text-slate-700">{model.label}</span>
+                  <span className="text-xs text-slate-500">Avg. {teacherAverages[model.key].toFixed(3)}</span>
                 </div>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
       </div>
     </ChartCard>
   );
@@ -263,9 +240,8 @@ export function QualityValidationFunnelDiagram() {
 
   return (
     <ChartCard
-      title="Data Generation Pipeline"
+      title="Data generation pipeline"
       subtitle="Combinatorial generation narrowed through validation"
-      icon={<Filter size={16} />}
     >
       <motion.div
         className="flex flex-col items-center gap-2 py-4"
@@ -315,9 +291,8 @@ export function TrainingDataDistributionDiagram() {
 
   return (
     <ChartCard
-      title="Training Data Distribution"
+      title="Training data distribution"
       subtitle="Balance was intentional across roles and complexity."
-      icon={<BarChart3 size={16} />}
     >
       <motion.div
         className="grid gap-6 sm:grid-cols-2"
@@ -327,9 +302,7 @@ export function TrainingDataDistributionDiagram() {
         viewport={{ once: true }}
       >
         <motion.div variants={itemVariants} className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.2em] font-semibold text-slate-500 flex items-center gap-2">
-            <Layers size={14} /> Roles
-          </p>
+          <p className="text-xs font-semibold text-slate-500">Roles</p>
           {roleDistribution.map((role, idx) => (
             <motion.div
               key={role.label}
@@ -339,10 +312,7 @@ export function TrainingDataDistributionDiagram() {
               transition={{ delay: idx * 0.1 }}
             >
               <div className="flex justify-between text-sm items-center">
-                <span className="flex items-center gap-2 text-slate-700">
-                  <span className="text-indigo-500">{role.icon}</span>
-                  {role.label}
-                </span>
+                <span className="text-slate-700">{role.label}</span>
                 <span className="text-slate-500 font-medium">{role.value.toLocaleString()}</span>
               </div>
               <div className="mt-1.5 h-2 rounded-full bg-slate-100 overflow-hidden">
@@ -359,9 +329,7 @@ export function TrainingDataDistributionDiagram() {
         </motion.div>
 
         <motion.div variants={itemVariants} className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.2em] font-semibold text-slate-500 flex items-center gap-2">
-            <Target size={14} /> Difficulty
-          </p>
+          <p className="text-xs font-semibold text-slate-500">Difficulty</p>
           {difficultyDistribution.map((difficulty, idx) => (
             <motion.div
               key={difficulty.label}
@@ -424,9 +392,8 @@ export function TrainingLossCurvesDiagram() {
 
   return (
     <ChartCard
-      title="Training Loss Curves"
+      title="Training loss curves"
       subtitle="Three epochs per experiment, plotted as paired lines."
-      icon={<TrendingUp size={16} />}
     >
       <motion.div
         className="grid gap-4 sm:grid-cols-3"
@@ -450,9 +417,9 @@ export function TrainingLossCurvesDiagram() {
               {experiment.winner && (
                 <motion.span
                   variants={badgePopVariants}
-                  className="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold"
+                  className="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full font-medium"
                 >
-                  BEST
+                  Best
                 </motion.span>
               )}
             </div>
@@ -493,12 +460,11 @@ export function ModelComparisonMatrixDiagram() {
 
   return (
     <ChartCard
-      title="Student Model Comparison"
-      subtitle="Head-to-head comparison of the three fine-tuning approaches."
-      icon={<Scale size={16} />}
+      title="Student model comparison"
+
     >
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+        className="grid grid-cols-1 md:grid-cols-3 gap-3"
         variants={gridContainerVariants}
         initial="hidden"
         whileInView="visible"
@@ -508,33 +474,25 @@ export function ModelComparisonMatrixDiagram() {
           <motion.div
             key={model.name}
             variants={itemVariants}
-            className={`rounded-xl p-5 border-2 transition-all hover:shadow-md ${
+            className={`rounded-lg p-3 border transition-all hover:shadow-sm ${
               model.winner
-                ? 'border-indigo-500 bg-indigo-50'
-                : 'border-slate-100 bg-slate-50'
+                ? 'border-indigo-400 bg-indigo-50'
+                : 'border-slate-200 bg-slate-50'
             }`}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-800 text-sm">{model.name}</h3>
-              {model.winner && (
-                <motion.span
-                  variants={badgePopVariants}
-                  className="bg-indigo-600 text-white text-[10px] px-2 py-1 rounded-full font-bold flex items-center gap-1"
-                >
-                  <Award size={10} /> WINNER
-                </motion.span>
-              )}
+            <div className="mb-1">
+              <h6 className="font-xsmall -slate-800 text-sm[6px]">{model.name}</h6>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
               <div>
-                <div className="flex justify-between text-sm mb-1.5">
-                  <span className="text-slate-500 flex items-center gap-1.5"><Brain size={14} /> Quality</span>
-                  <span className="font-bold text-slate-700">{model.quality}/1.0</span>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-slate-500 flex items-center gap-1"><Brain size={12} /> Quality</span>
+                  <span className="font-semibold text-slate-700">{model.quality}/1.0</span>
                 </div>
-                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
                   <motion.div
-                    className="bg-indigo-500 h-2 rounded-full"
+                    className="bg-indigo-500 h-1.5 rounded-full"
                     initial={shouldReduceMotion ? { width: `${model.quality * 100}%` } : { width: 0 }}
                     whileInView={shouldReduceMotion ? {} : { width: `${model.quality * 100}%` }}
                     viewport={{ once: true }}
@@ -544,13 +502,13 @@ export function ModelComparisonMatrixDiagram() {
               </div>
 
               <div>
-                <div className="flex justify-between text-sm mb-1.5">
-                  <span className="text-slate-500 flex items-center gap-1.5"><Clock size={14} /> Latency P90</span>
-                  <span className="font-bold text-slate-700">{model.latency}s</span>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-slate-500 flex items-center gap-1"><Clock size={12} /> Latency P90</span>
+                  <span className="font-semibold text-slate-700">{model.latency}s</span>
                 </div>
-                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
                   <motion.div
-                    className={`h-2 rounded-full ${model.latency < 5 ? 'bg-green-500' : 'bg-amber-400'}`}
+                    className={`h-1.5 rounded-full ${model.latency < 5 ? 'bg-green-500' : 'bg-amber-400'}`}
                     initial={shouldReduceMotion ? { width: `${Math.max(10, 100 - (model.latency * 4))}%` } : { width: 0 }}
                     whileInView={shouldReduceMotion ? {} : { width: `${Math.max(10, 100 - (model.latency * 4))}%` }}
                     viewport={{ once: true }}
@@ -560,13 +518,13 @@ export function ModelComparisonMatrixDiagram() {
               </div>
 
               <div>
-                <div className="flex justify-between text-sm mb-1.5">
-                  <span className="text-slate-500 flex items-center gap-1.5"><DollarSign size={14} /> Cost / 1K</span>
-                  <span className="font-bold text-slate-700">${model.cost.toFixed(2)}</span>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-slate-500 flex items-center gap-1"><DollarSign size={12} /> Cost / 1K</span>
+                  <span className="font-semibold text-slate-700">${model.cost.toFixed(2)}</span>
                 </div>
-                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
                   <motion.div
-                    className={`h-2 rounded-full ${model.cost < 2 ? 'bg-green-500' : 'bg-red-400'}`}
+                    className={`h-1.5 rounded-full ${model.cost < 2 ? 'bg-green-500' : 'bg-red-400'}`}
                     initial={shouldReduceMotion ? { width: `${Math.max(10, 100 - (model.cost * 15))}%` } : { width: 0 }}
                     whileInView={shouldReduceMotion ? {} : { width: `${Math.max(10, 100 - (model.cost * 15))}%` }}
                     viewport={{ once: true }}
@@ -576,13 +534,13 @@ export function ModelComparisonMatrixDiagram() {
               </div>
 
               <div>
-                <div className="flex justify-between text-sm mb-1.5">
-                  <span className="text-slate-500 flex items-center gap-1.5"><FileJson size={14} /> Parsing %</span>
-                  <span className="font-bold text-slate-700">{model.parsing}%</span>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-slate-500 flex items-center gap-1"><FileJson size={12} /> Parsing %</span>
+                  <span className="font-semibold text-slate-700">{model.parsing}%</span>
                 </div>
-                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
                   <motion.div
-                    className={`h-2 rounded-full ${model.parsing > 90 ? 'bg-green-500' : 'bg-amber-500'}`}
+                    className={`h-1.5 rounded-full ${model.parsing > 90 ? 'bg-green-500' : 'bg-amber-500'}`}
                     initial={shouldReduceMotion ? { width: `${model.parsing}%` } : { width: 0 }}
                     whileInView={shouldReduceMotion ? {} : { width: `${model.parsing}%` }}
                     viewport={{ once: true }}
@@ -599,9 +557,9 @@ export function ModelComparisonMatrixDiagram() {
 }
 
 const architectureStages = [
-  { title: 'Teacher Model', subtitle: 'Claude Sonnet 4', icon: <Brain size={24} />, bg: 'bg-purple-100', iconColor: 'text-purple-600' },
-  { title: 'Validation', subtitle: 'LLM-as-Judge + QA', icon: <Filter size={24} />, bg: 'bg-blue-100', iconColor: 'text-blue-600' },
-  { title: 'Student Model', subtitle: 'GPT-4.1-nano', icon: <Zap size={24} />, bg: 'bg-emerald-100', iconColor: 'text-emerald-600' }
+  { title: 'Teacher Model', subtitle: 'Claude Sonnet 4', icon: <Brain size={16} />, bg: 'bg-purple-100', iconColor: 'text-purple-600' },
+  { title: 'Validation', subtitle: 'LLM-as-Judge + QA', icon: <Filter size={16} />, bg: 'bg-blue-100', iconColor: 'text-blue-600' },
+  { title: 'Student Model', subtitle: 'GPT-4.1-nano', icon: <Zap size={16} />, bg: 'bg-emerald-100', iconColor: 'text-emerald-600' }
 ];
 
 export function TeacherStudentArchitectureDiagram() {
@@ -609,9 +567,8 @@ export function TeacherStudentArchitectureDiagram() {
 
   return (
     <ChartCard
-      title="Teacher → Student Flow"
+      title="Teacher → Student flow"
       subtitle="A three-step knowledge distillation loop."
-      icon={<GitBranch size={16} />}
     >
       <motion.div
         className="flex flex-col md:flex-row items-center justify-between gap-4 py-4"
@@ -624,22 +581,22 @@ export function TeacherStudentArchitectureDiagram() {
           <motion.div key={stage.title} variants={pipelineStageVariants} className="flex items-center">
             <div className="flex flex-col items-center text-center">
               <motion.div
-                className={`w-20 h-20 ${stage.bg} rounded-2xl flex items-center justify-center border-2 border-white shadow-lg`}
+                className={`w-12 h-12 ${stage.bg} rounded-xl flex items-center justify-center border border-white shadow-sm`}
                 whileHover={shouldReduceMotion ? {} : { scale: 1.05, y: -2 }}
                 transition={{ type: 'spring', stiffness: 300 }}
               >
                 <span className={stage.iconColor}>{stage.icon}</span>
               </motion.div>
-              <p className="mt-3 text-sm font-semibold text-slate-800">{stage.title}</p>
+              <p className="mt-2 text-sm font-semibold text-slate-800">{stage.title}</p>
               <p className="text-xs text-slate-500">{stage.subtitle}</p>
             </div>
 
             {idx < architectureStages.length - 1 && (
               <motion.div
                 variants={itemVariants}
-                className="mx-4 text-slate-300 hidden md:block"
+                className="mx-3 text-slate-300 hidden md:block"
               >
-                <ArrowRight size={24} />
+                <ArrowRight size={16} />
               </motion.div>
             )}
           </motion.div>
@@ -679,9 +636,8 @@ export function EvaluationFrameworkDiagram() {
 
   return (
     <ChartCard
-      title="Evaluation Framework"
+      title="Evaluation framework"
       subtitle="Six equally weighted rubrics roll up into the final score."
-      icon={<Target size={16} />}
     >
       <motion.div
         className="h-72"
@@ -754,9 +710,7 @@ export function EvaluationComparisonDiagram() {
 
   return (
     <ChartCard
-      title="Evaluation Comparison"
-      subtitle="Claude (teacher) vs GPT-4.1-nano (student)."
-      icon={<Scale size={16} />}
+      title="Evaluation comparison"
     >
       <motion.div
         className="grid md:grid-cols-2 gap-6"
@@ -767,9 +721,9 @@ export function EvaluationComparisonDiagram() {
       >
         {/* Claude Column */}
         <motion.div variants={itemVariants} className="rounded-xl border border-purple-200 bg-purple-50 p-4">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-1 mb-4">
             <span className="h-3 w-3 rounded-full bg-purple-500" />
-            <p className="font-semibold text-slate-800">Claude Sonnet 4</p>
+            <h5 className="font-semibold text-slate-800">Claude Sonnet 4</h5>
             <span className="text-xs text-slate-500">(Teacher)</span>
           </div>
           <div className="space-y-3">
@@ -800,7 +754,7 @@ export function EvaluationComparisonDiagram() {
         <motion.div variants={itemVariants} className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
           <div className="flex items-center gap-2 mb-4">
             <span className="h-3 w-3 rounded-full bg-emerald-500" />
-            <p className="font-semibold text-slate-800">GPT-4.1-nano</p>
+            <h5 className="font-semibold text-slate-800">GPT-4.1-nano</h5>
             <span className="text-xs text-slate-500">(Student)</span>
           </div>
           <div className="space-y-3">
@@ -842,9 +796,8 @@ export function EvaluationComparisonDiagram() {
 export function CostComparisonChart() {
   return (
     <ChartCard
-      title="Cost Comparison"
+      title="Cost comparison"
       subtitle="Monthly inference cost by request volume."
-      icon={<DollarSign size={16} />}
     >
       <motion.div
         className="overflow-x-auto"
@@ -854,12 +807,12 @@ export function CostComparisonChart() {
         viewport={{ once: true }}
       >
         <table className="w-full text-sm">
-          <thead className="text-left text-xs uppercase tracking-[0.15em] text-slate-500 border-b border-slate-200">
+          <thead className="text-left text-xs text-slate-500 border-b border-slate-200">
             <tr>
-              <th className="py-3 pr-4 font-semibold">Volume</th>
-              <th className="py-3 pr-4 font-semibold">Claude Sonnet 4</th>
-              <th className="py-3 pr-4 font-semibold">GPT-4.1-nano (FT)</th>
-              <th className="py-3 pr-4 font-semibold text-emerald-600">Savings</th>
+              <th className="py-2 pr-4 font-semibold">Volume</th>
+              <th className="py-2 pr-4 font-semibold">Claude Sonnet 4</th>
+              <th className="py-2 pr-4 font-semibold">GPT-4.1-nano (FT)</th>
+              <th className="py-2 pr-4 font-semibold text-emerald-600">Savings</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -892,9 +845,8 @@ export function RoiTimelineDiagram() {
 
   return (
     <ChartCard
-      title="ROI Timeline"
+      title="ROI timeline"
       subtitle="Cumulative savings at current production volume."
-      icon={<TrendingUp size={16} />}
     >
       <motion.div
         className="h-64"
@@ -956,9 +908,8 @@ export function TcoComparisonDiagram() {
 
   return (
     <ChartCard
-      title="12-Month TCO Comparison"
+      title="12-month TCO comparison"
       subtitle="Scenario: 100K transformations per month."
-      icon={<DollarSign size={16} />}
     >
       <motion.div
         className="space-y-6"
@@ -1037,9 +988,8 @@ export function ProjectedCostGrowthDiagram() {
 
   return (
     <ChartCard
-      title="12-Month Projected API Costs"
+      title="12-month projected API costs"
       subtitle="Accumulated costs as monthly transformation volume grows"
-      icon={<TrendingUp size={16} />}
     >
       <motion.div
         className="h-80"
@@ -1063,14 +1013,14 @@ export function ProjectedCostGrowthDiagram() {
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
             <XAxis
               dataKey="month"
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: 9 }}
               tickLine={false}
               axisLine={{ stroke: '#e2e8f0' }}
             />
             <YAxis
               yAxisId="left"
               tickFormatter={(value) => `$${value}`}
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: 12 }}
               tickLine={false}
               axisLine={false}
               width={55}
@@ -1079,19 +1029,19 @@ export function ProjectedCostGrowthDiagram() {
               yAxisId="right"
               orientation="right"
               tickFormatter={(value) => `${value / 1000}K`}
-              tick={{ fontSize: 11 }}
+              tick={{ fontSize: 12 }}
               tickLine={false}
               axisLine={false}
               width={40}
             />
             <Tooltip
-              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgb(0 0 0 / 0.1)' }}
+              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgb(0 0 0 / 0.1)', fontSize: '12px', padding: '8px 12px' }}
               formatter={(value: number, name: string) => [
                 name === 'volume' ? `${value.toLocaleString()}` : `$${value.toLocaleString()}`,
                 name === 'claude' ? 'Claude Sonnet 4' : name === 'nano' ? 'GPT-4.1-nano' : 'Monthly Volume'
               ]}
             />
-            <Legend />
+            <Legend wrapperStyle={{ fontSize: '12px' }} />
             <Area
               yAxisId="left"
               type="monotone"
@@ -1117,29 +1067,10 @@ export function ProjectedCostGrowthDiagram() {
               fill="#6366f1"
               fillOpacity={0.3}
               radius={[4, 4, 0, 0]}
-              barSize={20}
+              barSize={10}
             />
           </ComposedChart>
         </ResponsiveContainer>
-      </motion.div>
-
-      <motion.div
-        variants={itemVariants}
-        className="mt-4 flex flex-wrap justify-center gap-6 text-sm border-t border-slate-100 pt-4"
-      >
-        <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
-          <span className="text-slate-500">Claude: <span className="font-semibold text-red-600">${finalClaude.toLocaleString()}</span></span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-          <span className="text-slate-500">Student: <span className="font-semibold text-emerald-600">${finalNano.toLocaleString()}</span></span>
-        </div>
-        <div className="flex items-center gap-2 pl-4 border-l border-slate-200">
-          <TrendingUp size={14} className="text-emerald-500" />
-          <span className="text-slate-500">12-month savings:</span>
-          <span className="font-bold text-emerald-600">${totalSavings.toLocaleString()}</span>
-        </div>
       </motion.div>
     </ChartCard>
   );
@@ -1147,26 +1078,11 @@ export function ProjectedCostGrowthDiagram() {
 
 // Quality Validation Pipeline
 const pipelineStages = [
-  { id: 'input', label: 'Input', note: 'Same prompts', icon: <Database size={24} />, bg: 'bg-blue-100', iconColor: 'text-blue-600' },
-  { id: 'judges', label: 'Judges', note: '3 frontier LLMs', icon: <Scale size={24} />, bg: 'bg-indigo-100', iconColor: 'text-indigo-600', badge: 'Ensemble' },
-  { id: 'dimensions', label: '6 Dimensions', note: 'Scored 0→1', icon: <Target size={24} />, bg: 'bg-purple-100', iconColor: 'text-purple-600' },
-  { id: 'aggregate', label: 'Aggregate', note: 'Avg per dim', icon: <BarChart3 size={24} />, bg: 'bg-pink-100', iconColor: 'text-pink-600' },
-  { id: 'output', label: 'Scorecard', note: 'Auto reports', icon: <FileJson size={24} />, bg: 'bg-emerald-100', iconColor: 'text-emerald-600' }
-];
-
-const judgeModels = [
-  { name: 'Claude Sonnet 4', color: '#8b5cf6' },
-  { name: 'GPT-5', color: '#3b82f6' },
-  { name: 'Gemini 2.5', color: '#10b981' }
-];
-
-const evaluationDimensionsPipeline = [
-  'Algorithmic Correctness',
-  'Parsing Quality',
-  'Technical Accuracy',
-  'Company Relevance',
-  'Role Specificity',
-  'Scenario Realism'
+  { id: 'input', label: 'Input', note: 'Same prompts', icon: <Database size={20} />, bg: 'bg-blue-100', iconColor: 'text-blue-600' },
+  { id: 'judges', label: 'Judges', note: '3 frontier LLMs', icon: <UserRoundCheck size={20} />, bg: 'bg-indigo-100', iconColor: 'text-indigo-600' },
+  { id: 'dimensions', label: '6 Dimensions', note: 'Scored 0→1', icon: <Target size={20} />, bg: 'bg-purple-100', iconColor: 'text-purple-600' },
+  { id: 'aggregate', label: 'Aggregate', note: 'Avg per dim', icon: <BarChart3 size={20} />, bg: 'bg-pink-100', iconColor: 'text-pink-600' },
+  { id: 'output', label: 'Scorecard', note: 'Auto reports', icon: <FileJson size={20} />, bg: 'bg-emerald-100', iconColor: 'text-emerald-600' }
 ];
 
 export function QualityValidationPipelineDiagram() {
@@ -1174,90 +1090,36 @@ export function QualityValidationPipelineDiagram() {
 
   return (
     <ChartCard
-      title="Quality Validation Pipeline"
+      title="Quality validation pipeline"
       subtitle="Provider-agnostic LLM-as-a-judge workflow for consistent evaluation"
-      icon={<Filter size={16} />}
+      contentClassName="py-3"
+      hideHeader
     >
-      <div className="space-y-6">
-        {/* Main Pipeline Flow */}
+      <div className="space-y-1.5">
+        {/* Responsive pipeline flow with wrapping */}
         <motion.div
-          className="relative py-2"
           variants={gridContainerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
+          className="flex flex-wrap items-center justify-center gap-x-4 gap-y-4"
         >
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-0 sm:justify-between">
-            {pipelineStages.map((stage, idx) => (
-              <motion.div key={stage.id} variants={pipelineStageVariants} className="flex items-center">
-                <div className="flex flex-col items-center text-center relative">
-                  {stage.badge && (
-                    <motion.span
-                      variants={badgePopVariants}
-                      className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 text-[9px] px-1.5 py-0.5 rounded-full font-bold shadow-sm z-10"
-                    >
-                      {stage.badge}
-                    </motion.span>
-                  )}
-                  <motion.div
-                    className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-xl ${stage.bg} border-2 border-white shadow-md`}
-                    whileHover={shouldReduceMotion ? {} : { scale: 1.08, y: -3 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                  >
-                    <span className={stage.iconColor}>{stage.icon}</span>
-                  </motion.div>
-                  <p className="mt-2 text-xs sm:text-sm font-semibold text-slate-800">{stage.label}</p>
-                  <p className="text-[10px] text-slate-500">{stage.note}</p>
-                </div>
-
-                {idx < pipelineStages.length - 1 && (
-                  <motion.div
-                    variants={itemVariants}
-                    className="mx-2 sm:mx-3 text-slate-300 hidden sm:block"
-                  >
-                    <ArrowRight size={20} />
-                  </motion.div>
-                )}
+          {pipelineStages.map((stage, idx) => (
+            <div key={stage.id} className="flex items-center gap-2 flex-shrink-0">
+              <motion.div variants={pipelineStageVariants} className="flex items-center gap-2">
+                <motion.div
+                  className={`flex h-10 w-10 items-center justify-center rounded-lg ${stage.bg}`}
+                  whileHover={shouldReduceMotion ? {} : { scale: 1.05 }}
+                >
+                  <span className={`${stage.iconColor} [&>svg]:h-5 [&>svg]:w-5`}>{stage.icon}</span>
+                </motion.div>
+                <span className="text-sm font-semibold text-slate-700 whitespace-nowrap">{stage.label}</span>
               </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Detail Cards */}
-        <motion.div
-          className="grid gap-4 sm:grid-cols-2"
-          variants={gridContainerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          <motion.div variants={itemVariants} className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] font-semibold text-slate-500 flex items-center gap-2">
-              <Scale size={14} /> Judge Ensemble
-            </p>
-            <div className="space-y-2">
-              {judgeModels.map((model) => (
-                <div key={model.name} className="flex items-center gap-3">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: model.color }} />
-                  <span className="text-sm text-slate-700">{model.name}</span>
-                </div>
-              ))}
+              {idx < pipelineStages.length - 1 && (
+                <ArrowRight size={16} className="text-slate-300 flex-shrink-0" />
+              )}
             </div>
-          </motion.div>
-
-          <motion.div variants={itemVariants} className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
-            <p className="text-xs uppercase tracking-[0.2em] font-semibold text-slate-500 flex items-center gap-2">
-              <Target size={14} /> Evaluation Dimensions
-            </p>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              {evaluationDimensionsPipeline.map((dim, idx) => (
-                <div key={dim} className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-indigo-500 w-4">{idx + 1}.</span>
-                  <span className="text-sm text-slate-700">{dim}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+          ))}
         </motion.div>
       </div>
     </ChartCard>

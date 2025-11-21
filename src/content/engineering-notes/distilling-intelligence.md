@@ -9,7 +9,10 @@ The first POC I built for AlgoIRL used extensive prompt engineering with frontie
 
 I needed a solution that maintained high quality while being fast and affordable enough for production use. This is the story of how I used **knowledge distillation** to achieve exactly that: a fine-tuned model that delivers **96% of the teacher model's quality, 10x P90 latency reduction, and 97% lower inference cost**.
 
+---
 ## Quality Validation Pipeline
+
+![Quality Validation Pipeline]()
 
 Before diving into knowledge distillation, I needed a way to prove numerically that one model’s transformation was better than another’s. So I built a provider-agnostic **LLM-as-a-judge** workflow that turns raw outputs into a single, consistent report card.
 
@@ -17,14 +20,13 @@ First, every model is fed the exact same collection of company/problem/role trip
 
 Next, each output is evaluated along six dimensions that mirror the requirements of real interview content: **algorithmic correctness, company relevance, role specificity, scenario realism, technical accuracy, and parsing quality**. The judges follow detailed rubrics for each dimension, scoring on a 0.0 to 1.0 scale and explaining their reasoning with natural-language notes plus optional issue tags.
 
-The judges themselves are an ensemble of Sonnet 4, GPT-5, and Gemini 2.5. For each transformation, the score for each dimensions is an average of the scores across all models. The prompts share a strict JSON schema (score, confidence, reasoning, issues). That makes the evaluation repeatable even months later.
+The judges themselves are an **ensemble of Sonnet 4, GPT-5, and Gemini 2.5**. For each transformation, the score for each dimensions is an average of the scores across all models. The prompts share a strict JSON schema (score, confidence, reasoning, issues). That makes the evaluation repeatable even months later.
 
 Finally, their responses roll up into automated reports that highlight per-dimension averages, recurring mistakes, and parsing success rates. To keep the summary intuitive, the overall quality score is simply the average of the six dimension averages. Giving each dimension equal weight forces honesty. If a model nails realism but botches parsing, the headline number drops, and the report tells us exactly why.
 
 Because the entire loop runs offline on cached data, testing a new teacher or student is as simple as exporting its outputs, dropping them into the pipeline, and reading the resulting scorecard.
 
-![Quality Validation Pipeline]()
-
+---
 ## Knowledge Distillation
 
 For those who are not familiar with knowledge distillation, it's a student-teacher training strategy where a compact model learns from the richer logits of a large model, retaining most of the accuracy while slashing latency and cost. I found [A Survey on Knowledge Distillation of Large Language Models](https://arxiv.org/abs/2402.13116) to be an excellent resource to understand KD for LLMs. 
@@ -95,8 +97,6 @@ Not every AI-generated transformation is perfect. I implemented a **parsing vali
 - Validated: 6,532 passed all checks (87.3% success rate)
 - Filtered: 968 rejected (12.7% - incomplete or malformed)
 
-![Quality Funnel](./diagrams/blog/quality-validation-funnel.png)
-
 #### Final Training Dataset Characteristics
 
 The final high-quality dataset contained:
@@ -119,7 +119,7 @@ I tested three different approaches, each representing a different production tr
 2. **Qwen3-Coder-30B** - Self-hosted LoRA (maximum control)
 3. **Meta Llama 3.1 8B** - Together.ai serverless LoRA (cost optimization)
 
-### Experiment 1: GPT-4.1-nano (OpenAI API)
+#### Experiment 1: GPT-4.1-nano (OpenAI API)
 
 [GPT-4.1-nano](https://openai.com/index/gpt-4-1/) is OpenAI's first-ever nano model, released in April 2025 as the fastest and most cost-effective model in their lineup. Despite its compact size, it punches above its weight—scoring 80.1% on MMLU and outperforming GPT-4o mini on coding benchmarks. With a 1 million token context window and optimized instruction-following capabilities, it's specifically designed for high-throughput, cost-sensitive workloads like classification, extraction, and structured output generation. OpenAI explicitly positions GPT-4.1-nano as an ideal candidate for [knowledge distillation](https://community.openai.com/t/fine-tuning-updates-reinforcement-fine-tuning-now-available-gpt-4-1-nano-fine-tuning/1255539), making it a natural fit for this experiment.
 
@@ -170,9 +170,7 @@ Cost per 1,000 transformations: $1.30
 
 **Findings:** The model retained nearly all of the teacher's quality while dramatically improving response times. With OpenAI handling infrastructure, there's no DevOps overhead—just a simple API call. The economics work at any reasonable scale, making this the clear winner for production deployment.
 
----
-
-### Experiment 2: Qwen3-Coder-30B (Self-Hosted LoRA)
+#### Experiment 2: Qwen3-Coder-30B (Self-Hosted LoRA)
 
 [Qwen3-Coder-30B](https://github.com/QwenLM/Qwen3-Coder) is Alibaba Cloud's code-specialized open source language model, released as part of their Qwen3-Coder series in 2025. It's a Mixture-of-Experts (MoE) architecture with 30 billion total parameters but only 3 billion active parameters per forward pass, making it more efficient than its size suggests. The model supports up to 256K tokens natively (1M with extrapolation) and was trained on 7.5 trillion tokens with a 70% code ratio. Qwen3-Coder excels at agentic coding tasks, browser automation, and repository-scale code understanding, with advanced tool-calling capabilities. I chose this model to test whether a larger, self-hosted model could outperform API-based alternatives.
 
@@ -191,31 +189,12 @@ lora_config = {
 
 **Parameter Breakdown:**
 
-*r (rank)* = **16**
-- Number of dimensions in the low-rank decomposition
-- Lower rank = fewer trainable parameters, faster training, less expressive
-- Higher rank = more parameters, slower training, more expressive
-- **16 is the sweet spot** for most tasks (balances quality and efficiency)
-- Range: typically 4 - 64
-
-*lora_alpha* = **32**
-- Scaling factor for LoRA weight updates
-- Controls the magnitude of adaptations to the base model
-- **Best practice**: Set to 2× the rank (16 × 2 = 32)
-- Higher values = stronger task adaptation
-- Lower values = more conservative, stays closer to base model
-
-*lora_dropout* = **0.0**
-- Regularization to prevent overfitting during training
-- 0.0 = no dropout (we chose this because our data is high-quality)
-- Use 0.05 - 0.1 if you observe overfitting on validation set
-- Not needed when training data is diverse and validated
-
-*target_modules* = **attention layers**
-- Which model layers to apply LoRA to
-- *q_proj*, *k_proj*, *v_proj* = Query, Key, Value attention projections
-- *o_proj* = Output projection
-- These are the most impactful layers for task adaptation
+| Parameter | Value | What it does | Why this value |
+|-----------|-------|--------------|----------------|
+| **r (rank)** | 16 | Number of dimensions in the low-rank decomposition. Lower rank = fewer trainable parameters, faster training, less expressive. Higher rank = more parameters, slower training, more expressive. | **16 is the sweet spot** for most tasks (balances quality and efficiency). Range: typically 4 - 64. |
+| **lora_alpha** | 32 | Scaling factor for LoRA weight updates. Controls the magnitude of adaptations to the base model. Higher values = stronger task adaptation. Lower values = more conservative, stays closer to base model. | **Best practice**: Set to 2× the rank (16 × 2 = 32). |
+| **lora_dropout** | 0.0 | Regularization to prevent overfitting during training. | 0.0 = no dropout (we chose this because our data is high-quality). Use 0.05 - 0.1 if you observe overfitting on validation set. Not needed when training data is diverse and validated. |
+| **target_modules** | q_proj, k_proj, v_proj, o_proj | Which model layers to apply LoRA to. q_proj, k_proj, v_proj = Query, Key, Value attention projections. o_proj = Output projection. | These are the most impactful layers for task adaptation. |
 
 **Training Hyperparameters:**
 
@@ -229,22 +208,13 @@ training_args = {
 }
 ```
 
-*num_train_epochs* = **3**
-- 3 epochs is standard for LoRA fine-tuning
-
-*per_device_train_batch_size* = **2**
-- Limited by GPU memory (30B model is large, requires small batches)
-- With the H100-80GB GPUs, 2 was the maximum
-
-*gradient_accumulation_steps* = **8**
-- Accumulate gradients over 8 steps before updating weights
-- **Effective batch size** = 2 × 8 = 16
-- Allows larger effective batches without exceeding GPU memory
-
-*learning_rate* = **2e-4 (0.0002)**
-- LoRA uses **higher learning rates** than full fine-tuning (which uses ~1e-5)
-- Why? LoRA only updates small adapter weights, not the full model
-- Range for LoRA: typically 1e-4 to 5e-4
+| Parameter | Value | What it does | Why this value |
+|-----------|-------|--------------|----------------|
+| **num_train_epochs** | 3 | Number of complete passes through the training dataset. | 3 epochs is standard for LoRA fine-tuning. |
+| **per_device_train_batch_size** | 2 | Number of examples processed per GPU before gradient update. | Limited by GPU memory (30B model is large, requires small batches). With H100-80GB GPUs, 2 was the maximum. |
+| **gradient_accumulation_steps** | 8 | Accumulate gradients over N steps before updating weights. **Effective batch size** = 2 × 8 = 16. | Allows larger effective batches without exceeding GPU memory. |
+| **learning_rate** | 2e-4 (0.0002) | Step size for weight updates during training. | LoRA uses **higher learning rates** than full fine-tuning (~1e-5). LoRA only updates small adapter weights, not the full model. Range: typically 1e-4 to 5e-4. |
+| **max_grad_norm** | 1.0 | Maximum gradient norm for gradient clipping. | Prevents exploding gradients and stabilizes training. |
 
 **Infrastructure Requirements:**
 - Hardware: 2× NVIDIA H100-80GB SXM GPUs
@@ -273,13 +243,11 @@ not per-token pricing. Lower utilization = higher per-unit cost.
 
 **Findings:** Despite being a larger model, quality fell short of both the baseline and the GPT-4.1-nano experiment. Latency remained in the same ballpark as Claude, eliminating the speed advantage we were hoping for. The fixed GPU hosting costs made this approach expensive regardless of usage, and the DevOps burden of managing GPUs, scaling, and monitoring added complexity without any measurable benefit.
 
----
-
-### Experiment 3: Meta Llama 3.1 8B (Together.ai Serverless)
+#### Experiment 3: Meta Llama 3.1 8B (Together.ai Serverless)
 
 [Meta Llama 3.1 8B Instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct) is Meta's lightweight instruction-tuned model, released in July 2024 as part of their Llama 3.1 family. Built on an optimized transformer architecture and trained using supervised fine-tuning (SFT) plus reinforcement learning with human feedback (RLHF), it supports 8 languages and a 128K token context window. At just 8 billion parameters, it's light enough to run locally without requiring GPU clusters, and techniques like [LoRA and QLoRA](https://arxiv.org/abs/2106.09685) make it trainable even with limited VRAM. The model's open-source nature and permissive licensing have made it one of the most popular choices for cost-conscious fine-tuning experiments.
 
-I fine-tuned the model using **[Together.ai's](https://together.ai) serverless platform**.
+I fine-tuned the model using **[Together.ai's](https://together.ai)** serverless platform.
 
 **Together.ai Configuration:**
 
@@ -305,30 +273,17 @@ together_config = {
 
 **Key Differences from Qwen Experiment:**
 
-*batch_size* = **4** (vs 2 for Qwen)
-- Smaller model (8B vs 30B) allows larger batches
-- More memory available per example
-- Faster training throughput
-
-*learning_rate* = **1e-4** (vs 2e-4 for Qwen)
-- Lower learning rate for smaller model
-- Smaller models are more sensitive to large updates
-- More conservative training to prevent instability
+| Parameter | Llama 3.1 8B | Qwen 30B | Why the difference |
+|-----------|--------------|----------|-------------------|
+| **batch_size** | 4 | 2 | Smaller model (8B vs 30B) allows larger batches. More memory available per example. Faster training throughput. |
+| **learning_rate** | 1e-4 | 2e-4 | Lower learning rate for smaller model. Smaller models are more sensitive to large updates. More conservative training to prevent instability. |
 
 **Inference Parameters:**
 
-*temperature* = **0.7**
-- Controls randomness/creativity during generation
-- Range: 0.0 (deterministic) to 2.0 (very creative)
-- 0.7 balances consistency with natural variation
-- Lower (0.3) = more consistent but robotic
-- Higher (1.0+) = more creative but less reliable
-
-*top_p* = **0.9** (nucleus sampling)
-- Only sample from tokens comprising top 90% of probability mass
-- Prevents sampling very unlikely tokens
-- Improves output quality by filtering noise
-- Range: 0.0 to 1.0 (1.0 = consider all tokens)
+| Parameter | Value | What it does | Why this value |
+|-----------|-------|--------------|----------------|
+| **temperature** | 0.7 | Controls randomness/creativity during generation. Range: 0.0 (deterministic) to 2.0 (very creative). | 0.7 balances consistency with natural variation. Lower (0.3) = more consistent but robotic. Higher (1.0+) = more creative but less reliable. |
+| **top_p** | 0.9 | Nucleus sampling - only sample from tokens comprising top 90% of probability mass. Prevents sampling very unlikely tokens. | Improves output quality by filtering noise. Range: 0.0 to 1.0 (1.0 = consider all tokens). |
 
 **Performance:**
 
@@ -357,7 +312,7 @@ Cost per 1,000 transformations: $2.00
 
 **Findings:** The smaller model simply couldn't capture the sophistication of the teacher. Quality dropped noticeably, and the model struggled with complex multi-step instructions. Structural output was unreliable—parsing failed nearly a quarter of the time. While Together.ai's serverless approach eliminated hosting headaches, the quality gap made this a non-starter for production.
 
-### Model Comparison: The Complete Picture
+#### Model Comparison: The Complete Picture
 
 ![Model Comparison Matrix](./diagrams/blog/model-comparison-matrix.png)
 
@@ -375,6 +330,7 @@ Cost per 1,000 transformations: $2.00
 
 Multi-dimensional evaluation reveals nuanced quality. Overall score (0.784) is excellent, but breaking it down shows exactly where to improve (role specificity and scenario realism need work, while algorithmic correctness is nearly perfect).
 
+---
 ## Economics
 
 Let's talk numbers. Fine-tuning requires upfront investment, was it worth it?
@@ -506,8 +462,6 @@ The path forward is clear, **richer training data, not architectural changes**. 
 - Deploy models closer to users (regional endpoints)
 - Reduce network latency
 - Improve international user experience
-
----
 
 ### Try It on AlgoIRL
 

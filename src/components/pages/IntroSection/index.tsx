@@ -23,6 +23,7 @@ import { trackPaymentEvent, storePaymentContext } from '@/utils/payment';
 import { useAuthDialog } from '@/contexts/AuthDialogContext';
 import { useDarkMode } from '../../DarkModeContext';
 import { ThinkingIndicator } from '../../ThinkingIndicator';
+import { Footer } from '../../Footer';
 import {
   prepareProblem,
 } from '../../../utils/api-service';
@@ -238,7 +239,6 @@ function recordLandingEvent(eventName: string, payload?: Record<string, unknown>
 }
 
 export function IntroSection() {
-  const currentYear = new Date().getFullYear();
   const { isDarkMode } = useDarkMode();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -956,11 +956,10 @@ export function IntroSection() {
               </span>
             ))}
           </div>
-          <footer className="pt-6 text-xs text-content-muted">
-            © {currentYear} AlgoIRL. All rights reserved.
-          </footer>
         </div>
       </SectionBlock>
+
+      <Footer />
 
       {showAuthModal && (
         <AuthModal

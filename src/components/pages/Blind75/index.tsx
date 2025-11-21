@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircleIcon, ClockIcon, AlertTriangleIcon, XIcon } from 'lucide-react';
+import { Footer } from '../../Footer';
 import { getAllCachedProblems, CachedProblem, clearCache } from '../../../utils/cache';
 import { blind75Data } from '../../../constants/blind75';
 import { Blind75ViewState } from '../../../utils/blind75ViewState';
@@ -579,13 +580,8 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
      </div>
     )}
 
-    {/* Copyright Notice */}
-    <div className="mt-8 pt-6 border-t border-slate/20 dark:border-gray-700">
-     <p className="text-center text-sm text-content-muted dark:text-content-subtle">
-      Copyright © 2025 <span className="font-playfair">AlgoIRL</span>. All rights reserved.
-     </p>
-    </div>
    </div>
+   <Footer />
   </div>
  );
 } 

@@ -1,19 +1,18 @@
 import remarkGfm from 'remark-gfm';
 import ReactMarkdown from 'react-markdown';
-import fineTuningCaseStudy from '../../content/blog/fine-tuning-case-study.md?raw';
+import distillingIntelligence from '../../content/engineering-notes/distilling-intelligence.md?raw';
 import { Footer } from '../Footer';
 import { cn } from '@/lib/utils';
 import { getDiagramComponent } from './diagrams/CaseStudyDiagrams';
 import type { Components } from 'react-markdown';
+import { engineeringNotes } from './EngineeringNotesPage';
 
-const firstHeadingIndex = fineTuningCaseStudy.indexOf('## ');
+const noteData = engineeringNotes['distilling-intelligence'];
+
+const firstHeadingIndex = distillingIntelligence.indexOf('## ');
 const heroMarkdown =
-  firstHeadingIndex === -1 ? fineTuningCaseStudy : fineTuningCaseStudy.slice(0, firstHeadingIndex);
-const bodyMarkdown = firstHeadingIndex === -1 ? '' : fineTuningCaseStudy.slice(firstHeadingIndex);
-
-const publishedOn = 'September 14, 2025';
-const readingTimeMinutes = Math.ceil(fineTuningCaseStudy.split(/\s+/).filter(Boolean).length / 250);
-const tags = ['Case Study', 'Knowledge Distillation', 'Fine-Tuning'];
+  firstHeadingIndex === -1 ? distillingIntelligence : distillingIntelligence.slice(0, firstHeadingIndex);
+const bodyMarkdown = firstHeadingIndex === -1 ? '' : distillingIntelligence.slice(firstHeadingIndex);
 
 const sectionLinks = Array.from(bodyMarkdown.matchAll(/^## (.+)$/gm)).map((match) => {
   const title = match[1].trim();
@@ -48,10 +47,10 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
     <h2
       id={variant === 'body' ? slugify(extractText(children)) : undefined}
       className={cn(
-        'font-playfair tracking-tight',
+        'font-playfair tracking-tight font-light',
         variant === 'hero'
-          ? 'text-4xl md:text-5xl text-content mb-6'
-          : 'text-3xl md:text-4xl text-content mb-6'
+          ? 'text-4xl md:text-5xl text-content mb-5'
+          : 'text-3xl md:text-4xl text-content mb-5'
       )}
     >
       {children}
@@ -60,15 +59,15 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
   h3: ({ children }) => (
     <h3
       className={cn(
-        'font-semibold',
-        variant === 'hero' ? 'text-xl text-content mt-6 mb-3' : 'text-2xl text-content mt-8 mb-3'
+        'font-light',
+        variant === 'hero' ? 'text-xl text-content mt-6 mb-3' : 'text-2xl text-content mt-4 mb-3'
       )}
     >
       {children}
     </h3>
   ),
   h4: ({ children }) => (
-    <h4 className={cn('font-semibold text-base uppercase tracking-wide text-primary mb-3')}>
+    <h4 className={cn('font-semibold text-base tracking-wide text-primary mb-3')}>
       {children}
     </h4>
   ),
@@ -76,7 +75,7 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
     <p
       className={cn(
         'leading-relaxed',
-        variant === 'hero' ? 'text-content-muted text-lg mb-5' : 'text-content-muted text-lg mb-5'
+        variant === 'hero' ? 'text-content-muted text-sm sm:text-base mb-5' : 'text-content-muted text-sm sm:text-base mb-5'
       )}
     >
       {children}
@@ -85,7 +84,7 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
   ul: ({ children }) => (
     <ul
       className={cn(
-        'space-y-3 pl-5 marker:text-primary list-disc',
+        'space-y-3 pl-5 marker:text-primary list-disc text-sm sm:text-base',
         variant === 'hero' ? 'text-content-muted' : 'text-content-muted'
       )}
     >
@@ -95,7 +94,7 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
   ol: ({ children }) => (
     <ol
       className={cn(
-        'space-y-3 pl-6 list-decimal',
+        'space-y-3 pl-6 list-decimal text-sm sm:text-base',
         variant === 'hero' ? 'text-content-muted' : 'text-content-muted'
       )}
     >
@@ -103,7 +102,7 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
     </ol>
   ),
   li: ({ children }) => (
-    <li className="leading-relaxed">
+    <li className="leading-relaxed text-sm sm:text-base">
       <span>{children}</span>
     </li>
   ),
@@ -137,24 +136,24 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
     </a>
   ),
   table: ({ children }) => (
-    <div className="my-8 overflow-x-auto rounded-2xl border border-outline-subtle/30 bg-white">
-      <table className="w-full text-sm text-left">{children}</table>
+    <div className="my-3 -mx-6 sm:mx-0 overflow-x-auto rounded-none sm:rounded-2xl border-y sm:border border-outline-subtle/30 bg-white">
+      <table className="min-w-[600px] w-full text-sm text-left">{children}</table>
     </div>
   ),
   thead: ({ children }) => (
     <thead className="bg-panel-100 text-xs uppercase text-content-muted tracking-widest">{children}</thead>
   ),
   tbody: ({ children }) => <tbody className="divide-y divide-outline-subtle/20">{children}</tbody>,
-  th: ({ children }) => <th className="px-4 py-3 font-semibold text-content">{children}</th>,
-  td: ({ children }) => <td className="px-4 py-3 text-content-muted">{children}</td>,
+  th: ({ children }) => <th className="px-3 sm:px-4 py-3 font-semibold text-content whitespace-nowrap">{children}</th>,
+  td: ({ children }) => <td className="px-3 sm:px-4 py-3 text-content-muted text-sm">{children}</td>,
   blockquote: ({ children }) => (
-    <blockquote className="border-l-4 border-primary/60 pl-4 italic text-content">{children}</blockquote>
+    <blockquote className="border-l-4 border-primary/60 pl-4 italic text-content text-sm sm:text-base">{children}</blockquote>
   ),
   img: ({ alt }) => {
     const diagram = getDiagramComponent(alt);
     if (diagram) {
       return (
-        <figure className="my-12">
+        <figure className="mt-4 mb-4">
           <div>{diagram}</div>
         </figure>
       );
@@ -163,27 +162,26 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
   }
 });
 
-export function FineTuningCaseStudyPage() {
+export function DistillingIntelligencePage() {
   return (
     <div className="bg-panel-50 text-content font-sans">
       <header className="border-b border-outline-subtle/30 bg-white">
         <div className="mx-auto max-w-5xl px-6 py-12 space-y-8">
-          <div className="space-y-3">
-            <p className="text-xs uppercase tracking-[0.4em] text-content-muted">Product Notebook</p>
-            <div className="flex flex-wrap gap-4 text-sm text-content-muted">
-              <span>{publishedOn}</span>
-              <span>•</span>
-              <span>{readingTimeMinutes} min read</span>
+          <div className="space-y-4 text-center">
+            <div className="space-y-2">
+              <h1 className="font-playfair text-4xl md:text-5xl tracking-tight font-light text-content">
+                {noteData.title}
+              </h1>
+              <p className="text-xl md:text-2xl text-content-muted font-light">
+                {noteData.subtitle}
+              </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border border-outline-subtle/40 px-3 py-1 text-xs uppercase tracking-[0.2em] text-content-muted"
-                >
-                  {tag}
-                </span>
-              ))}
+            <div className="flex flex-wrap justify-center gap-4 text-sm text-content-muted">
+              <span>{noteData.author}</span>
+              <span>·</span>
+              <span>{noteData.publishedOn}</span>
+              <span>·</span>
+              <span>{noteData.readingTimeMinutes} min read</span>
             </div>
           </div>
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={createMarkdownComponents('hero')}>
@@ -208,7 +206,7 @@ export function FineTuningCaseStudyPage() {
               ))}
             </nav>
           </aside>
-          <article className="prose prose-lg max-w-none text-content prose-h2:text-3xl prose-h3:text-2xl prose-p:text-lg prose-strong:text-content prose-code:text-sm">
+          <article className="prose max-w-none text-content prose-h2:text-3xl prose-h3:text-2xl prose-strong:text-content prose-code:text-sm">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={createMarkdownComponents('body')}>
               {bodyMarkdown}
             </ReactMarkdown>

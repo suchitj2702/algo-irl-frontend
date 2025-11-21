@@ -61,7 +61,8 @@ import { extractCleanProblemTitle } from '../utils/problemTitleExtractor';
 import { saveBlind75ViewState, loadBlind75ViewState, Blind75ViewState, createDefaultBlind75ViewState } from '../utils/blind75ViewState';
 import { normalizeStudyPlanDatasetType } from '../utils/studyPlanDataset';
 import { secureLog } from '../utils/secureLogger';
-import { FineTuningCaseStudyPage } from './blog/FineTuningCaseStudyPage';
+import { DistillingIntelligencePage } from './engineering-notes/DistillingIntelligencePage';
+import { EngineeringNotesPage } from './engineering-notes/EngineeringNotesPage';
 
 interface TestResultsFromParent {
  passed: boolean;
@@ -2053,8 +2054,8 @@ const handleBeforeSignOut = useCallback(async () => {
 
      <Routes>
      <Route path="/" element={<IntroSection />} />
-      <Route path="/blogs" element={<FineTuningCaseStudyPage />} />
-      <Route path="/blogs/fine-tuning-case-study" element={<FineTuningCaseStudyPage />} />
+      <Route path="/engineering-notes" element={<EngineeringNotesPage />} />
+      <Route path="/engineering-notes/distilling-intelligence" element={<DistillingIntelligencePage />} />
       {flags.paymentsEnabled && (
         <Route path="/payment/status/:status" element={<PaymentStatusPage />} />
       )}
