@@ -9,11 +9,12 @@ interface NavbarProps {
  onHomeClick?: () => void;
  onBlind75Click?: () => void;
  onStudyPlansClick?: () => void;
+ onEngineeringNotesClick?: () => void;
  onBeforeSignOut?: () => Promise<void>;
  hideLogo?: boolean;
 }
 
-export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBeforeSignOut, hideLogo }: NavbarProps) {
+export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onEngineeringNotesClick, onBeforeSignOut, hideLogo }: NavbarProps) {
  const [isMenuOpen, setIsMenuOpen] = useState(false);
  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
  const navigate = useNavigate();
@@ -43,6 +44,13 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
  const handleStudyPlansClick = () => {
   if (onStudyPlansClick) {
    onStudyPlansClick();
+  }
+  setIsMenuOpen(false);
+ };
+
+ const handleEngineeringNotesClick = () => {
+  if (onEngineeringNotesClick) {
+   onEngineeringNotesClick();
   }
   setIsMenuOpen(false);
  };
@@ -113,6 +121,12 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
        className="inline-flex items-center px-4 py-2 text-[15px] font-medium text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
       >
        Practice Blind 75
+      </button>
+      <button
+       onClick={handleEngineeringNotesClick}
+       className="inline-flex items-center px-4 py-2 text-[15px] font-medium text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
+      >
+       Engineering Notes
       </button>
       {showDarkModeToggle && (
        <button
@@ -207,6 +221,12 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onBefor
        className="flex items-center w-full px-4 py-2.5 text-[15px] font-medium text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
       >
        Practice Blind 75
+      </button>
+      <button
+       onClick={handleEngineeringNotesClick}
+       className="flex items-center w-full px-4 py-2.5 text-[15px] font-medium text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
+      >
+       Engineering Notes
       </button>
 
       {/* Mobile Auth */}

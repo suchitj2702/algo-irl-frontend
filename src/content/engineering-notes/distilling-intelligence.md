@@ -53,8 +53,6 @@ I tested three leading models ("leading" in September 2025):
 
 ##### Why Claude 4 Emerged as the Clear Winner
 
-The raw scores told a consistent story: Claude held meaningful leads on the dimensions that actually break production pipelines when they slip.
-
 | Dimension | Claude Sonnet 4 | GPT-5 | Gemini 2.5 Pro | Why it mattered |
 |-----------|-----------------|-------|----------------|-----------------|
 | **Algorithmic Correctness** | **0.95** | 0.91 | 0.86 | Claude almost never mangled the underlying algorithm, so we could trust it on hard graph/dp problems. |
@@ -111,9 +109,9 @@ Quality validation is not optional. Filtering 12.7% of outputs prevented garbage
 
 ### Step 3: Fine-Tuning Models
 
-Now came the critical experiment: **Which student model could best learn from our teacher?**
+Now for the critical experiment. **Which student model could best learn from our teacher?**
 
-I tested three different approaches, each representing a different production tradeoff:
+This is my favorite part! I tested three different approaches, each representing a different production tradeoff:
 
 1. **GPT-4.1-nano** - OpenAI API fine-tuning (convenience + reliability)
 2. **Qwen3-Coder-30B** - Self-hosted LoRA (maximum control)
@@ -121,7 +119,7 @@ I tested three different approaches, each representing a different production tr
 
 #### Experiment 1: GPT-4.1-nano (OpenAI API)
 
-[GPT-4.1-nano](https://openai.com/index/gpt-4-1/) is OpenAI's first-ever nano model, released in April 2025 as the fastest and most cost-effective model in their lineup. Despite its compact size, it punches above its weight—scoring 80.1% on MMLU and outperforming GPT-4o mini on coding benchmarks. With a 1 million token context window and optimized instruction-following capabilities, it's specifically designed for high-throughput, cost-sensitive workloads like classification, extraction, and structured output generation. OpenAI explicitly positions GPT-4.1-nano as an ideal candidate for [knowledge distillation](https://community.openai.com/t/fine-tuning-updates-reinforcement-fine-tuning-now-available-gpt-4-1-nano-fine-tuning/1255539), making it a natural fit for this experiment.
+[GPT-4.1-nano](https://openai.com/index/gpt-4-1/) is OpenAI's first-ever nano model, released in April 2025 as the fastest and most cost-effective model in their lineup. Despite its compact size, it punches above its weight, scoring 80.1% on MMLU and outperforming GPT-4o mini on coding benchmarks. With a 1 million token context window and optimized instruction-following capabilities, it's specifically designed for high-throughput, cost-sensitive workloads like classification, extraction, and structured output generation. OpenAI explicitly positions GPT-4.1-nano as an ideal candidate for [knowledge distillation](https://community.openai.com/t/fine-tuning-updates-reinforcement-fine-tuning-now-available-gpt-4-1-nano-fine-tuning/1255539), making it a natural fit for this experiment.
 
 **Training Configuration:**
 ```json
@@ -168,7 +166,7 @@ GPT-4.1-nano fine-tuned pricing (per 1M tokens):
 Cost per 1,000 transformations: $1.30
 ```
 
-**Findings:** The model retained nearly all of the teacher's quality while dramatically improving response times. With OpenAI handling infrastructure, there's no DevOps overhead—just a simple API call. The economics work at any reasonable scale, making this the clear winner for production deployment.
+**Findings:** The model retained nearly all of the teacher's quality while dramatically improving response times. With OpenAI handling infrastructure, there's no DevOps overhead, just a simple API call. The economics work at any reasonable scale, making this the clear winner for production deployment.
 
 #### Experiment 2: Qwen3-Coder-30B (Self-Hosted LoRA)
 
@@ -241,7 +239,7 @@ Note: Self-hosted costs are dominated by GPU rental,
 not per-token pricing. Lower utilization = higher per-unit cost.
 ```
 
-**Findings:** Despite being a larger model, quality fell short of both the baseline and the GPT-4.1-nano experiment. Latency remained in the same ballpark as Claude, eliminating the speed advantage we were hoping for. The fixed GPU hosting costs made this approach expensive regardless of usage, and the DevOps burden of managing GPUs, scaling, and monitoring added complexity without any measurable benefit.
+**Findings:** Despite being a larger model, quality fell short of both the baseline and the GPT-4.1-nano experiment. Latency remained in the same ballpark as Claude, eliminating the speed advantage I was hoping for. The fixed GPU hosting costs made this approach expensive regardless of usage, and the DevOps burden of managing GPUs, scaling, and monitoring added complexity without any measurable benefit.
 
 #### Experiment 3: Meta Llama 3.1 8B (Together.ai Serverless)
 
@@ -310,7 +308,7 @@ Together.ai Llama 3.1 8B fine-tuned pricing (per 1M tokens):
 Cost per 1,000 transformations: $2.00
 ```
 
-**Findings:** The smaller model simply couldn't capture the sophistication of the teacher. Quality dropped noticeably, and the model struggled with complex multi-step instructions. Structural output was unreliable—parsing failed nearly a quarter of the time. While Together.ai's serverless approach eliminated hosting headaches, the quality gap made this a non-starter for production.
+**Findings:** The smaller model simply couldn't capture the sophistication of the teacher. Quality dropped noticeably, and the model struggled with complex multi-step instructions. Structural output was unreliable. Parsing failed nearly a quarter of the time. While Together.ai's serverless approach eliminated hosting headaches, the quality gap made this a non-starter for production.
 
 #### Model Comparison: The Complete Picture
 
@@ -337,7 +335,7 @@ Let's talk numbers. Fine-tuning requires upfront investment, was it worth it?
 
 ### Cost Calculation Methodology
 
-All cost comparisons use consistent token-based calculations derived from our training dataset (average 7,051 tokens per example):
+All cost comparisons use consistent token-based calculations derived from the training dataset (average 7,051 tokens per example):
 
 ```
 Average tokens per transformation (measured from training data):
@@ -402,11 +400,11 @@ The gap between Claude Sonnet 4 and the fine-tuned GPT-4.1-nano widens dramatica
 
 ## Key Learnings & Best Practices
 
-After running 3+ months of experiments and processing 10K+ production inferences, here's what I learned.
+After running weeks of experiments and processing 10K+ production inferences, here's what I learned.
 
 #### Teacher Selection Matters a lot
 
-I tested GPT-5, Claude Sonnet 4, and Gemini 2.5 Pro using multi-dimensional evaluation rather than just overall scores. Claude Sonnet 4 outperformed GPT-5 for our structured output task with superior parsing quality (0.92 vs 0.84), better instruction-following consistency, and more reliable algorithmic preservation. Always empirically test teacher models on your specific task. Marketing benchmarks don't predict your use case.
+I tested GPT-5, Claude Sonnet 4, and Gemini 2.5 Pro using multi-dimensional evaluation rather than just overall scores. Claude Sonnet 4 outperformed GPT-5 for the structured output task with superior parsing quality (0.92 vs 0.84), better instruction-following consistency, and more reliable algorithmic preservation. Always empirically test teacher models on your specific task. Marketing benchmarks don't predict your use case.
 
 #### Garbage in, garbage out
 
@@ -422,7 +420,7 @@ LoRA uses a *learning_rate* of 1e-4 to 2e-4 (higher than full fine-tuning), with
 
 #### Model Size ≠ Quality
 
-GPT-4.1-nano (~6B estimated) scored 0.784, Qwen3-Coder (30B) scored 0.71, and Llama 3.1 (8B) scored 0.68. GPT-4.1-nano won despite fewer parameters due to superior base model architecture, better instruction-following design, optimization for structured output tasks, and high-quality pre-training data. Evaluate multiple models empirically—architecture and training quality matter more than raw parameter count.
+GPT-4.1-nano (~6B estimated) scored 0.784, Qwen3-Coder (30B) scored 0.71, and Llama 3.1 (8B) scored 0.68. GPT-4.1-nano won despite fewer parameters due to superior base model architecture, better instruction-following design, optimization for structured output tasks, and high-quality pre-training data. Evaluate multiple models empirically. Architecture and training quality matter more than raw parameter count.
 
 ### Room to Grow
 
@@ -439,7 +437,7 @@ The model produces well-structured scenarios. Adding real interview patterns and
 ##### Company Relevance (0.75)
 Strong foundation, but static company profiles limit freshness. Integrating dynamic company intelligence (recent launches, acquisitions, tech stack changes) will hopefully push this closer to 0.85+.
 
-The path forward is clear, **richer training data, not architectural changes**. The model architecture works; the next gains come from better inputs.
+The path forward is clear, **richer training data, while making model updates based on experimentation on SOTA models**.
 
 ### What's Next
 
@@ -465,7 +463,7 @@ The path forward is clear, **richer training data, not architectural changes**. 
 
 ### Try It on AlgoIRL
 
-Want to see the fine-tuned model in action? Visit [AlgoIRL](https://algoirl.com)
+Want to see the fine-tuned model in action? Visit [AlgoIRL](https://algoirl.ai)
 
 **Questions or want to discuss fine-tuning for your use case?** Reach out to me!
 
@@ -474,6 +472,19 @@ Want to see the fine-tuned model in action? Visit [AlgoIRL](https://algoirl.com)
 - [LoRA: Low-Rank Adaptation Paper](https://arxiv.org/abs/2106.09685)
 - [Knowledge Distillation Overview](https://arxiv.org/abs/1503.02531)
 - [LLM Evaluation Best Practices](https://www.anthropic.com/index/evaluating-ai-systems)
+- [Awesome-Knowledge-Distillation-of-LLMs](https://github.com/Tebmer/Awesome-Knowledge-Distillation-of-LLMs)
+- [Predibase LLM Distillation Playbook](https://github.com/predibase/llm_distillation_playbook)
+- [Distilling Step-by-Step Paper](https://arxiv.org/abs/2305.02301)
+- [Eugene Yan: Synthetic Data for Finetuning](https://eugeneyan.com/writing/synthetic/)
+- [Unsloth](https://github.com/unslothai/unsloth)
+- [Eugene Yan: LLM Evaluators](https://eugeneyan.com/writing/llm-evaluators/)
+- [Hugging Face PEFT](https://github.com/huggingface/peft)
+- [QLoRA Paper](https://arxiv.org/abs/2305.14314)
+- [QLoRA GitHub](https://github.com/artidoro/qlora)
+- [Replacing Judges with Juries Paper](https://arxiv.org/abs/2404.18796)
+- [Google ML Crash Course: LLM Fine-tuning](https://developers.google.com/machine-learning/crash-course/llm/tuning)
+- [Phil Schmid: Fine-tune LLMs in 2024 with TRL](https://github.com/philschmid/deep-learning-pytorch-huggingface/blob/main/training/fine-tune-llms-in-2024-with-trl.ipynb)
+- [Evidently AI: LLM-as-a-Judge Guide](https://www.evidentlyai.com/llm-guide/llm-as-a-judge)
 
 ---
 

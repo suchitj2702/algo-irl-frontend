@@ -349,6 +349,7 @@ export function AppRouter() {
 const handleHomeClick = () => navigate('/');
  const handleBlind75Click = () => navigate('/blind75');
  const handleStudyPlansClick = () => navigate('/my-study-plans');
+ const handleEngineeringNotesClick = () => navigate('/engineering-notes');
 
  // Study Plan navigation handlers
  const handleCreateNewStudyPlan = () => {
@@ -2037,6 +2038,7 @@ const handleBeforeSignOut = useCallback(async () => {
        onHomeClick={handleHomeClick}
        onBlind75Click={handleBlind75Click}
        onStudyPlansClick={handleStudyPlansClick}
+       onEngineeringNotesClick={handleEngineeringNotesClick}
        onBeforeSignOut={handleBeforeSignOut}
        hideLogo={location.pathname === '/'}
       />
