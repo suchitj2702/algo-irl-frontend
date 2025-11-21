@@ -141,77 +141,133 @@ export function TeacherModelComparisonDiagram() {
   );
 }
 
-const funnelSteps = [
-  { label: 'Generated', value: 7500, note: 'Combinatorial program' },
-  { label: 'Passed validation', value: 6532, note: 'Structure + correctness' },
-  { label: 'Training set', value: 6032, note: 'Used for updates' },
-  { label: 'Validation set', value: 1064, note: 'Held-out scoring' }
-];
-
 export function QualityValidationFunnelDiagram() {
-  const maxValue = funnelSteps[0]?.value ?? 0;
-  const width = 280;
-  const height = 260;
-  const stepHeight = height / funnelSteps.length;
-  const centerX = width / 2;
-  const colors = ['#dbeafe', '#bfdbfe', '#93c5fd', '#3b82f6'];
+  // Design: Inverted pyramid with 3 tiers, text must fit comfortably
+  // Each tier has: main number, label, and context line
 
-  const polygonForStep = (index: number) => {
-    const current = funnelSteps[index];
-    const nextValue =
-      funnelSteps[index + 1]?.value ??
-      Math.max(funnelSteps[index].value * 0.2, maxValue * 0.05);
-    const topWidth = (current.value / maxValue) * width;
-    const bottomWidth = (nextValue / maxValue) * width;
-    const y = index * stepHeight;
-    return `${centerX - topWidth / 2},${y} ${centerX + topWidth / 2},${y} ${centerX + bottomWidth / 2},${
-      y + stepHeight
-    } ${centerX - bottomWidth / 2},${y + stepHeight}`;
+  const tiers = [
+    {
+      value: '7,500',
+      label: 'Generated',
+      context: '15 companies × 100 problems × 5 roles',
+      color: '#e0e7ff', // indigo-100
+      textColor: '#3730a3' // indigo-800
+    },
+    {
+      value: '6,532',
+      label: 'Validated',
+      context: '87% passed quality checks',
+      color: '#a5b4fc', // indigo-300
+      textColor: '#3730a3'
+    },
+    {
+      value: '7,096',
+      label: 'Final Dataset',
+      context: '6,032 train + 1,064 validation',
+      color: '#6366f1', // indigo-500
+      textColor: '#ffffff'
+    }
+  ];
+
+  const width = 400;
+  const height = 280;
+  const centerX = width / 2;
+
+  // Pyramid geometry - generous widths to fit text
+  const tierHeights = [75, 75, 70]; // Each tier height
+  const tierWidths = [360, 260, 160]; // Width at top of each tier
+  const gapFromTop = 15;
+
+  // Calculate cumulative Y positions
+  const getYStart = (idx: number) => {
+    let y = gapFromTop;
+    for (let i = 0; i < idx; i++) {
+      y += tierHeights[i];
+    }
+    return y;
   };
+
+  // Build trapezoid points for each tier
+  const getTrapezoid = (idx: number) => {
+    const y1 = getYStart(idx);
+    const y2 = y1 + tierHeights[idx];
+    const w1 = tierWidths[idx];
+    const w2 = tierWidths[idx + 1] ?? tierWidths[idx] * 0.4; // Last tier narrows to 40%
+
+    return `${centerX - w1 / 2},${y1} ${centerX + w1 / 2},${y1} ${centerX + w2 / 2},${y2} ${centerX - w2 / 2},${y2}`;
+  };
+
+  // Bottom triangle point
+  const lastTierBottom = getYStart(tiers.length - 1) + tierHeights[tiers.length - 1];
+  const bottomTriangleWidth = tierWidths[tierWidths.length - 1] * 0.4;
 
   return (
     <ChartCard
-      title="Quality Validation Funnel"
-      subtitle="Each stage narrows the dataset until only parse-perfect examples remain."
+      title="Data Generation Pipeline"
+      subtitle="Combinatorial generation narrowed through validation"
     >
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="space-y-4">
-          {funnelSteps.map((step, idx) => (
-            <div key={step.label} className="space-y-1">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-3">
-                  <span
-                    className="h-2 w-8 rounded-full"
-                    style={{ backgroundColor: colors[idx] }}
-                  />
-                  <span className="font-medium">{step.label}</span>
-                </div>
-                <span className="text-content-muted text-xs">{step.value.toLocaleString()} items</span>
-              </div>
-              <p className="text-xs text-content-muted">{step.note}</p>
-              {idx < funnelSteps.length - 1 && (
-                <div className="h-px bg-outline-subtle/30" />
-              )}
-            </div>
-          ))}
-        </div>
-        <svg width={width} height={height} className="justify-self-center drop-shadow-sm">
-          {funnelSteps.map((step, idx) => (
+      <div className="flex justify-center">
+        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="max-w-full">
+          {/* Tier trapezoids */}
+          {tiers.map((tier, idx) => (
             <polygon
-              key={step.label}
-              points={polygonForStep(idx)}
-              fill={colors[idx]}
-              stroke="rgba(15,23,42,0.1)"
-              strokeWidth={1.5}
+              key={tier.label}
+              points={getTrapezoid(idx)}
+              fill={tier.color}
+              stroke="rgba(99, 102, 241, 0.3)"
+              strokeWidth={1}
             />
           ))}
-          <rect
-            x={centerX - (width * 0.08) / 2}
-            y={height - stepHeight * 0.4}
-            width={width * 0.08}
-            height={stepHeight * 0.4}
-            fill="#1d4ed8"
-            rx={2}
+
+          {/* Text inside each tier */}
+          {tiers.map((tier, idx) => {
+            const yStart = getYStart(idx);
+            const tierHeight = tierHeights[idx];
+            const centerY = yStart + tierHeight / 2;
+
+            return (
+              <g key={`text-${tier.label}`}>
+                {/* Main value - large and bold */}
+                <text
+                  x={centerX}
+                  y={centerY - 12}
+                  textAnchor="middle"
+                  fill={tier.textColor}
+                  className="text-2xl font-bold"
+                  style={{ fontSize: '22px', fontWeight: 700 }}
+                >
+                  {tier.value}
+                </text>
+                {/* Label */}
+                <text
+                  x={centerX}
+                  y={centerY + 8}
+                  textAnchor="middle"
+                  fill={tier.textColor}
+                  style={{ fontSize: '13px', fontWeight: 600 }}
+                >
+                  {tier.label}
+                </text>
+                {/* Context line - smaller */}
+                <text
+                  x={centerX}
+                  y={centerY + 24}
+                  textAnchor="middle"
+                  fill={tier.textColor}
+                  style={{ fontSize: '10px', opacity: 0.8 }}
+                >
+                  {tier.context}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Bottom point/tip of pyramid */}
+          <polygon
+            points={`${centerX - bottomTriangleWidth / 2},${lastTierBottom} ${centerX + bottomTriangleWidth / 2},${lastTierBottom} ${centerX},${height - 10}`}
+            fill="#4338ca"
+            stroke="rgba(99, 102, 241, 0.3)"
+            strokeWidth={1}
           />
         </svg>
       </div>
@@ -841,9 +897,140 @@ export function ProjectedCostGrowthDiagram() {
   );
 }
 
+// Quality Validation Pipeline stages
+const pipelineStages = [
+  { id: 'input', label: 'Input', note: 'Same prompts for all models' },
+  { id: 'judges', label: 'Judge Ensemble', note: '3 frontier models' },
+  { id: 'dimensions', label: '6 Dimensions', note: 'Scored 0.0 → 1.0' },
+  { id: 'aggregate', label: 'Aggregate', note: 'Average per dimension' },
+  { id: 'output', label: 'Scorecard', note: 'Automated reports' }
+];
+
+const judgeModels = [
+  { name: 'Claude Sonnet 4', color: '#0f172a' },
+  { name: 'GPT-5', color: '#0ea5e9' },
+  { name: 'Gemini 2.5', color: '#f43f5e' }
+];
+
+const evaluationDimensionsPipeline = [
+  'Algorithmic Correctness',
+  'Parsing Quality',
+  'Technical Accuracy',
+  'Company Relevance',
+  'Role Specificity',
+  'Scenario Realism'
+];
+
+export function QualityValidationPipelineDiagram() {
+  return (
+    <ChartCard
+      title="Quality Validation Pipeline"
+      subtitle="Provider-agnostic LLM-as-a-judge workflow for consistent evaluation"
+    >
+      <div className="space-y-6">
+        {/* Main Pipeline Flow */}
+        <div className="relative py-2">
+          {/* Stages */}
+          <div className="flex items-center justify-between gap-2 sm:gap-0">
+            {pipelineStages.map((stage, idx) => (
+              <div key={stage.id} className="flex items-center">
+                {/* Stage box */}
+                <div className="flex flex-col items-center text-center">
+                  <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl border border-outline-subtle/40 bg-white shadow-sm">
+                    {stage.id === 'input' && (
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-slate-600">
+                        <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                        <path d="M8 9h8M8 12h8M8 15h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    )}
+                    {stage.id === 'judges' && (
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-slate-600">
+                        {/* Three voting cards/ballots stacked */}
+                        <rect x="3" y="5" width="8" height="6" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                        <path d="M5 8h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        <rect x="8" y="9" width="8" height="6" rx="1" stroke="currentColor" strokeWidth="1.5" fill="white" />
+                        <path d="M10 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        <rect x="13" y="13" width="8" height="6" rx="1" stroke="currentColor" strokeWidth="1.5" fill="white" />
+                        <path d="M15 16h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                    )}
+                    {stage.id === 'dimensions' && (
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-slate-600">
+                        <rect x="3" y="5" width="18" height="2" rx="1" fill="currentColor" opacity="0.3" />
+                        <rect x="3" y="9" width="14" height="2" rx="1" fill="currentColor" opacity="0.45" />
+                        <rect x="3" y="13" width="16" height="2" rx="1" fill="currentColor" opacity="0.6" />
+                        <rect x="3" y="17" width="10" height="2" rx="1" fill="currentColor" opacity="0.8" />
+                      </svg>
+                    )}
+                    {stage.id === 'aggregate' && (
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-slate-600">
+                        <path d="M6 6v4l6 2 6-2V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M12 12v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        <circle cx="12" cy="19" r="2" stroke="currentColor" strokeWidth="1.5" />
+                      </svg>
+                    )}
+                    {stage.id === 'output' && (
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-slate-600">
+                        <rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                        <path d="M8 8h8M8 12h8M8 16h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        <circle cx="16" cy="16" r="2" fill="#22c55e" />
+                      </svg>
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs sm:text-sm font-semibold text-content">{stage.label}</p>
+                  <p className="text-[10px] sm:text-xs text-content-muted">{stage.note}</p>
+                </div>
+
+                {/* Arrow connector */}
+                {idx < pipelineStages.length - 1 && (
+                  <div className="mx-1 sm:mx-3 flex-shrink-0">
+                    <svg width="20" height="12" viewBox="0 0 20 12" className="text-slate-400">
+                      <path d="M0 6h16M12 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Detail Cards */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/* Judge Ensemble Card */}
+          <div className="rounded-xl border border-outline-subtle/30 p-4 space-y-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-content-muted">Judge Ensemble</p>
+            <div className="space-y-2">
+              {judgeModels.map((model) => (
+                <div key={model.name} className="flex items-center gap-3">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: model.color }} />
+                  <span className="text-sm text-content">{model.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Dimensions Card */}
+          <div className="rounded-xl border border-outline-subtle/30 p-4 space-y-3">
+            <p className="text-xs uppercase tracking-[0.3em] text-content-muted">Evaluation Dimensions</p>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              {evaluationDimensionsPipeline.map((dim, idx) => (
+                <div key={dim} className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-content-muted w-4">{idx + 1}.</span>
+                  <span className="text-sm text-content">{dim}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </ChartCard>
+  );
+}
+
 const diagramMap: Record<string, ReactNode> = {
   'Teacher Model Comparison': <TeacherModelComparisonDiagram />,
   'Quality Funnel': <QualityValidationFunnelDiagram />,
+  'Quality Validation Pipeline': <QualityValidationPipelineDiagram />,
   'Training Data Distribution': <TrainingDataDistributionDiagram />,
   'Training Loss Curves': <TrainingLossCurvesDiagram />,
   'Model Comparison Matrix': <ModelComparisonMatrixDiagram />,

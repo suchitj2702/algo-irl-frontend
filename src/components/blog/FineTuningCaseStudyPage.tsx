@@ -1,6 +1,6 @@
 import remarkGfm from 'remark-gfm';
 import ReactMarkdown from 'react-markdown';
-import fineTuningCaseStudy from '../../../docs/blog_post_fine_tuning_case_study.md?raw';
+import fineTuningCaseStudy from '../../content/blog/fine-tuning-case-study.md?raw';
 import { Footer } from '../Footer';
 import { cn } from '@/lib/utils';
 import { getDiagramComponent } from './diagrams/CaseStudyDiagrams';
@@ -154,9 +154,8 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
     const diagram = getDiagramComponent(alt);
     if (diagram) {
       return (
-        <figure className="my-12 space-y-3">
+        <figure className="my-12">
           <div>{diagram}</div>
-          {alt && <figcaption className="text-sm text-content-muted">{alt}</figcaption>}
         </figure>
       );
     }
