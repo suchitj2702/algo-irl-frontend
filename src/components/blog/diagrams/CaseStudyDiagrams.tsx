@@ -1,669 +1,155 @@
 import type { ReactNode } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import {
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  LineChart, Line, AreaChart, Area, ComposedChart
+} from 'recharts';
+import {
+  Brain,
+  Filter,
+  Database,
+  CheckCircle,
+  XCircle,
+  Zap,
+  DollarSign,
+  Clock,
+  FileJson,
+  ArrowRight,
+  Scale,
+  Target,
+  TrendingUp,
+  Layers,
+  BarChart3,
+  GitBranch,
+  Award
+} from 'lucide-react';
+import {
+  containerVariants,
+  itemVariants,
+  gridContainerVariants,
+  funnelTierVariants,
+  pipelineStageVariants,
+  badgePopVariants
+} from './animationVariants';
 
-const chartCardClass =
-  'rounded-2xl border border-outline-subtle/40 bg-white p-5 shadow-sm text-content';
+// --- Animated ChartCard Component ---
 
 interface ChartCardProps {
   title: string;
   subtitle?: string;
+  icon?: ReactNode;
   children: ReactNode;
 }
 
-function ChartCard({ title, subtitle, children }: ChartCardProps) {
-  return (
-    <div className={chartCardClass}>
-      <div className="mb-4 space-y-1">
-        <p className="text-xs uppercase tracking-[0.3em] text-content-muted">{title}</p>
-        {subtitle && <p className="text-sm text-content-muted">{subtitle}</p>}
+function ChartCard({ title, subtitle, icon, children }: ChartCardProps) {
+  const shouldReduceMotion = useReducedMotion();
+
+  const content = (
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-md hover:shadow-lg transition-shadow duration-300">
+      <div className="mb-5 space-y-1">
+        <div className="flex items-center gap-2">
+          {icon && <span className="text-indigo-500">{icon}</span>}
+          <p className="text-xs uppercase tracking-[0.2em] font-semibold text-slate-500">{title}</p>
+        </div>
+        {subtitle && <p className="text-sm text-slate-600">{subtitle}</p>}
       </div>
       {children}
     </div>
   );
+
+  if (shouldReduceMotion) {
+    return content;
+  }
+
+  return (
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.25 }}
+      variants={containerVariants}
+    >
+      {content}
+    </motion.div>
+  );
 }
 
-const teacherDimensions = [
-  { label: 'Algorithmic Correctness', claude: 0.95, gpt5: 0.91, gemini: 0.86 },
-  { label: 'Parsing Quality', claude: 0.91, gpt5: 0.83, gemini: 0.78 },
-  { label: 'Technical Accuracy', claude: 0.87, gpt5: 0.82, gemini: 0.75 },
-  { label: 'Company Relevance', claude: 0.78, gpt5: 0.74, gemini: 0.7 },
-  { label: 'Role Specificity', claude: 0.63, gpt5: 0.66, gemini: 0.58 },
-  { label: 'Scenario Realism', claude: 0.64, gpt5: 0.65, gemini: 0.62 }
+// --- Data Definitions ---
+
+const teacherData = [
+  { subject: 'Algorithmic Correctness', claude: 0.95, gpt5: 0.91, gemini: 0.86, fullMark: 1 },
+  { subject: 'Parsing Quality', claude: 0.91, gpt5: 0.83, gemini: 0.78, fullMark: 1 },
+  { subject: 'Technical Accuracy', claude: 0.87, gpt5: 0.82, gemini: 0.75, fullMark: 1 },
+  { subject: 'Company Relevance', claude: 0.78, gpt5: 0.74, gemini: 0.70, fullMark: 1 },
+  { subject: 'Scenario Realism', claude: 0.64, gpt5: 0.65, gemini: 0.62, fullMark: 1 },
+  { subject: 'Role Specificity', claude: 0.63, gpt5: 0.66, gemini: 0.58, fullMark: 1 }
 ];
 
 const radarModels = [
-  { key: 'claude', label: 'Claude Sonnet 4', stroke: '#0f172a', fill: 'rgba(15, 23, 42, 0.18)' },
-  { key: 'gpt5', label: 'GPT-5', stroke: '#0ea5e9', fill: 'rgba(14, 165, 233, 0.18)' },
-  { key: 'gemini', label: 'Gemini 2.5 Pro', stroke: '#f43f5e', fill: 'rgba(244, 63, 94, 0.15)' }
+  { key: 'claude', label: 'Claude Sonnet 4', stroke: '#8b5cf6', fill: 'rgba(139, 92, 246, 0.4)' },
+  { key: 'gpt5', label: 'GPT-5', stroke: '#3b82f6', fill: 'rgba(59, 130, 246, 0.25)' },
+  { key: 'gemini', label: 'Gemini 2.5 Pro', stroke: '#10b981', fill: 'rgba(16, 185, 129, 0.15)' }
 ] as const;
 
-export function TeacherModelComparisonDiagram() {
-  const size = 360;
-  const center = size / 2;
-  const radius = center - 40;
-  const angleStep = (Math.PI * 2) / teacherDimensions.length;
-
-  const toPoint = (score: number, index: number) => {
-    const angle = -Math.PI / 2 + index * angleStep;
-    const dist = radius * score;
-    return {
-      x: center + dist * Math.cos(angle),
-      y: center + dist * Math.sin(angle)
-    };
-  };
-
-  const pathFor = (key: string) => {
-    const points = teacherDimensions.map((dimension, idx) => {
-      const score = (dimension as Record<string, number>)[key];
-      const { x, y } = toPoint(score, idx);
-      return `${idx === 0 ? 'M' : 'L'} ${x.toFixed(2)},${y.toFixed(2)}`;
-    });
-    return points.join(' ') + ' Z';
-  };
-
-  return (
-    <ChartCard
-      title="Teacher Model Comparison"
-      subtitle="Radar plot highlights Claude 4’s lead on fidelity and structure."
-    >
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
-        <svg width={size} height={size} className="text-content-muted">
-          {[0.4, 0.7, 1].map((level) => (
-            <circle
-              key={level}
-              cx={center}
-              cy={center}
-              r={radius * level}
-              className="fill-none stroke-outline-subtle/40"
-              strokeDasharray="6 8"
-            />
-          ))}
-          {teacherDimensions.map((dimension, idx) => {
-            const { x, y } = toPoint(1, idx);
-            const labelPoint = toPoint(1.12, idx);
-            const words = dimension.label.split(' ');
-            return (
-              <g key={dimension.label}>
-                <line x1={center} y1={center} x2={x} y2={y} className="stroke-outline-subtle/50" />
-                <text
-                  x={labelPoint.x}
-                  y={labelPoint.y}
-                  className="text-[11px] fill-content-muted"
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                >
-                  {words.map((word, wordIdx) => (
-                    <tspan key={wordIdx} x={labelPoint.x} dy={wordIdx === 0 ? 0 : 12}>
-                      {word}
-                    </tspan>
-                  ))}
-                </text>
-              </g>
-            );
-          })}
-          {radarModels.map((model) => (
-            <path
-              key={model.key}
-              d={pathFor(model.key)}
-              fill={model.fill}
-              stroke={model.stroke}
-              strokeWidth={2}
-            />
-          ))}
-        </svg>
-        <div className="flex-1 space-y-4">
-          {radarModels.map((model) => (
-            <div key={model.key} className="rounded-xl border border-outline-subtle/30 p-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="h-3 w-3 rounded-full" style={{ background: model.stroke }} />
-                <div>
-                  <p className="text-sm font-semibold">{model.label}</p>
-                  <p className="text-xs text-content-muted">
-                    Avg. score {(
-                      teacherDimensions.reduce(
-                        (sum, dimension) => sum + (dimension as Record<string, number>)[model.key],
-                        0
-                      ) / teacherDimensions.length
-                    ).toFixed(3)}
-                  </p>
-                </div>
-              </div>
-              <span className="text-xs text-content-muted">
-                Peaks: {teacherDimensions
-                  .filter((dimension) => (dimension as Record<string, number>)[model.key] >= 0.9)
-                  .map((dimension) => dimension.label.split(' ')[0])
-                  .join(', ') || '—'}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </ChartCard>
-  );
-}
-
-export function QualityValidationFunnelDiagram() {
-  // Design: Inverted pyramid with 3 tiers, text must fit comfortably
-  // Each tier has: main number, label, and context line
-
-  const tiers = [
-    {
-      value: '7,500',
-      label: 'Generated',
-      context: '15 companies × 100 problems × 5 roles',
-      color: '#e0e7ff', // indigo-100
-      textColor: '#3730a3' // indigo-800
-    },
-    {
-      value: '6,532',
-      label: 'Validated',
-      context: '87% passed quality checks',
-      color: '#a5b4fc', // indigo-300
-      textColor: '#3730a3'
-    },
-    {
-      value: '7,096',
-      label: 'Final Dataset',
-      context: '6,032 train + 1,064 validation',
-      color: '#6366f1', // indigo-500
-      textColor: '#ffffff'
-    }
-  ];
-
-  const width = 400;
-  const height = 280;
-  const centerX = width / 2;
-
-  // Pyramid geometry - generous widths to fit text
-  const tierHeights = [75, 75, 70]; // Each tier height
-  const tierWidths = [360, 260, 160]; // Width at top of each tier
-  const gapFromTop = 15;
-
-  // Calculate cumulative Y positions
-  const getYStart = (idx: number) => {
-    let y = gapFromTop;
-    for (let i = 0; i < idx; i++) {
-      y += tierHeights[i];
-    }
-    return y;
-  };
-
-  // Build trapezoid points for each tier
-  const getTrapezoid = (idx: number) => {
-    const y1 = getYStart(idx);
-    const y2 = y1 + tierHeights[idx];
-    const w1 = tierWidths[idx];
-    const w2 = tierWidths[idx + 1] ?? tierWidths[idx] * 0.4; // Last tier narrows to 40%
-
-    return `${centerX - w1 / 2},${y1} ${centerX + w1 / 2},${y1} ${centerX + w2 / 2},${y2} ${centerX - w2 / 2},${y2}`;
-  };
-
-  // Bottom triangle point
-  const lastTierBottom = getYStart(tiers.length - 1) + tierHeights[tiers.length - 1];
-  const bottomTriangleWidth = tierWidths[tierWidths.length - 1] * 0.4;
-
-  return (
-    <ChartCard
-      title="Data Generation Pipeline"
-      subtitle="Combinatorial generation narrowed through validation"
-    >
-      <div className="flex justify-center">
-        <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="max-w-full">
-          {/* Tier trapezoids */}
-          {tiers.map((tier, idx) => (
-            <polygon
-              key={tier.label}
-              points={getTrapezoid(idx)}
-              fill={tier.color}
-              stroke="rgba(99, 102, 241, 0.3)"
-              strokeWidth={1}
-            />
-          ))}
-
-          {/* Text inside each tier */}
-          {tiers.map((tier, idx) => {
-            const yStart = getYStart(idx);
-            const tierHeight = tierHeights[idx];
-            const centerY = yStart + tierHeight / 2;
-
-            return (
-              <g key={`text-${tier.label}`}>
-                {/* Main value - large and bold */}
-                <text
-                  x={centerX}
-                  y={centerY - 12}
-                  textAnchor="middle"
-                  fill={tier.textColor}
-                  className="text-2xl font-bold"
-                  style={{ fontSize: '22px', fontWeight: 700 }}
-                >
-                  {tier.value}
-                </text>
-                {/* Label */}
-                <text
-                  x={centerX}
-                  y={centerY + 8}
-                  textAnchor="middle"
-                  fill={tier.textColor}
-                  style={{ fontSize: '13px', fontWeight: 600 }}
-                >
-                  {tier.label}
-                </text>
-                {/* Context line - smaller */}
-                <text
-                  x={centerX}
-                  y={centerY + 24}
-                  textAnchor="middle"
-                  fill={tier.textColor}
-                  style={{ fontSize: '10px', opacity: 0.8 }}
-                >
-                  {tier.context}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* Bottom point/tip of pyramid */}
-          <polygon
-            points={`${centerX - bottomTriangleWidth / 2},${lastTierBottom} ${centerX + bottomTriangleWidth / 2},${lastTierBottom} ${centerX},${height - 10}`}
-            fill="#4338ca"
-            stroke="rgba(99, 102, 241, 0.3)"
-            strokeWidth={1}
-          />
-        </svg>
-      </div>
-    </ChartCard>
-  );
-}
-
 const roleDistribution = [
-  { label: 'Backend', value: 1510 },
-  { label: 'ML', value: 1208 },
-  { label: 'Frontend', value: 1205 },
-  { label: 'Infrastructure', value: 1055 },
-  { label: 'Security', value: 1054 }
+  { label: 'Backend', value: 1510, icon: <Database size={14} /> },
+  { label: 'ML', value: 1208, icon: <Brain size={14} /> },
+  { label: 'Frontend', value: 1205, icon: <Layers size={14} /> },
+  { label: 'Infrastructure', value: 1055, icon: <GitBranch size={14} /> },
+  { label: 'Security', value: 1054, icon: <Scale size={14} /> }
 ];
 
 const difficultyDistribution = [
-  { label: 'Easy', value: 2011 },
-  { label: 'Medium', value: 2814 },
-  { label: 'Hard', value: 1207 }
+  { label: 'Easy', value: 2011, color: '#22c55e' },
+  { label: 'Medium', value: 2814, color: '#f59e0b' },
+  { label: 'Hard', value: 1207, color: '#ef4444' }
 ];
-
-export function TrainingDataDistributionDiagram() {
-  const maxRole = Math.max(...roleDistribution.map((d) => d.value));
-  const maxDifficulty = Math.max(...difficultyDistribution.map((d) => d.value));
-
-  return (
-    <ChartCard title="Training Data Distribution" subtitle="Balance was intentional across roles and complexity.">
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.3em] text-content-muted">Roles</p>
-          {roleDistribution.map((role) => (
-            <div key={role.label}>
-              <div className="flex justify-between text-sm">
-                <span>{role.label}</span>
-                <span className="text-content-muted">{role.value}</span>
-              </div>
-              <div className="mt-1 h-1.5 rounded-full bg-panel-100">
-                <div
-                  className="h-full rounded-full bg-slate-500"
-                  style={{ width: `${(role.value / maxRole) * 100}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.3em] text-content-muted">Difficulty</p>
-          {difficultyDistribution.map((difficulty) => (
-            <div key={difficulty.label}>
-              <div className="flex justify-between text-sm">
-                <span>{difficulty.label}</span>
-                <span className="text-content-muted">{difficulty.value}</span>
-              </div>
-              <div className="mt-1 h-1.5 rounded-full bg-panel-100">
-                <div
-                  className="h-full rounded-full bg-slate-500"
-                  style={{ width: `${(difficulty.value / maxDifficulty) * 100}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="mt-5 rounded-xl border border-outline-subtle/30 p-4 text-sm text-content-muted">
-        <p>Tokens processed: <span className="font-semibold text-content">42.5M</span></p>
-        <p className="mt-1">Avg. example length: <span className="font-semibold text-content">7,051 tokens</span></p>
-      </div>
-    </ChartCard>
-  );
-}
 
 const lossExperiments = [
-  {
-    name: 'GPT-4.1-nano',
-    training: [0.42, 0.33, 0.285],
-    validation: [0.39, 0.34, 0.315]
-  },
-  {
-    name: 'Qwen3-Coder-30B',
-    training: [0.58, 0.52, 0.48],
-    validation: [0.63, 0.59, 0.55]
-  },
-  {
-    name: 'Llama 3.1 8B',
-    training: [0.65, 0.58, 0.54],
-    validation: [0.7, 0.66, 0.63]
-  }
+  { name: 'GPT-4.1-nano', training: [0.42, 0.33, 0.285], validation: [0.39, 0.34, 0.315], winner: true },
+  { name: 'Qwen3-Coder-30B', training: [0.58, 0.52, 0.48], validation: [0.63, 0.59, 0.55], winner: false },
+  { name: 'Llama 3.1 8B', training: [0.65, 0.58, 0.54], validation: [0.7, 0.66, 0.63], winner: false }
 ];
 
-function buildLinePath(values: number[], width: number, height: number, domain: [number, number]) {
-  const [minValue, maxValue] = domain;
-  const xStep = width / (values.length - 1);
-  return values
-    .map((value, index) => {
-      const x = index * xStep;
-      const normalized = (value - minValue) / (maxValue - minValue);
-      const y = height - normalized * height;
-      return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)},${y.toFixed(2)}`;
-    })
-    .join(' ');
-}
-
-export function TrainingLossCurvesDiagram() {
-  const width = 140;
-  const height = 80;
-  const domain: [number, number] = [0.25, 0.85];
-
-  return (
-    <ChartCard title="Training Loss Curves" subtitle="Three epochs per experiment, plotted as paired lines.">
-      <div className="grid gap-4 sm:grid-cols-3">
-        {lossExperiments.map((experiment) => (
-          <div key={experiment.name} className="rounded-xl border border-outline-subtle/30 p-3">
-            <p className="text-sm font-semibold">{experiment.name}</p>
-            <svg width={width} height={height} className="mt-2">
-              {[0.3, 0.4, 0.5, 0.6, 0.7].map((value) => {
-                const normalized = (value - domain[0]) / (domain[1] - domain[0]);
-                const y = height - normalized * height;
-                return <line key={value} x1={0} x2={width} y1={y} y2={y} className="stroke-outline-subtle/30" />;
-              })}
-              <path
-                d={buildLinePath(experiment.training, width, height, domain)}
-                className="stroke-slate-600"
-                strokeWidth={2}
-                fill="none"
-              />
-              <path
-                d={buildLinePath(experiment.validation, width, height, domain)}
-                className="stroke-slate-400"
-                strokeWidth={1.5}
-                strokeDasharray="4 4"
-                fill="none"
-              />
-            </svg>
-            <p className="mt-2 text-xs text-content-muted">Solid line → training. Dashed line → validation.</p>
-          </div>
-        ))}
-      </div>
-    </ChartCard>
-  );
-}
-
-const modelComparisons = [
-  { model: 'Claude Sonnet 4', detail: 'Teacher baseline', quality: 0.795, latency: 25, cost: 4.0, hosting: 'API' },
-  { model: 'GPT-4.1-nano', detail: 'Fine-tuned student', quality: 0.784, latency: 2.5, cost: 0.08, hosting: 'API' },
-  { model: 'Qwen3-Coder-30B', detail: 'LoRA, self-hosted', quality: 0.71, latency: 20, cost: 5.5, hosting: 'Self-hosted' },
-  { model: 'Llama 3.1 8B', detail: 'LoRA, serverless', quality: 0.68, latency: 15, cost: 0.2, hosting: 'API' }
+const studentComparisonData = [
+  { name: 'GPT-4.1-nano (FT)', quality: 0.78, latency: 2.5, cost: 1.30, parsing: 92, winner: true },
+  { name: 'Qwen3-30B (LoRA)', quality: 0.71, latency: 20.0, cost: 5.50, parsing: 79, winner: false },
+  { name: 'Llama 3.1 8B (LoRA)', quality: 0.68, latency: 15.0, cost: 2.00, parsing: 76, winner: false }
 ];
-
-export function ModelComparisonMatrixDiagram() {
-  return (
-    <ChartCard title="Model Comparison Matrix" subtitle="Simple table highlights the trade-offs per model.">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="text-left text-xs uppercase tracking-[0.2em] text-content-muted">
-            <tr>
-              <th className="py-2 pr-4">Model</th>
-              <th className="py-2 pr-4">Quality</th>
-              <th className="py-2 pr-4">Latency</th>
-              <th className="py-2 pr-4">Cost / 1K</th>
-              <th className="py-2 pr-4">Hosting</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-outline-subtle/30">
-            {modelComparisons.map((entry) => (
-              <tr key={entry.model}>
-                <td className="py-2 pr-4">
-                  <p className="font-semibold">{entry.model}</p>
-                  <p className="text-xs text-content-muted">{entry.detail}</p>
-                </td>
-                <td className="py-2 pr-4">{entry.quality.toFixed(3)}</td>
-                <td className="py-2 pr-4">{entry.latency}s</td>
-                <td className="py-2 pr-4">${entry.cost.toFixed(2)}</td>
-                <td className="py-2 pr-4 text-content-muted">{entry.hosting}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </ChartCard>
-  );
-}
-
-const architectureStages = [
-  { title: 'Claude Sonnet 4', description: 'Highest structural fidelity on evaluations.' },
-  { title: 'Evaluation + Filtering', description: 'LLM-as-a-judge + parsing QA on 7.5K generations.' },
-  { title: 'Fine-tuned GPT-4.1-nano', description: '96% quality, 10× faster, 95% cheaper.' }
-];
-
-export function TeacherStudentArchitectureDiagram() {
-  return (
-    <ChartCard title="Teacher → Student Flow" subtitle="A three-step knowledge distillation loop.">
-      <div className="space-y-6">
-        {architectureStages.map((stage, idx) => (
-          <div key={stage.title} className="flex gap-4">
-            <div className="flex flex-col items-center">
-              <div className="h-3 w-3 rounded-full bg-slate-600" />
-              {idx < architectureStages.length - 1 && (
-                <div className="flex-1 w-px bg-outline-subtle/50 mt-1" />
-              )}
-            </div>
-            <div>
-              <p className="text-sm font-semibold">{stage.title}</p>
-              <p className="text-sm text-content-muted">{stage.description}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </ChartCard>
-  );
-}
 
 const evaluationDimensions = [
-  { label: 'Algorithmic correctness', value: 0.982 },
-  { label: 'Company relevance', value: 0.749 },
-  { label: 'Role specificity', value: 0.568 },
-  { label: 'Scenario realism', value: 0.596 },
-  { label: 'Technical accuracy', value: 0.885 },
-  { label: 'Parsing quality', value: 0.923 }
+  { label: 'Algorithmic Correctness', value: 0.982 },
+  { label: 'Parsing Quality', value: 0.923 },
+  { label: 'Technical Accuracy', value: 0.885 },
+  { label: 'Company Relevance', value: 0.749 },
+  { label: 'Scenario Realism', value: 0.596 },
+  { label: 'Role Specificity', value: 0.568 }
 ];
-
-export function EvaluationFrameworkDiagram() {
-  return (
-    <ChartCard title="Evaluation Framework" subtitle="Six equally weighted rubrics roll up into the final score.">
-      <dl className="space-y-3">
-        {evaluationDimensions.map((dimension) => (
-          <div key={dimension.label}>
-            <dt className="text-sm text-content-muted">{dimension.label}</dt>
-            <dd className="flex items-center gap-3">
-              <span className="text-lg font-semibold">{dimension.value.toFixed(3)}</span>
-              <div className="flex-1 h-1 rounded-full bg-panel-100">
-                <div
-                  className="h-full rounded-full bg-slate-600"
-                  style={{ width: `${dimension.value * 100}%` }}
-                />
-              </div>
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </ChartCard>
-  );
-}
 
 const comparisonDimensions = [
-  { label: 'Algorithmic correctness', claude: 0.95, student: 0.982 },
-  { label: 'Parsing quality', claude: 0.91, student: 0.923 },
-  { label: 'Technical accuracy', claude: 0.87, student: 0.885 },
-  { label: 'Company relevance', claude: 0.78, student: 0.749 },
-  { label: 'Role specificity', claude: 0.63, student: 0.568 },
-  { label: 'Scenario realism', claude: 0.64, student: 0.596 }
+  { label: 'Algorithmic Correctness', claude: 0.95, student: 0.982, better: 'student' },
+  { label: 'Parsing Quality', claude: 0.91, student: 0.923, better: 'student' },
+  { label: 'Technical Accuracy', claude: 0.87, student: 0.885, better: 'student' },
+  { label: 'Company Relevance', claude: 0.78, student: 0.749, better: 'claude' },
+  { label: 'Role Specificity', claude: 0.63, student: 0.568, better: 'claude' },
+  { label: 'Scenario Realism', claude: 0.64, student: 0.596, better: 'claude' }
 ];
-
-export function EvaluationComparisonDiagram() {
-  return (
-    <ChartCard title="Evaluation Comparison" subtitle="Claude (teacher) vs GPT-4.1-nano (student).">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="text-left text-xs uppercase tracking-[0.2em] text-content-muted">
-            <tr>
-              <th className="py-2 pr-4">Dimension</th>
-              <th className="py-2 pr-4">Claude</th>
-              <th className="py-2 pr-4">GPT-4.1-nano</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-outline-subtle/30">
-            {comparisonDimensions.map((dimension) => (
-              <tr key={dimension.label}>
-                <td className="py-2 pr-4">{dimension.label}</td>
-                <td className="py-2 pr-4">{dimension.claude.toFixed(3)}</td>
-                <td className="py-2 pr-4">{dimension.student.toFixed(3)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </ChartCard>
-  );
-}
 
 const costSeries = [
-  { volume: 1000, claude: 4, student: 0.08 },
-  { volume: 10000, claude: 40, student: 0.8 },
-  { volume: 100000, claude: 400, student: 8 },
-  { volume: 1000000, claude: 4000, student: 80 }
+  { volume: '1K', claude: 4, student: 0.08 },
+  { volume: '10K', claude: 40, student: 0.8 },
+  { volume: '100K', claude: 400, student: 8 },
+  { volume: '1M', claude: 4000, student: 80 }
 ];
-
-export function CostComparisonChart() {
-  return (
-    <ChartCard title="Cost Comparison" subtitle="Monthly inference cost by request volume.">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="text-left text-xs uppercase tracking-[0.2em] text-content-muted">
-            <tr>
-              <th className="py-2 pr-4">Monthly volume</th>
-              <th className="py-2 pr-4">Claude Sonnet 4</th>
-              <th className="py-2 pr-4">Fine-tuned GPT-4.1-nano</th>
-              <th className="py-2 pr-4">Savings</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-outline-subtle/30">
-            {costSeries.map((entry) => (
-              <tr key={entry.volume}>
-                <td className="py-2 pr-4">{entry.volume.toLocaleString()}</td>
-                <td className="py-2 pr-4">${entry.claude.toFixed(2)}</td>
-                <td className="py-2 pr-4">${entry.student.toFixed(2)}</td>
-                <td className="py-2 pr-4 text-emerald-600">
-                  ${(entry.claude - entry.student).toFixed(2)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </ChartCard>
-  );
-}
 
 const monthlySavings = 392;
 const setupCost = 351.6;
 const roiTimeline = Array.from({ length: 12 }, (_, idx) => {
   const month = idx + 1;
   const cumulative = month * monthlySavings - setupCost;
-  return { month, cumulative };
+  return { month: `M${month}`, cumulative, breakeven: month === 1 };
 });
 
-export function RoiTimelineDiagram() {
-  const width = 320;
-  const height = 140;
-  const maxValue = Math.max(...roiTimeline.map((d) => d.cumulative));
-  const points = roiTimeline
-    .map((point, idx) => {
-      const x = (idx / (roiTimeline.length - 1)) * width;
-      const y = height - (point.cumulative / maxValue) * height;
-      return `${idx === 0 ? 'M' : 'L'} ${x.toFixed(2)},${y.toFixed(2)}`;
-    })
-    .join(' ');
-
-  return (
-    <ChartCard title="ROI Timeline" subtitle="Cumulative savings at current production volume.">
-      <svg width={width} height={height} className="w-full">
-        <path d={points} fill="none" stroke="#0f172a" strokeWidth={2} />
-        {roiTimeline.map((point, idx) => {
-          const x = (idx / (roiTimeline.length - 1)) * width;
-          const y = height - (point.cumulative / maxValue) * height;
-          return <circle key={point.month} cx={x} cy={y} r={2} className="fill-slate-600" />;
-        })}
-      </svg>
-      <div className="mt-4 text-sm text-content-muted">
-        Break-even: <span className="font-semibold text-content">~90K transformations</span>
-      </div>
-    </ChartCard>
-  );
-}
-
-export function TcoComparisonDiagram() {
-  const claude = 4800;
-  const student = 447.63;
-  const maxValue = claude;
-
-  return (
-    <ChartCard title="12-Month TCO Comparison" subtitle="Scenario: 100K transformations per month.">
-      <div className="space-y-4 text-sm">
-        <div>
-          <div className="flex justify-between text-content-muted">
-            <span>Claude Sonnet 4</span>
-            <span>${claude.toLocaleString()}</span>
-          </div>
-          <div className="mt-1 h-3 rounded-full bg-panel-100">
-            <div
-              className="h-full rounded-full bg-slate-600"
-              style={{ width: `${(claude / maxValue) * 100}%` }}
-            />
-          </div>
-        </div>
-        <div>
-          <div className="flex justify-between text-content-muted">
-            <span>Fine-tuned GPT-4.1-nano</span>
-            <span>${student.toLocaleString()}</span>
-          </div>
-          <div className="mt-1 h-3 rounded-full bg-panel-100">
-            <div
-              className="h-full rounded-full bg-slate-600"
-              style={{ width: `${(student / maxValue) * 100}%` }}
-            />
-          </div>
-        </div>
-        <p className="text-xs text-content-muted">
-          Savings after 12 months: ${(claude - student).toLocaleString()} (91% reduction)
-        </p>
-      </div>
-    </ChartCard>
-  );
-}
-
-// Projected growth: 5K (month 1) to 50K (month 12) with slight exponential curve
-// Using formula: volume = 5000 * (50000/5000)^((month-1)/11) for smooth growth
 const projectedGrowthData = Array.from({ length: 12 }, (_, idx) => {
   const month = idx + 1;
   const growthFactor = Math.pow(50000 / 5000, idx / 11);
@@ -671,245 +157,1007 @@ const projectedGrowthData = Array.from({ length: 12 }, (_, idx) => {
   return { month, volume };
 });
 
-// Calculate accumulated costs for each month
 const projectedCostData = projectedGrowthData.map((data, idx) => {
-  const claudeCostPerRequest = 0.045; // $45 per 1K
-  const nanoCostPerRequest = 0.0013; // $1.30 per 1K
-  const setupCost = 351.6;
-
-  // Accumulated volume up to this month
-  const accumulatedVolume = projectedGrowthData
-    .slice(0, idx + 1)
-    .reduce((sum, d) => sum + d.volume, 0);
-
-  const claudeAccumulated = accumulatedVolume * claudeCostPerRequest;
-  const nanoAccumulated = accumulatedVolume * nanoCostPerRequest + setupCost;
-
+  const claudeCostPerRequest = 0.045;
+  const nanoCostPerRequest = 0.0013;
+  const accumulatedVolume = projectedGrowthData.slice(0, idx + 1).reduce((sum, d) => sum + d.volume, 0);
   return {
-    month: data.month,
+    month: `M${data.month}`,
     volume: data.volume,
-    accumulatedVolume,
-    claudeAccumulated: Math.round(claudeAccumulated),
-    nanoAccumulated: Math.round(nanoAccumulated)
+    claude: Math.round(accumulatedVolume * claudeCostPerRequest),
+    nano: Math.round(accumulatedVolume * nanoCostPerRequest + 351.6)
   };
 });
 
-export function ProjectedCostGrowthDiagram() {
-  const width = 620;
-  const costChartHeight = 180;
-  const volumeChartHeight = 100;
-  const gap = 24;
-  const totalHeight = costChartHeight + gap + volumeChartHeight + 24;
-  const padding = { top: 24, right: 70, bottom: 20, left: 65 };
-  const chartWidth = width - padding.left - padding.right;
+// --- Diagram Components ---
 
-  const maxCost = Math.max(...projectedCostData.map((d) => d.claudeAccumulated));
-  const maxVolume = Math.max(...projectedCostData.map((d) => d.volume));
-
-  const xScale = (month: number) => padding.left + ((month - 1) / 11) * chartWidth;
-  const yScaleCost = (cost: number) => padding.top + costChartHeight - (cost / maxCost) * costChartHeight;
-  const volumeBarMaxHeight = 55;
-
-  const claudePath = projectedCostData
-    .map((d, idx) => `${idx === 0 ? 'M' : 'L'} ${xScale(d.month).toFixed(1)},${yScaleCost(d.claudeAccumulated).toFixed(1)}`)
-    .join(' ');
-
-  const nanoPath = projectedCostData
-    .map((d, idx) => `${idx === 0 ? 'M' : 'L'} ${xScale(d.month).toFixed(1)},${yScaleCost(d.nanoAccumulated).toFixed(1)}`)
-    .join(' ');
-
-  // Savings area between the two lines
-  const savingsAreaPath = claudePath +
-    projectedCostData.slice().reverse().map((d) => ` L ${xScale(d.month).toFixed(1)},${yScaleCost(d.nanoAccumulated).toFixed(1)}`).join('') +
-    ' Z';
-
-  const finalClaude = projectedCostData[11].claudeAccumulated;
-  const finalNano = projectedCostData[11].nanoAccumulated;
-  const totalSavings = finalClaude - finalNano;
-
-  const volumeChartTop = padding.top + costChartHeight + gap;
-
-  // Format volume for display (e.g., 5K, 12K, 50K)
-  const formatVolume = (v: number) => v >= 1000 ? `${Math.round(v / 1000)}K` : v.toString();
+export function TeacherModelComparisonDiagram() {
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <ChartCard
-      title="12-Month Projected API Costs"
-      subtitle="Accumulated costs as monthly transformation volume grows"
+      title="Teacher Model Comparison"
+      subtitle="Radar plot highlights Claude 4's lead on fidelity and structure."
+      icon={<Brain size={16} />}
     >
-      <div className="space-y-3">
-        <svg width={width} height={totalHeight} className="w-full" viewBox={`0 0 ${width} ${totalHeight}`}>
-          {/* Cost Chart Section */}
-          <text
-            x={padding.left}
-            y={padding.top - 8}
-            className="text-[11px] fill-content-muted font-medium"
-          >
-            Accumulated Cost
-          </text>
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
+        <motion.div
+          className="h-80 w-full lg:w-96"
+          initial={shouldReduceMotion ? {} : { opacity: 0, scale: 0.8 }}
+          whileInView={shouldReduceMotion ? {} : { opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart cx="50%" cy="50%" outerRadius="75%" data={teacherData}>
+              <PolarGrid stroke="#e2e8f0" />
+              <PolarAngleAxis
+                dataKey="subject"
+                tick={{ fill: '#64748b', fontSize: 11 }}
+                tickLine={false}
+              />
+              <PolarRadiusAxis angle={30} domain={[0, 1]} tick={false} axisLine={false} />
+              <Radar name="Claude Sonnet 4" dataKey="claude" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.4} strokeWidth={2} />
+              <Radar name="GPT-5" dataKey="gpt5" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.25} strokeWidth={2} />
+              <Radar name="Gemini 2.5 Pro" dataKey="gemini" stroke="#10b981" fill="#10b981" fillOpacity={0.15} strokeWidth={2} />
+              <Tooltip
+                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgb(0 0 0 / 0.15)' }}
+                formatter={(value: number) => value.toFixed(3)}
+              />
+            </RadarChart>
+          </ResponsiveContainer>
+        </motion.div>
 
-          {/* Cost grid lines */}
-          {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
-            const y = padding.top + costChartHeight * (1 - ratio);
-            const value = Math.round(maxCost * ratio);
-            return (
-              <g key={ratio}>
-                <line
-                  x1={padding.left}
-                  x2={padding.left + chartWidth}
-                  y1={y}
-                  y2={y}
-                  className="stroke-outline-subtle/20"
-                  strokeDasharray="3 3"
-                />
-                <text
-                  x={padding.left - 10}
-                  y={y}
-                  className="text-[10px] fill-content-muted"
-                  textAnchor="end"
-                  dominantBaseline="middle"
-                >
-                  ${value.toLocaleString()}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* Savings area fill */}
-          <path d={savingsAreaPath} fill="rgba(34, 197, 94, 0.1)" />
-
-          {/* Gradients */}
-          <defs>
-            <linearGradient id="claudeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#f87171" />
-              <stop offset="100%" stopColor="#dc2626" />
-            </linearGradient>
-            <linearGradient id="nanoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#4ade80" />
-              <stop offset="100%" stopColor="#16a34a" />
-            </linearGradient>
-            <linearGradient id="volumeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#6366f1" />
-              <stop offset="100%" stopColor="#a5b4fc" />
-            </linearGradient>
-          </defs>
-
-          {/* Cost lines */}
-          <path d={claudePath} fill="none" stroke="url(#claudeGradient)" strokeWidth={2.5} strokeLinecap="round" />
-          <path d={nanoPath} fill="none" stroke="url(#nanoGradient)" strokeWidth={2.5} strokeLinecap="round" />
-
-          {/* Data points with white fill */}
-          {projectedCostData.map((d) => (
-            <g key={`points-${d.month}`}>
-              <circle cx={xScale(d.month)} cy={yScaleCost(d.claudeAccumulated)} r={3.5} fill="white" stroke="#dc2626" strokeWidth={1.5} />
-              <circle cx={xScale(d.month)} cy={yScaleCost(d.nanoAccumulated)} r={3.5} fill="white" stroke="#16a34a" strokeWidth={1.5} />
-            </g>
+        <motion.div
+          className="flex-1 space-y-3"
+          variants={gridContainerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          {radarModels.map((model, idx) => (
+            <motion.div
+              key={model.key}
+              variants={itemVariants}
+              className={`rounded-xl border p-4 flex items-center justify-between transition-all ${
+                idx === 0
+                  ? 'border-purple-200 bg-purple-50'
+                  : 'border-slate-100 bg-slate-50 hover:border-slate-200'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="h-3 w-3 rounded-full" style={{ background: model.stroke }} />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-slate-800">{model.label}</p>
+                    {idx === 0 && (
+                      <motion.span
+                        variants={badgePopVariants}
+                        className="bg-purple-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold"
+                      >
+                        WINNER
+                      </motion.span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Avg. score: <span className="font-semibold text-slate-700">
+                      {(teacherData.reduce((sum, d) => sum + d[model.key], 0) / teacherData.length).toFixed(3)}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </motion.div>
           ))}
-
-          {/* End cost labels */}
-          <text
-            x={xScale(12) + 8}
-            y={yScaleCost(finalClaude)}
-            className="text-[10px] fill-red-600 font-semibold"
-            dominantBaseline="middle"
-          >
-            ${finalClaude.toLocaleString()}
-          </text>
-          <text
-            x={xScale(12) + 8}
-            y={yScaleCost(finalNano)}
-            className="text-[10px] fill-green-600 font-semibold"
-            dominantBaseline="middle"
-          >
-            ${finalNano.toLocaleString()}
-          </text>
-
-          {/* Volume Chart Section */}
-          <text
-            x={padding.left}
-            y={volumeChartTop - 8}
-            className="text-[11px] fill-content-muted font-medium"
-          >
-            Monthly Transformations
-          </text>
-
-          {/* Volume bars */}
-          {projectedCostData.map((d) => {
-            const barHeight = (d.volume / maxVolume) * volumeBarMaxHeight;
-            const barWidth = chartWidth / 12 - 6;
-            const x = xScale(d.month) - barWidth / 2;
-            const y = volumeChartTop + volumeBarMaxHeight - barHeight;
-
-            return (
-              <g key={`vol-${d.month}`}>
-                <rect
-                  x={x}
-                  y={y}
-                  width={barWidth}
-                  height={barHeight}
-                  fill="url(#volumeGradient)"
-                  rx={3}
-                />
-                {/* Volume label on top of bar */}
-                <text
-                  x={xScale(d.month)}
-                  y={y - 5}
-                  className="text-[9px] fill-indigo-600 font-medium"
-                  textAnchor="middle"
-                >
-                  {formatVolume(d.volume)}
-                </text>
-                {/* Month label below bar */}
-                <text
-                  x={xScale(d.month)}
-                  y={volumeChartTop + volumeBarMaxHeight + 16}
-                  className="text-[10px] fill-content-muted"
-                  textAnchor="middle"
-                >
-                  {d.month}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-
-        {/* Legend */}
-        <div className="flex flex-wrap justify-center gap-6 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
-            <span className="text-content-muted text-xs">Claude Sonnet 4</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
-            <span className="text-content-muted text-xs">Fine-tuned GPT-4.1-nano</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-4 rounded bg-indigo-400" />
-            <span className="text-content-muted text-xs">Monthly volume</span>
-          </div>
-          <div className="flex items-center gap-2 ml-4 pl-4 border-l border-outline-subtle/40">
-            <span className="text-content-muted text-xs">12-month savings:</span>
-            <span className="text-green-600 font-semibold text-xs">${totalSavings.toLocaleString()}</span>
-          </div>
-        </div>
+        </motion.div>
       </div>
     </ChartCard>
   );
 }
 
-// Quality Validation Pipeline stages
+export function QualityValidationFunnelDiagram() {
+  const tiers = [
+    { value: '7,500', label: 'Generated', context: '15 companies × 100 problems × 5 roles', icon: <Database size={20} />, bg: 'bg-blue-100', border: 'border-blue-200', text: 'text-blue-800' },
+    { value: '6,532', label: 'Validated', context: '87% passed quality checks', icon: <Filter size={20} />, bg: 'bg-indigo-100', border: 'border-indigo-200', text: 'text-indigo-800' },
+    { value: '7,096', label: 'Final Dataset', context: '6,032 train + 1,064 validation', icon: <CheckCircle size={20} />, bg: 'bg-emerald-500', border: 'border-emerald-600', text: 'text-white' }
+  ];
+
+  return (
+    <ChartCard
+      title="Data Generation Pipeline"
+      subtitle="Combinatorial generation narrowed through validation"
+      icon={<Filter size={16} />}
+    >
+      <motion.div
+        className="flex flex-col items-center gap-2 py-4"
+        variants={gridContainerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        {tiers.map((tier, idx) => (
+          <motion.div key={tier.label} variants={funnelTierVariants} className="w-full flex flex-col items-center">
+            <div
+              className={`${tier.bg} ${tier.border} ${tier.text} border-2 rounded-xl p-4 shadow-sm text-center transition-transform hover:scale-[1.02]`}
+              style={{ width: `${100 - idx * 15}%`, maxWidth: `${380 - idx * 50}px` }}
+            >
+              <div className="flex items-center justify-center gap-3 mb-1">
+                {tier.icon}
+                <span className="text-2xl font-bold">{tier.value}</span>
+              </div>
+              <p className="font-semibold text-sm">{tier.label}</p>
+              <p className="text-xs opacity-80 mt-1">{tier.context}</p>
+            </div>
+
+            {idx === 0 && (
+              <motion.div
+                variants={itemVariants}
+                className="flex items-center gap-2 my-2 text-red-500 text-xs font-medium"
+              >
+                <XCircle size={14} />
+                <span>-968 rejected (12.7%)</span>
+              </motion.div>
+            )}
+
+            {idx < tiers.length - 1 && idx !== 0 && (
+              <div className="h-4 w-0.5 bg-slate-300 my-1" />
+            )}
+          </motion.div>
+        ))}
+      </motion.div>
+    </ChartCard>
+  );
+}
+
+export function TrainingDataDistributionDiagram() {
+  const maxRole = Math.max(...roleDistribution.map((d) => d.value));
+  const maxDifficulty = Math.max(...difficultyDistribution.map((d) => d.value));
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <ChartCard
+      title="Training Data Distribution"
+      subtitle="Balance was intentional across roles and complexity."
+      icon={<BarChart3 size={16} />}
+    >
+      <motion.div
+        className="grid gap-6 sm:grid-cols-2"
+        variants={gridContainerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        <motion.div variants={itemVariants} className="space-y-3">
+          <p className="text-xs uppercase tracking-[0.2em] font-semibold text-slate-500 flex items-center gap-2">
+            <Layers size={14} /> Roles
+          </p>
+          {roleDistribution.map((role, idx) => (
+            <motion.div
+              key={role.label}
+              initial={shouldReduceMotion ? {} : { opacity: 0, x: -20 }}
+              whileInView={shouldReduceMotion ? {} : { opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.1 }}
+            >
+              <div className="flex justify-between text-sm items-center">
+                <span className="flex items-center gap-2 text-slate-700">
+                  <span className="text-indigo-500">{role.icon}</span>
+                  {role.label}
+                </span>
+                <span className="text-slate-500 font-medium">{role.value.toLocaleString()}</span>
+              </div>
+              <div className="mt-1.5 h-2 rounded-full bg-slate-100 overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-indigo-600"
+                  initial={shouldReduceMotion ? { width: `${(role.value / maxRole) * 100}%` } : { width: 0 }}
+                  whileInView={shouldReduceMotion ? {} : { width: `${(role.value / maxRole) * 100}%` }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: idx * 0.1, ease: 'easeOut' }}
+                />
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="space-y-3">
+          <p className="text-xs uppercase tracking-[0.2em] font-semibold text-slate-500 flex items-center gap-2">
+            <Target size={14} /> Difficulty
+          </p>
+          {difficultyDistribution.map((difficulty, idx) => (
+            <motion.div
+              key={difficulty.label}
+              initial={shouldReduceMotion ? {} : { opacity: 0, x: -20 }}
+              whileInView={shouldReduceMotion ? {} : { opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.1 + 0.3 }}
+            >
+              <div className="flex justify-between text-sm items-center">
+                <span className="flex items-center gap-2 text-slate-700">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: difficulty.color }} />
+                  {difficulty.label}
+                </span>
+                <span className="text-slate-500 font-medium">{difficulty.value.toLocaleString()}</span>
+              </div>
+              <div className="mt-1.5 h-2 rounded-full bg-slate-100 overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: difficulty.color }}
+                  initial={shouldReduceMotion ? { width: `${(difficulty.value / maxDifficulty) * 100}%` } : { width: 0 }}
+                  whileInView={shouldReduceMotion ? {} : { width: `${(difficulty.value / maxDifficulty) * 100}%` }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: idx * 0.1 + 0.3, ease: 'easeOut' }}
+                />
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.div>
+
+      <motion.div
+        variants={itemVariants}
+        className="mt-5 rounded-xl bg-slate-50 border border-slate-200 p-4 flex flex-wrap gap-6 text-sm"
+      >
+        <div className="flex items-center gap-2">
+          <FileJson size={16} className="text-indigo-500" />
+          <span className="text-slate-600">Tokens:</span>
+          <span className="font-semibold text-slate-800">42.5M</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Clock size={16} className="text-indigo-500" />
+          <span className="text-slate-600">Avg. length:</span>
+          <span className="font-semibold text-slate-800">7,051 tokens</span>
+        </div>
+      </motion.div>
+    </ChartCard>
+  );
+}
+
+export function TrainingLossCurvesDiagram() {
+  const shouldReduceMotion = useReducedMotion();
+
+  const formatData = (experiment: typeof lossExperiments[0]) => {
+    return experiment.training.map((_, idx) => ({
+      epoch: `E${idx + 1}`,
+      training: experiment.training[idx],
+      validation: experiment.validation[idx]
+    }));
+  };
+
+  return (
+    <ChartCard
+      title="Training Loss Curves"
+      subtitle="Three epochs per experiment, plotted as paired lines."
+      icon={<TrendingUp size={16} />}
+    >
+      <motion.div
+        className="grid gap-4 sm:grid-cols-3"
+        variants={gridContainerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        {lossExperiments.map((experiment, idx) => (
+          <motion.div
+            key={experiment.name}
+            variants={itemVariants}
+            className={`rounded-xl border p-4 ${
+              experiment.winner
+                ? 'border-indigo-200 bg-indigo-50'
+                : 'border-slate-100 bg-slate-50'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-semibold text-slate-800">{experiment.name}</p>
+              {experiment.winner && (
+                <motion.span
+                  variants={badgePopVariants}
+                  className="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold"
+                >
+                  BEST
+                </motion.span>
+              )}
+            </div>
+            <motion.div
+              className="h-20"
+              initial={shouldReduceMotion ? {} : { opacity: 0 }}
+              whileInView={shouldReduceMotion ? {} : { opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.15 }}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={formatData(experiment)} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                  <XAxis dataKey="epoch" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                  <YAxis domain={[0.2, 0.8]} tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={25} />
+                  <Line type="monotone" dataKey="training" stroke="#4f46e5" strokeWidth={2} dot={{ r: 3 }} name="Training" />
+                  <Line type="monotone" dataKey="validation" stroke="#94a3b8" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 3 }} name="Validation" />
+                </LineChart>
+              </ResponsiveContainer>
+            </motion.div>
+            <div className="flex gap-4 mt-2 text-xs text-slate-500">
+              <span className="flex items-center gap-1">
+                <span className="h-0.5 w-3 bg-indigo-600 rounded" /> Train
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="h-0.5 w-3 bg-slate-400 rounded" style={{ borderStyle: 'dashed' }} /> Val
+              </span>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
+    </ChartCard>
+  );
+}
+
+export function ModelComparisonMatrixDiagram() {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <ChartCard
+      title="Student Model Comparison"
+      subtitle="Head-to-head comparison of the three fine-tuning approaches."
+      icon={<Scale size={16} />}
+    >
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+        variants={gridContainerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        {studentComparisonData.map((model, idx) => (
+          <motion.div
+            key={model.name}
+            variants={itemVariants}
+            className={`rounded-xl p-5 border-2 transition-all hover:shadow-md ${
+              model.winner
+                ? 'border-indigo-500 bg-indigo-50'
+                : 'border-slate-100 bg-slate-50'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-slate-800 text-sm">{model.name}</h3>
+              {model.winner && (
+                <motion.span
+                  variants={badgePopVariants}
+                  className="bg-indigo-600 text-white text-[10px] px-2 py-1 rounded-full font-bold flex items-center gap-1"
+                >
+                  <Award size={10} /> WINNER
+                </motion.span>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between text-sm mb-1.5">
+                  <span className="text-slate-500 flex items-center gap-1.5"><Brain size={14} /> Quality</span>
+                  <span className="font-bold text-slate-700">{model.quality}/1.0</span>
+                </div>
+                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                  <motion.div
+                    className="bg-indigo-500 h-2 rounded-full"
+                    initial={shouldReduceMotion ? { width: `${model.quality * 100}%` } : { width: 0 }}
+                    whileInView={shouldReduceMotion ? {} : { width: `${model.quality * 100}%` }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: idx * 0.1 }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-sm mb-1.5">
+                  <span className="text-slate-500 flex items-center gap-1.5"><Clock size={14} /> Latency P90</span>
+                  <span className="font-bold text-slate-700">{model.latency}s</span>
+                </div>
+                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                  <motion.div
+                    className={`h-2 rounded-full ${model.latency < 5 ? 'bg-green-500' : 'bg-amber-400'}`}
+                    initial={shouldReduceMotion ? { width: `${Math.max(10, 100 - (model.latency * 4))}%` } : { width: 0 }}
+                    whileInView={shouldReduceMotion ? {} : { width: `${Math.max(10, 100 - (model.latency * 4))}%` }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: idx * 0.1 + 0.1 }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-sm mb-1.5">
+                  <span className="text-slate-500 flex items-center gap-1.5"><DollarSign size={14} /> Cost / 1K</span>
+                  <span className="font-bold text-slate-700">${model.cost.toFixed(2)}</span>
+                </div>
+                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                  <motion.div
+                    className={`h-2 rounded-full ${model.cost < 2 ? 'bg-green-500' : 'bg-red-400'}`}
+                    initial={shouldReduceMotion ? { width: `${Math.max(10, 100 - (model.cost * 15))}%` } : { width: 0 }}
+                    whileInView={shouldReduceMotion ? {} : { width: `${Math.max(10, 100 - (model.cost * 15))}%` }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: idx * 0.1 + 0.2 }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-sm mb-1.5">
+                  <span className="text-slate-500 flex items-center gap-1.5"><FileJson size={14} /> Parsing %</span>
+                  <span className="font-bold text-slate-700">{model.parsing}%</span>
+                </div>
+                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                  <motion.div
+                    className={`h-2 rounded-full ${model.parsing > 90 ? 'bg-green-500' : 'bg-amber-500'}`}
+                    initial={shouldReduceMotion ? { width: `${model.parsing}%` } : { width: 0 }}
+                    whileInView={shouldReduceMotion ? {} : { width: `${model.parsing}%` }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, delay: idx * 0.1 + 0.3 }}
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
+    </ChartCard>
+  );
+}
+
+const architectureStages = [
+  { title: 'Teacher Model', subtitle: 'Claude Sonnet 4', icon: <Brain size={24} />, bg: 'bg-purple-100', iconColor: 'text-purple-600' },
+  { title: 'Validation', subtitle: 'LLM-as-Judge + QA', icon: <Filter size={24} />, bg: 'bg-blue-100', iconColor: 'text-blue-600' },
+  { title: 'Student Model', subtitle: 'GPT-4.1-nano', icon: <Zap size={24} />, bg: 'bg-emerald-100', iconColor: 'text-emerald-600' }
+];
+
+export function TeacherStudentArchitectureDiagram() {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <ChartCard
+      title="Teacher → Student Flow"
+      subtitle="A three-step knowledge distillation loop."
+      icon={<GitBranch size={16} />}
+    >
+      <motion.div
+        className="flex flex-col md:flex-row items-center justify-between gap-4 py-4"
+        variants={gridContainerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        {architectureStages.map((stage, idx) => (
+          <motion.div key={stage.title} variants={pipelineStageVariants} className="flex items-center">
+            <div className="flex flex-col items-center text-center">
+              <motion.div
+                className={`w-20 h-20 ${stage.bg} rounded-2xl flex items-center justify-center border-2 border-white shadow-lg`}
+                whileHover={shouldReduceMotion ? {} : { scale: 1.05, y: -2 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+              >
+                <span className={stage.iconColor}>{stage.icon}</span>
+              </motion.div>
+              <p className="mt-3 text-sm font-semibold text-slate-800">{stage.title}</p>
+              <p className="text-xs text-slate-500">{stage.subtitle}</p>
+            </div>
+
+            {idx < architectureStages.length - 1 && (
+              <motion.div
+                variants={itemVariants}
+                className="mx-4 text-slate-300 hidden md:block"
+              >
+                <ArrowRight size={24} />
+              </motion.div>
+            )}
+          </motion.div>
+        ))}
+      </motion.div>
+
+      <motion.div
+        variants={itemVariants}
+        className="mt-4 grid grid-cols-3 gap-4 text-center text-xs"
+      >
+        <div className="rounded-lg bg-purple-50 border border-purple-100 p-3">
+          <p className="font-semibold text-purple-700">Highest Quality</p>
+          <p className="text-slate-500">Best structural fidelity</p>
+        </div>
+        <div className="rounded-lg bg-blue-50 border border-blue-100 p-3">
+          <p className="font-semibold text-blue-700">87% Pass Rate</p>
+          <p className="text-slate-500">Strict quality checks</p>
+        </div>
+        <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-3">
+          <p className="font-semibold text-emerald-700">10× Faster</p>
+          <p className="text-slate-500">95% cost reduction</p>
+        </div>
+      </motion.div>
+    </ChartCard>
+  );
+}
+
+export function EvaluationFrameworkDiagram() {
+  const shouldReduceMotion = useReducedMotion();
+
+  const sortedDimensions = [...evaluationDimensions].sort((a, b) => b.value - a.value);
+  const chartData = sortedDimensions.map(d => ({
+    name: d.label,
+    score: d.value,
+    fill: d.value >= 0.9 ? '#22c55e' : d.value >= 0.7 ? '#3b82f6' : '#f59e0b'
+  }));
+
+  return (
+    <ChartCard
+      title="Evaluation Framework"
+      subtitle="Six equally weighted rubrics roll up into the final score."
+      icon={<Target size={16} />}
+    >
+      <motion.div
+        className="h-72"
+        initial={shouldReduceMotion ? {} : { opacity: 0 }}
+        whileInView={shouldReduceMotion ? {} : { opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            layout="vertical"
+            data={chartData}
+            margin={{ top: 5, right: 50, left: 10, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+            <XAxis type="number" domain={[0, 1]} tick={{ fontSize: 11 }} tickLine={false} />
+            <YAxis
+              dataKey="name"
+              type="category"
+              width={130}
+              tick={{ fontSize: 11, fill: '#64748b' }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <Tooltip
+              cursor={{ fill: 'transparent' }}
+              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgb(0 0 0 / 0.1)' }}
+              formatter={(value: number) => value.toFixed(3)}
+            />
+            <Bar
+              dataKey="score"
+              name="Score"
+              radius={[0, 4, 4, 0]}
+              barSize={24}
+              label={{
+                position: 'right',
+                fill: '#64748b',
+                fontSize: 11,
+                formatter: (value) => typeof value === 'number' ? value.toFixed(3) : String(value ?? '')
+              }}
+            >
+              {chartData.map((entry, index) => (
+                <rect
+                  key={`bar-${index}`}
+                  fill={entry.fill}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </motion.div>
+
+      <div className="mt-4 flex gap-4 justify-center text-xs">
+        <span className="flex items-center gap-1.5">
+          <span className="h-3 w-3 rounded bg-green-500" /> Excellent (≥0.9)
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-3 w-3 rounded bg-blue-500" /> Good (≥0.7)
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-3 w-3 rounded bg-amber-500" /> Moderate (&lt;0.7)
+        </span>
+      </div>
+    </ChartCard>
+  );
+}
+
+export function EvaluationComparisonDiagram() {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <ChartCard
+      title="Evaluation Comparison"
+      subtitle="Claude (teacher) vs GPT-4.1-nano (student)."
+      icon={<Scale size={16} />}
+    >
+      <motion.div
+        className="grid md:grid-cols-2 gap-6"
+        variants={gridContainerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        {/* Claude Column */}
+        <motion.div variants={itemVariants} className="rounded-xl border border-purple-200 bg-purple-50 p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="h-3 w-3 rounded-full bg-purple-500" />
+            <p className="font-semibold text-slate-800">Claude Sonnet 4</p>
+            <span className="text-xs text-slate-500">(Teacher)</span>
+          </div>
+          <div className="space-y-3">
+            {comparisonDimensions.map((dim, idx) => (
+              <div key={`claude-${dim.label}`}>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-slate-600">{dim.label}</span>
+                  <span className={`font-semibold ${dim.better === 'claude' ? 'text-purple-600' : 'text-slate-500'}`}>
+                    {dim.claude.toFixed(3)}
+                    {dim.better === 'claude' && ' ✓'}
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full bg-purple-100 overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full bg-purple-500"
+                    initial={shouldReduceMotion ? { width: `${dim.claude * 100}%` } : { width: 0 }}
+                    whileInView={shouldReduceMotion ? {} : { width: `${dim.claude * 100}%` }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: idx * 0.05 }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Student Column */}
+        <motion.div variants={itemVariants} className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="h-3 w-3 rounded-full bg-emerald-500" />
+            <p className="font-semibold text-slate-800">GPT-4.1-nano</p>
+            <span className="text-xs text-slate-500">(Student)</span>
+          </div>
+          <div className="space-y-3">
+            {comparisonDimensions.map((dim, idx) => (
+              <div key={`student-${dim.label}`}>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-slate-600">{dim.label}</span>
+                  <span className={`font-semibold ${dim.better === 'student' ? 'text-emerald-600' : 'text-slate-500'}`}>
+                    {dim.student.toFixed(3)}
+                    {dim.better === 'student' && ' ✓'}
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full bg-emerald-100 overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full bg-emerald-500"
+                    initial={shouldReduceMotion ? { width: `${dim.student * 100}%` } : { width: 0 }}
+                    whileInView={shouldReduceMotion ? {} : { width: `${dim.student * 100}%` }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: idx * 0.05 + 0.2 }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </motion.div>
+
+      <motion.div
+        variants={itemVariants}
+        className="mt-4 text-center text-sm text-slate-600"
+      >
+        Student wins on <span className="font-semibold text-emerald-600">3 technical dimensions</span>,
+        Teacher leads on <span className="font-semibold text-purple-600">3 contextual dimensions</span>
+      </motion.div>
+    </ChartCard>
+  );
+}
+
+export function CostComparisonChart() {
+  return (
+    <ChartCard
+      title="Cost Comparison"
+      subtitle="Monthly inference cost by request volume."
+      icon={<DollarSign size={16} />}
+    >
+      <motion.div
+        className="overflow-x-auto"
+        variants={gridContainerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        <table className="w-full text-sm">
+          <thead className="text-left text-xs uppercase tracking-[0.15em] text-slate-500 border-b border-slate-200">
+            <tr>
+              <th className="py-3 pr-4 font-semibold">Volume</th>
+              <th className="py-3 pr-4 font-semibold">Claude Sonnet 4</th>
+              <th className="py-3 pr-4 font-semibold">GPT-4.1-nano (FT)</th>
+              <th className="py-3 pr-4 font-semibold text-emerald-600">Savings</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {costSeries.map((entry) => (
+              <motion.tr
+                key={entry.volume}
+                variants={itemVariants}
+                className="hover:bg-slate-50 transition-colors"
+              >
+                <td className="py-3 pr-4 font-semibold text-slate-700">{entry.volume}</td>
+                <td className="py-3 pr-4 text-red-600">${entry.claude.toFixed(2)}</td>
+                <td className="py-3 pr-4 text-emerald-600">${entry.student.toFixed(2)}</td>
+                <td className="py-3 pr-4">
+                  <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-xs font-semibold">
+                    <TrendingUp size={12} />
+                    ${(entry.claude - entry.student).toFixed(2)}
+                  </span>
+                </td>
+              </motion.tr>
+            ))}
+          </tbody>
+        </table>
+      </motion.div>
+    </ChartCard>
+  );
+}
+
+export function RoiTimelineDiagram() {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <ChartCard
+      title="ROI Timeline"
+      subtitle="Cumulative savings at current production volume."
+      icon={<TrendingUp size={16} />}
+    >
+      <motion.div
+        className="h-64"
+        initial={shouldReduceMotion ? {} : { opacity: 0 }}
+        whileInView={shouldReduceMotion ? {} : { opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={roiTimeline} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
+            <defs>
+              <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+            <XAxis dataKey="month" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+            <YAxis
+              tickFormatter={(value) => `$${value}`}
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              width={50}
+            />
+            <Tooltip
+              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgb(0 0 0 / 0.1)' }}
+              formatter={(value: number) => [`$${value.toLocaleString()}`, 'Cumulative Savings']}
+            />
+            <Area
+              type="monotone"
+              dataKey="cumulative"
+              stroke="#22c55e"
+              strokeWidth={2.5}
+              fillOpacity={1}
+              fill="url(#colorCumulative)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </motion.div>
+
+      <motion.div
+        variants={itemVariants}
+        className="mt-4 flex items-center justify-center gap-2 text-sm"
+      >
+        <CheckCircle size={16} className="text-emerald-500" />
+        <span className="text-slate-600">Break-even:</span>
+        <span className="font-semibold text-slate-800">~90K transformations</span>
+        <span className="text-xs text-slate-400">(Month 1)</span>
+      </motion.div>
+    </ChartCard>
+  );
+}
+
+export function TcoComparisonDiagram() {
+  const claude = 4800;
+  const student = 447.63;
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <ChartCard
+      title="12-Month TCO Comparison"
+      subtitle="Scenario: 100K transformations per month."
+      icon={<DollarSign size={16} />}
+    >
+      <motion.div
+        className="space-y-6"
+        variants={gridContainerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        <motion.div variants={itemVariants}>
+          <div className="flex justify-between text-sm mb-2">
+            <span className="text-slate-600 flex items-center gap-2">
+              <span className="h-3 w-3 rounded bg-red-500" />
+              Claude Sonnet 4
+            </span>
+            <span className="font-bold text-red-600">${claude.toLocaleString()}</span>
+          </div>
+          <div className="h-4 rounded-full bg-slate-100 overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-red-400 to-red-600"
+              initial={shouldReduceMotion ? { width: '100%' } : { width: 0 }}
+              whileInView={shouldReduceMotion ? {} : { width: '100%' }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+            />
+          </div>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <div className="flex justify-between text-sm mb-2">
+            <span className="text-slate-600 flex items-center gap-2">
+              <span className="h-3 w-3 rounded bg-emerald-500" />
+              Fine-tuned GPT-4.1-nano
+            </span>
+            <span className="font-bold text-emerald-600">${student.toLocaleString()}</span>
+          </div>
+          <div className="h-4 rounded-full bg-slate-100 overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"
+              initial={shouldReduceMotion ? { width: `${(student / claude) * 100}%` } : { width: 0 }}
+              whileInView={shouldReduceMotion ? {} : { width: `${(student / claude) * 100}%` }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
+            />
+          </div>
+        </motion.div>
+
+        <motion.div
+          variants={itemVariants}
+          className="flex items-center justify-center gap-4 pt-2"
+        >
+          <div className="text-center">
+            <p className="text-2xl font-bold text-emerald-600">${(claude - student).toLocaleString()}</p>
+            <p className="text-xs text-slate-500">Annual Savings</p>
+          </div>
+          <div className="h-10 w-px bg-slate-200" />
+          <div className="text-center">
+            <motion.p
+              variants={badgePopVariants}
+              className="text-2xl font-bold text-emerald-600"
+            >
+              91%
+            </motion.p>
+            <p className="text-xs text-slate-500">Cost Reduction</p>
+          </div>
+        </motion.div>
+      </motion.div>
+    </ChartCard>
+  );
+}
+
+export function ProjectedCostGrowthDiagram() {
+  const shouldReduceMotion = useReducedMotion();
+  const finalClaude = projectedCostData[11].claude;
+  const finalNano = projectedCostData[11].nano;
+  const totalSavings = finalClaude - finalNano;
+
+  return (
+    <ChartCard
+      title="12-Month Projected API Costs"
+      subtitle="Accumulated costs as monthly transformation volume grows"
+      icon={<TrendingUp size={16} />}
+    >
+      <motion.div
+        className="h-80"
+        initial={shouldReduceMotion ? {} : { opacity: 0 }}
+        whileInView={shouldReduceMotion ? {} : { opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={projectedCostData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
+            <defs>
+              <linearGradient id="claudeGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="nanoGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#22c55e" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+            <XAxis
+              dataKey="month"
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={{ stroke: '#e2e8f0' }}
+            />
+            <YAxis
+              yAxisId="left"
+              tickFormatter={(value) => `$${value}`}
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              width={55}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              tickFormatter={(value) => `${value / 1000}K`}
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              width={40}
+            />
+            <Tooltip
+              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgb(0 0 0 / 0.1)' }}
+              formatter={(value: number, name: string) => [
+                name === 'volume' ? `${value.toLocaleString()}` : `$${value.toLocaleString()}`,
+                name === 'claude' ? 'Claude Sonnet 4' : name === 'nano' ? 'GPT-4.1-nano' : 'Monthly Volume'
+              ]}
+            />
+            <Legend />
+            <Area
+              yAxisId="left"
+              type="monotone"
+              dataKey="claude"
+              name="Claude Sonnet 4"
+              stroke="#ef4444"
+              strokeWidth={2.5}
+              fill="url(#claudeGradient)"
+            />
+            <Area
+              yAxisId="left"
+              type="monotone"
+              dataKey="nano"
+              name="GPT-4.1-nano"
+              stroke="#22c55e"
+              strokeWidth={2.5}
+              fill="url(#nanoGradient)"
+            />
+            <Bar
+              yAxisId="right"
+              dataKey="volume"
+              name="Monthly Volume"
+              fill="#6366f1"
+              fillOpacity={0.3}
+              radius={[4, 4, 0, 0]}
+              barSize={20}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </motion.div>
+
+      <motion.div
+        variants={itemVariants}
+        className="mt-4 flex flex-wrap justify-center gap-6 text-sm border-t border-slate-100 pt-4"
+      >
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+          <span className="text-slate-500">Claude: <span className="font-semibold text-red-600">${finalClaude.toLocaleString()}</span></span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+          <span className="text-slate-500">Student: <span className="font-semibold text-emerald-600">${finalNano.toLocaleString()}</span></span>
+        </div>
+        <div className="flex items-center gap-2 pl-4 border-l border-slate-200">
+          <TrendingUp size={14} className="text-emerald-500" />
+          <span className="text-slate-500">12-month savings:</span>
+          <span className="font-bold text-emerald-600">${totalSavings.toLocaleString()}</span>
+        </div>
+      </motion.div>
+    </ChartCard>
+  );
+}
+
+// Quality Validation Pipeline
 const pipelineStages = [
-  { id: 'input', label: 'Input', note: 'Same prompts for all models' },
-  { id: 'judges', label: 'Judge Ensemble', note: '3 frontier models' },
-  { id: 'dimensions', label: '6 Dimensions', note: 'Scored 0.0 → 1.0' },
-  { id: 'aggregate', label: 'Aggregate', note: 'Average per dimension' },
-  { id: 'output', label: 'Scorecard', note: 'Automated reports' }
+  { id: 'input', label: 'Input', note: 'Same prompts', icon: <Database size={24} />, bg: 'bg-blue-100', iconColor: 'text-blue-600' },
+  { id: 'judges', label: 'Judges', note: '3 frontier LLMs', icon: <Scale size={24} />, bg: 'bg-indigo-100', iconColor: 'text-indigo-600', badge: 'Ensemble' },
+  { id: 'dimensions', label: '6 Dimensions', note: 'Scored 0→1', icon: <Target size={24} />, bg: 'bg-purple-100', iconColor: 'text-purple-600' },
+  { id: 'aggregate', label: 'Aggregate', note: 'Avg per dim', icon: <BarChart3 size={24} />, bg: 'bg-pink-100', iconColor: 'text-pink-600' },
+  { id: 'output', label: 'Scorecard', note: 'Auto reports', icon: <FileJson size={24} />, bg: 'bg-emerald-100', iconColor: 'text-emerald-600' }
 ];
 
 const judgeModels = [
-  { name: 'Claude Sonnet 4', color: '#0f172a' },
-  { name: 'GPT-5', color: '#0ea5e9' },
-  { name: 'Gemini 2.5', color: '#f43f5e' }
+  { name: 'Claude Sonnet 4', color: '#8b5cf6' },
+  { name: 'GPT-5', color: '#3b82f6' },
+  { name: 'Gemini 2.5', color: '#10b981' }
 ];
 
 const evaluationDimensionsPipeline = [
@@ -922,110 +1170,101 @@ const evaluationDimensionsPipeline = [
 ];
 
 export function QualityValidationPipelineDiagram() {
+  const shouldReduceMotion = useReducedMotion();
+
   return (
     <ChartCard
       title="Quality Validation Pipeline"
       subtitle="Provider-agnostic LLM-as-a-judge workflow for consistent evaluation"
+      icon={<Filter size={16} />}
     >
       <div className="space-y-6">
         {/* Main Pipeline Flow */}
-        <div className="relative py-2">
-          {/* Stages */}
-          <div className="flex items-center justify-between gap-2 sm:gap-0">
+        <motion.div
+          className="relative py-2"
+          variants={gridContainerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-0 sm:justify-between">
             {pipelineStages.map((stage, idx) => (
-              <div key={stage.id} className="flex items-center">
-                {/* Stage box */}
-                <div className="flex flex-col items-center text-center">
-                  <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl border border-outline-subtle/40 bg-white shadow-sm">
-                    {stage.id === 'input' && (
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-slate-600">
-                        <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M8 9h8M8 12h8M8 15h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                    )}
-                    {stage.id === 'judges' && (
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-slate-600">
-                        {/* Three voting cards/ballots stacked */}
-                        <rect x="3" y="5" width="8" height="6" rx="1" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M5 8h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                        <rect x="8" y="9" width="8" height="6" rx="1" stroke="currentColor" strokeWidth="1.5" fill="white" />
-                        <path d="M10 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                        <rect x="13" y="13" width="8" height="6" rx="1" stroke="currentColor" strokeWidth="1.5" fill="white" />
-                        <path d="M15 16h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                    )}
-                    {stage.id === 'dimensions' && (
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-slate-600">
-                        <rect x="3" y="5" width="18" height="2" rx="1" fill="currentColor" opacity="0.3" />
-                        <rect x="3" y="9" width="14" height="2" rx="1" fill="currentColor" opacity="0.45" />
-                        <rect x="3" y="13" width="16" height="2" rx="1" fill="currentColor" opacity="0.6" />
-                        <rect x="3" y="17" width="10" height="2" rx="1" fill="currentColor" opacity="0.8" />
-                      </svg>
-                    )}
-                    {stage.id === 'aggregate' && (
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-slate-600">
-                        <path d="M6 6v4l6 2 6-2V6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M12 12v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                        <circle cx="12" cy="19" r="2" stroke="currentColor" strokeWidth="1.5" />
-                      </svg>
-                    )}
-                    {stage.id === 'output' && (
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-slate-600">
-                        <rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M8 8h8M8 12h8M8 16h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                        <circle cx="16" cy="16" r="2" fill="#22c55e" />
-                      </svg>
-                    )}
-                  </div>
-                  <p className="mt-2 text-xs sm:text-sm font-semibold text-content">{stage.label}</p>
-                  <p className="text-[10px] sm:text-xs text-content-muted">{stage.note}</p>
+              <motion.div key={stage.id} variants={pipelineStageVariants} className="flex items-center">
+                <div className="flex flex-col items-center text-center relative">
+                  {stage.badge && (
+                    <motion.span
+                      variants={badgePopVariants}
+                      className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 text-[9px] px-1.5 py-0.5 rounded-full font-bold shadow-sm z-10"
+                    >
+                      {stage.badge}
+                    </motion.span>
+                  )}
+                  <motion.div
+                    className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-xl ${stage.bg} border-2 border-white shadow-md`}
+                    whileHover={shouldReduceMotion ? {} : { scale: 1.08, y: -3 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                  >
+                    <span className={stage.iconColor}>{stage.icon}</span>
+                  </motion.div>
+                  <p className="mt-2 text-xs sm:text-sm font-semibold text-slate-800">{stage.label}</p>
+                  <p className="text-[10px] text-slate-500">{stage.note}</p>
                 </div>
 
-                {/* Arrow connector */}
                 {idx < pipelineStages.length - 1 && (
-                  <div className="mx-1 sm:mx-3 flex-shrink-0">
-                    <svg width="20" height="12" viewBox="0 0 20 12" className="text-slate-400">
-                      <path d="M0 6h16M12 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
+                  <motion.div
+                    variants={itemVariants}
+                    className="mx-2 sm:mx-3 text-slate-300 hidden sm:block"
+                  >
+                    <ArrowRight size={20} />
+                  </motion.div>
                 )}
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Detail Cards */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          {/* Judge Ensemble Card */}
-          <div className="rounded-xl border border-outline-subtle/30 p-4 space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-content-muted">Judge Ensemble</p>
+        <motion.div
+          className="grid gap-4 sm:grid-cols-2"
+          variants={gridContainerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          <motion.div variants={itemVariants} className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+            <p className="text-xs uppercase tracking-[0.2em] font-semibold text-slate-500 flex items-center gap-2">
+              <Scale size={14} /> Judge Ensemble
+            </p>
             <div className="space-y-2">
               {judgeModels.map((model) => (
                 <div key={model.name} className="flex items-center gap-3">
                   <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: model.color }} />
-                  <span className="text-sm text-content">{model.name}</span>
+                  <span className="text-sm text-slate-700">{model.name}</span>
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
 
-          {/* Dimensions Card */}
-          <div className="rounded-xl border border-outline-subtle/30 p-4 space-y-3">
-            <p className="text-xs uppercase tracking-[0.3em] text-content-muted">Evaluation Dimensions</p>
+          <motion.div variants={itemVariants} className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+            <p className="text-xs uppercase tracking-[0.2em] font-semibold text-slate-500 flex items-center gap-2">
+              <Target size={14} /> Evaluation Dimensions
+            </p>
             <div className="grid grid-cols-2 gap-x-4 gap-y-1">
               {evaluationDimensionsPipeline.map((dim, idx) => (
                 <div key={dim} className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-content-muted w-4">{idx + 1}.</span>
-                  <span className="text-sm text-content">{dim}</span>
+                  <span className="text-xs font-medium text-indigo-500 w-4">{idx + 1}.</span>
+                  <span className="text-sm text-slate-700">{dim}</span>
                 </div>
               ))}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </ChartCard>
   );
 }
+
+// --- Diagram Map ---
 
 const diagramMap: Record<string, ReactNode> = {
   'Teacher Model Comparison': <TeacherModelComparisonDiagram />,

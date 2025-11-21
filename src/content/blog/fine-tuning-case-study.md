@@ -96,7 +96,6 @@ Not every AI-generated transformation is perfect. I implemented a **parsing vali
 - Filtered: 968 rejected (12.7% - incomplete or malformed)
 
 ![Quality Funnel](./diagrams/blog/quality-validation-funnel.png)
-*Funnel diagram: 7,500 generated → 6,532 validated → 6,032 training + 1,064 validation*
 
 #### Final Training Dataset Characteristics
 
@@ -110,9 +109,7 @@ The final high-quality dataset contained:
 
 Quality validation is not optional. Filtering 12.7% of outputs prevented garbage data from corrupting our fine-tuned model. In machine learning, garbage in truly means garbage out.
 
----
-
-### Step 3: Fine-Tuning Multiple Open-Source Models
+### Step 3: Fine-Tuning Models
 
 Now came the critical experiment: **Which student model could best learn from our teacher?**
 
@@ -123,6 +120,8 @@ I tested three different approaches, each representing a different production tr
 3. **Meta Llama 3.1 8B** - Together.ai serverless LoRA (cost optimization)
 
 ### Experiment 1: GPT-4.1-nano (OpenAI API)
+
+[GPT-4.1-nano](https://openai.com/index/gpt-4-1/) is OpenAI's first-ever nano model, released in April 2025 as the fastest and most cost-effective model in their lineup. Despite its compact size, it punches above its weight—scoring 80.1% on MMLU and outperforming GPT-4o mini on coding benchmarks. With a 1 million token context window and optimized instruction-following capabilities, it's specifically designed for high-throughput, cost-sensitive workloads like classification, extraction, and structured output generation. OpenAI explicitly positions GPT-4.1-nano as an ideal candidate for [knowledge distillation](https://community.openai.com/t/fine-tuning-updates-reinforcement-fine-tuning-now-available-gpt-4-1-nano-fine-tuning/1255539), making it a natural fit for this experiment.
 
 **Training Configuration:**
 ```json
@@ -174,6 +173,8 @@ Cost per 1,000 transformations: $1.30
 ---
 
 ### Experiment 2: Qwen3-Coder-30B (Self-Hosted LoRA)
+
+[Qwen3-Coder-30B](https://github.com/QwenLM/Qwen3-Coder) is Alibaba Cloud's code-specialized open source language model, released as part of their Qwen3-Coder series in 2025. It's a Mixture-of-Experts (MoE) architecture with 30 billion total parameters but only 3 billion active parameters per forward pass, making it more efficient than its size suggests. The model supports up to 256K tokens natively (1M with extrapolation) and was trained on 7.5 trillion tokens with a 70% code ratio. Qwen3-Coder excels at agentic coding tasks, browser automation, and repository-scale code understanding, with advanced tool-calling capabilities. I chose this model to test whether a larger, self-hosted model could outperform API-based alternatives.
 
 For this experiment, I used **LoRA (Low-Rank Adaptation)**, a parameter-efficient fine-tuning technique. Let's break down what each parameter means:
 
@@ -276,7 +277,9 @@ not per-token pricing. Lower utilization = higher per-unit cost.
 
 ### Experiment 3: Meta Llama 3.1 8B (Together.ai Serverless)
 
-For a cost-optimization experiment, I fine-tuned a smaller model using **[Together.ai's](https://together.ai) serverless platform**.
+[Meta Llama 3.1 8B Instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct) is Meta's lightweight instruction-tuned model, released in July 2024 as part of their Llama 3.1 family. Built on an optimized transformer architecture and trained using supervised fine-tuning (SFT) plus reinforcement learning with human feedback (RLHF), it supports 8 languages and a 128K token context window. At just 8 billion parameters, it's light enough to run locally without requiring GPU clusters, and techniques like [LoRA and QLoRA](https://arxiv.org/abs/2106.09685) make it trainable even with limited VRAM. The model's open-source nature and permissive licensing have made it one of the most popular choices for cost-conscious fine-tuning experiments.
+
+I fine-tuned the model using **[Together.ai's](https://together.ai) serverless platform**.
 
 **Together.ai Configuration:**
 
@@ -354,13 +357,11 @@ Cost per 1,000 transformations: $2.00
 
 **Findings:** The smaller model simply couldn't capture the sophistication of the teacher. Quality dropped noticeably, and the model struggled with complex multi-step instructions. Structural output was unreliable—parsing failed nearly a quarter of the time. While Together.ai's serverless approach eliminated hosting headaches, the quality gap made this a non-starter for production.
 
----
-
 ### Model Comparison: The Complete Picture
 
 ![Model Comparison Matrix](./diagrams/blog/model-comparison-matrix.png)
 
-**Key Insights:**
+**Insights:**
 
 1. **Model size ≠ Quality**: The 30B parameter Qwen didn't outperform the smaller GPT-4.1-nano
 2. **Architecture matters**: GPT-4.1-nano's architecture better suited for instruction following
@@ -368,48 +369,11 @@ Cost per 1,000 transformations: $2.00
 4. **Cost optimization requires tradeoffs**: Cheapest option (Llama 8B) had unacceptable quality
 5. **LoRA parameters are sensitive**: Same LoRA config (r=16, alpha=32) produced very different results
 
----
-
-### The result
-
-![Evaluation Framework](./diagrams/blog/evaluation-framework-6d.png)
-*Hexagonal diagram showing the 6 evaluation dimensions*
-
-**1. Algorithmic Correctness (0.982/1.0)** Excellent
-- Does the transformation preserve the exact algorithm?
-- Are complexity requirements (time/space) maintained?
-- Are input/output types identical to the original?
-
-**2. Company Relevance (0.749/1.0)** Good
-- Is the company context authentic and accurate?
-- Does it align with the company's actual products/technologies?
-- Are scale metrics realistic for the company?
-
-**3. Role Specificity (0.568/1.0)** Needs Improvement
-- Does it use role-appropriate technologies?
-- Are scenarios realistic for this engineering role?
-- Is the technical depth appropriate for the role?
-
-**4. Scenario Realism (0.596/1.0)** Needs Improvement
-- Does it sound like a real interview question?
-- Is the business context natural, not forced?
-- Would an interviewer actually ask this?
-
-**5. Technical Accuracy (0.885/1.0)** Excellent
-- Are constraints correctly specified?
-- Is technical terminology accurate?
-- Are edge cases and optimizations appropriate?
-
-**6. Parsing Quality (0.923/1.0)** Excellent
-- Can the output be reliably parsed programmatically?
-- Are all required sections present and well-formatted?
-- Is the structure consistent across examples?
+### How does the final student model perform?
 
 ![Evaluation Comparison](./diagrams/blog/evaluation-comparison-bars.png)
 
-**Key Insight**: Multi-dimensional evaluation reveals nuanced quality. Overall score (0.784) is excellent, but breaking it down shows exactly where to improve (role specificity and scenario realism need work, while algorithmic correctness is nearly perfect).
-
----
+Multi-dimensional evaluation reveals nuanced quality. Overall score (0.784) is excellent, but breaking it down shows exactly where to improve (role specificity and scenario realism need work, while algorithmic correctness is nearly perfect).
 
 ## Economics
 
@@ -441,7 +405,7 @@ GPT-4.1-nano fine-tuned pricing (per 1M tokens):
 | Claude Sonnet 4 | $0.015 | $0.03 | $0.045 | **$45.00** |
 | GPT-4.1-nano (fine-tuned) | $0.0005 | $0.0008 | $0.0013 | **$1.30** |
 
-**Cost reduction: 97.1%**
+That's a **cost reduction of nearly 97.1%**
 
 ### Cost Breakdown
 
