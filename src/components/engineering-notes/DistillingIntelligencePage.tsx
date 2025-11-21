@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { getDiagramComponent } from './diagrams/CaseStudyDiagrams';
 import type { Components } from 'react-markdown';
 import { engineeringNotes } from './EngineeringNotesPage';
+import { TableOfContents, parseTableOfContents } from './TableOfContents';
 
 const noteData = engineeringNotes['distilling-intelligence'];
 
@@ -14,13 +15,8 @@ const heroMarkdown =
   firstHeadingIndex === -1 ? distillingIntelligence : distillingIntelligence.slice(0, firstHeadingIndex);
 const bodyMarkdown = firstHeadingIndex === -1 ? '' : distillingIntelligence.slice(firstHeadingIndex);
 
-const sectionLinks = Array.from(bodyMarkdown.matchAll(/^## (.+)$/gm)).map((match) => {
-  const title = match[1].trim();
-  return {
-    title,
-    slug: slugify(title)
-  };
-});
+// Parse the TOC from the markdown content
+const tocItems = parseTableOfContents(bodyMarkdown);
 
 function slugify(value: string) {
   return value
@@ -47,7 +43,7 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
     <h2
       id={variant === 'body' ? slugify(extractText(children)) : undefined}
       className={cn(
-        'font-playfair tracking-tight font-light',
+        'font-playfair tracking-tight font-light scroll-mt-24',
         variant === 'hero'
           ? 'text-4xl md:text-5xl text-content mb-5'
           : 'text-3xl md:text-4xl text-content mb-5'
@@ -58,8 +54,9 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
   ),
   h3: ({ children }) => (
     <h3
+      id={variant === 'body' ? slugify(extractText(children)) : undefined}
       className={cn(
-        'font-light',
+        'font-light scroll-mt-24',
         variant === 'hero' ? 'text-xl text-content mt-6 mb-3' : 'text-2xl text-content mt-4 mb-3'
       )}
     >
@@ -67,7 +64,10 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
     </h3>
   ),
   h4: ({ children }) => (
-    <h4 className={cn('font-semibold text-base tracking-wide text-primary mb-3')}>
+    <h4
+      id={variant === 'body' ? slugify(extractText(children)) : undefined}
+      className={cn('font-semibold text-base tracking-wide text-primary mb-3 scroll-mt-24')}
+    >
       {children}
     </h4>
   ),
@@ -165,6 +165,7 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
 export function DistillingIntelligencePage() {
   return (
     <div className="bg-panel-50 text-content font-sans">
+      {/* Header spans full width */}
       <header className="border-b border-outline-subtle/30 bg-white">
         <div className="mx-auto max-w-5xl px-6 py-12 space-y-8">
           <div className="space-y-4 text-center">
@@ -190,29 +191,25 @@ export function DistillingIntelligencePage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-16">
-        <div className="lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-12">
-          <aside className="hidden lg:block sticky top-24 self-start space-y-4">
-            <p className="text-xs uppercase tracking-[0.4em] text-content-muted">Sections</p>
-            <nav className="space-y-2 text-sm">
-              {sectionLinks.map((section) => (
-                <a
-                  key={section.slug}
-                  href={`#${section.slug}`}
-                  className="block rounded-full px-4 py-2 text-content-muted hover:text-content hover:bg-panel-100 transition-colors"
-                >
-                  {section.title}
-                </a>
-              ))}
-            </nav>
-          </aside>
+      {/* Main content with sidebar */}
+      <div className="max-w-6xl mx-auto lg:grid lg:grid-cols-[240px_1fr_240px]">
+        {/* Sidebar - sticky on left */}
+        <div className="hidden lg:block">
+          <TableOfContents
+            items={tocItems}
+            className="sticky top-24 pl-6 pr-4 pt-16 pb-8 max-h-[calc(100vh-6rem)] overflow-y-auto"
+          />
+        </div>
+
+        {/* Article content - centered in middle column */}
+        <main className="px-6 py-16">
           <article className="prose max-w-none text-content prose-h2:text-3xl prose-h3:text-2xl prose-strong:text-content prose-code:text-sm">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={createMarkdownComponents('body')}>
               {bodyMarkdown}
             </ReactMarkdown>
           </article>
-        </div>
-      </main>
+        </main>
+      </div>
 
       <Footer />
     </div>

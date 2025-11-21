@@ -361,7 +361,7 @@ GPT-4.1-nano fine-tuned pricing (per 1M tokens):
 | Claude Sonnet 4 | $0.015 | $0.03 | $0.045 | **$45.00** |
 | GPT-4.1-nano (fine-tuned) | $0.0005 | $0.0008 | $0.0013 | **$1.30** |
 
-That's a **cost reduction of nearly 97.1%**
+That's a **cost reduction of nearly 97.1%!**
 
 ### Cost Breakdown
 
@@ -465,12 +465,15 @@ The path forward is clear, **richer training data, not architectural changes**. 
 
 ### Try It on AlgoIRL
 
-Want to see the fine-tuned model in action? Visit [AlgoIRL](https://algoirl.com) and experience:
-- Company-specific interview question generation
-- Role-tailored algorithm transformations
-- Instant results powered by our fine-tuned model
+Want to see the fine-tuned model in action? Visit [AlgoIRL](https://algoirl.com)
 
 **Questions or want to discuss fine-tuning for your use case?** Reach out to me!
+
+### Further Reading
+- [OpenAI Fine-Tuning Guide](https://platform.openai.com/docs/guides/fine-tuning)
+- [LoRA: Low-Rank Adaptation Paper](https://arxiv.org/abs/2106.09685)
+- [Knowledge Distillation Overview](https://arxiv.org/abs/1503.02531)
+- [LLM Evaluation Best Practices](https://www.anthropic.com/index/evaluating-ai-systems)
 
 ---
 
@@ -478,8 +481,4 @@ Want to see the fine-tuned model in action? Visit [AlgoIRL](https://algoirl.com)
 
 ---
 
-### Further Reading
-- [OpenAI Fine-Tuning Guide](https://platform.openai.com/docs/guides/fine-tuning)
-- [LoRA: Low-Rank Adaptation Paper](https://arxiv.org/abs/2106.09685)
-- [Knowledge Distillation Overview](https://arxiv.org/abs/1503.02531)
-- [LLM Evaluation Best Practices](https://www.anthropic.com/index/evaluating-ai-systems)
+
