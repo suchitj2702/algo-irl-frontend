@@ -420,7 +420,7 @@ LoRA uses a *learning_rate* of 1e-4 to 2e-4 (higher than full fine-tuning), with
 
 #### Model Size ≠ Quality
 
-GPT-4.1-nano (~6B estimated) scored 0.784, Qwen3-Coder (30B) scored 0.71, and Llama 3.1 (8B) scored 0.68. GPT-4.1-nano won despite fewer parameters due to superior base model architecture, better instruction-following design, optimization for structured output tasks, and high-quality pre-training data. Evaluate multiple models empirically. Architecture and training quality matter more than raw parameter count.
+GPT-4.1-nano (~7B rumoured) scored 0.784, Qwen3-Coder (30B) scored 0.71, and Llama 3.1 (8B) scored 0.68. GPT-4.1-nano won despite fewer parameters due to superior base model architecture, better instruction-following design, optimization for structured output tasks, and high-quality pre-training data. Evaluate multiple models empirically. Architecture and training quality matter more than raw parameter count.
 
 ### Room to Grow
 
