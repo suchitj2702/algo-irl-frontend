@@ -7,6 +7,7 @@ import { getDiagramComponent } from './diagrams/CaseStudyDiagrams';
 import type { Components } from 'react-markdown';
 import { engineeringNotes } from './EngineeringNotesPage';
 import { TableOfContents, parseTableOfContents } from './TableOfContents';
+import { LinkedInIcon } from '../icons/LinkedInIcon';
 
 const noteData = engineeringNotes['distilling-intelligence'];
 
@@ -177,8 +178,21 @@ export function DistillingIntelligencePage() {
                 {noteData.subtitle}
               </p>
             </div>
-            <div className="flex flex-wrap justify-center gap-4 text-sm text-content-muted">
-              <span>{noteData.author}</span>
+            <div className="flex flex-wrap justify-center items-center gap-4 text-sm text-content-muted">
+              <div className="flex items-center gap-1.5">
+                <span>{noteData.author}</span>
+                {noteData.linkedinUrl && (
+                  <a
+                    href={noteData.linkedinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-content-muted hover:text-primary transition-colors"
+                    aria-label="Connect on LinkedIn"
+                  >
+                    <LinkedInIcon className="w-4 h-4" />
+                  </a>
+                )}
+              </div>
               <span>·</span>
               <span>{noteData.publishedOn}</span>
               <span>·</span>

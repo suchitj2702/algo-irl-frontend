@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
+import { LinkedInIcon } from '../icons/LinkedInIcon';
 
 export interface EngineeringNote {
   slug: string;
   title: string;
   subtitle: string;
   author: string;
+  linkedinUrl?: string;
   publishedOn: string;
   readingTimeMinutes: number;
 }
@@ -15,6 +17,7 @@ export const engineeringNotes: Record<string, EngineeringNote> = {
     title: 'Distilling Intelligence',
     subtitle: 'How I reduced inference cost by 97% while preserving 96% quality',
     author: 'Suchit Jain',
+    linkedinUrl: 'https://www.linkedin.com/in/suchit-jain/',
     publishedOn: 'November 21, 2025',
     readingTimeMinutes: 15
   }
@@ -45,7 +48,20 @@ export function EngineeringNotesPage() {
               <article className="rounded-xl sm:rounded-2xl border border-outline-subtle/40 bg-white p-4 sm:p-6 transition-all hover:border-primary/40 hover:shadow-lg">
                 <div className="space-y-2 sm:space-y-3">
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-content-muted">
-                    <span>{note.author}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span>{note.author}</span>
+                      {note.linkedinUrl && (
+                        <a
+                          href={note.linkedinUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-content-muted hover:text-primary transition-colors"
+                          aria-label="Connect on LinkedIn"
+                        >
+                          <LinkedInIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        </a>
+                      )}
+                    </div>
                     <span>·</span>
                     <span>{note.publishedOn}</span>
                     <span>·</span>
