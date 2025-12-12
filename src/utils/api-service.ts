@@ -84,6 +84,37 @@ export async function fetchCompanies() {
 }
 
 /**
+ * Fetch all problems (basic info)
+ */
+export async function fetchAllProblems() {
+  const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEMS_LIST), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+
+  return handleAPIResponse(response);
+}
+
+/**
+ * Fetch problem by ID with full details
+ */
+export async function fetchProblemById(problemId: string, language: string = 'python') {
+  const response = await fetch(
+    buildApiUrl(API_CONFIG.ENDPOINTS.PROBLEM_BY_ID, `${problemId}?language=${language}`),
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    }
+  );
+
+  return handleAPIResponse(response);
+}
+
+/**
  * Prepare problem
  */
 export async function prepareProblem(

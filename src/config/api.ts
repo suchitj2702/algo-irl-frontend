@@ -13,6 +13,8 @@ export const API_CONFIG = {
   BASE_URL: getBaseUrl(),
   ENDPOINTS: {
     COMPANIES_LIST: '/api/companies',
+    PROBLEMS_LIST: '/api/problem',
+    PROBLEM_BY_ID: '/api/problem', // Append /{problemId}
     PROBLEM_PREPARE: '/api/problem/prepare',
     EXECUTE_CODE: '/api/execute-code',
     EXECUTE_CODE_STATUS: '/api/execute-code/status',

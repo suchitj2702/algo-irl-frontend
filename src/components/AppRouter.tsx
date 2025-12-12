@@ -63,6 +63,7 @@ import { normalizeStudyPlanDatasetType } from '../utils/studyPlanDataset';
 import { secureLog } from '../utils/secureLogger';
 import { DistillingIntelligencePage } from './engineering-notes/DistillingIntelligencePage';
 import { EngineeringNotesPage } from './engineering-notes/EngineeringNotesPage';
+import DevTestDashboard from '@/pages/DevTestDashboard';
 
 interface TestResultsFromParent {
  passed: boolean;
@@ -2058,6 +2059,9 @@ const handleBeforeSignOut = useCallback(async () => {
      <Route path="/" element={<IntroSection />} />
       <Route path="/engineering-notes" element={<EngineeringNotesPage />} />
       <Route path="/engineering-notes/distilling-intelligence" element={<DistillingIntelligencePage />} />
+      {import.meta.env.DEV && (
+        <Route path="/dev/test-dashboard" element={<DevTestDashboard />} />
+      )}
       {flags.paymentsEnabled && (
         <Route path="/payment/status/:status" element={<PaymentStatusPage />} />
       )}
