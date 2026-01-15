@@ -13,8 +13,8 @@ interface SectionBlockProps extends ComponentPropsWithoutRef<'section'> {
 const surfaceClassNames: Record<SectionSurface, string> = {
   base: 'bg-background',
   tinted:
-    'bg-gradient-to-b from-background via-panel-50/70 to-background dark:from-background dark:via-panel-200/30 dark:to-background',
-  muted: 'bg-panel-50/60 dark:bg-panel-200/30',
+    'bg-gradient-to-b from-background via-panel-50/70 to-background dark:from-background dark:via-panel-100 dark:to-background',
+  muted: 'bg-panel-50/60 dark:bg-panel-100',
 };
 
 export default function SectionBlock({

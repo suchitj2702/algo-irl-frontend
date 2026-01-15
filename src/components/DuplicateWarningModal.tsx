@@ -138,7 +138,7 @@ export function DuplicateWarningModal({
           {/* Progress Bar */}
           {completionPercentage > 0 && (
            <div className="mt-3">
-            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-2 bg-gray-200 dark:bg-panel-200 rounded-full overflow-hidden">
              <div
               className="h-full bg-mint dark:bg-mint-500 transition-all duration-300"
               style={{ width: `${completionPercentage}%` }}

@@ -80,9 +80,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Default fallback UI
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+        <div className="min-h-screen flex items-center justify-center bg-surface dark:bg-background px-4">
           <div className="max-w-md w-full">
-            <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
+            <div className="bg-white dark:bg-panel-100 shadow-lg rounded-lg p-6">
               <div className="flex items-center mb-4">
                 <div className="flex-shrink-0">
                   <svg
@@ -106,22 +106,22 @@ export class ErrorBoundary extends Component<Props, State> {
                 </div>
               </div>
 
-              <div className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              <div className="text-sm text-gray-600 dark:text-muted mb-4">
                 <p>We're sorry for the inconvenience. The error has been automatically reported to our team.</p>
               </div>
 
               {import.meta.env.DEV && this.state.error && (
                 <div className="mb-4">
                   <details className="text-xs">
-                    <summary className="cursor-pointer text-gray-700 dark:text-gray-300 font-medium mb-2">
+                    <summary className="cursor-pointer text-gray-700 dark:text-muted font-medium mb-2">
                       Error Details (Dev Mode)
                     </summary>
-                    <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded overflow-auto max-h-40">
+                    <div className="bg-gray-100 dark:bg-panel-200 p-3 rounded overflow-auto max-h-40">
                       <pre className="text-red-600 dark:text-red-400 whitespace-pre-wrap">
                         {this.state.error.toString()}
                       </pre>
                       {this.state.errorInfo && (
-                        <pre className="text-gray-600 dark:text-gray-400 mt-2 whitespace-pre-wrap text-xs">
+                        <pre className="text-gray-600 dark:text-content-muted mt-2 whitespace-pre-wrap text-xs">
                           {this.state.errorInfo.componentStack}
                         </pre>
                       )}
@@ -139,14 +139,14 @@ export class ErrorBoundary extends Component<Props, State> {
                 </button>
                 <button
                   onClick={() => window.location.href = '/'}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium py-2 px-4 rounded transition-colors"
+                  className="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-panel-200 dark:hover:bg-panel-300 text-gray-900 dark:text-white font-medium py-2 px-4 rounded transition-colors"
                 >
                   Go Home
                 </button>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-panel-200">
+                <p className="text-xs text-gray-500 dark:text-content-muted text-center">
                   If the problem persists, please contact support
                 </p>
               </div>

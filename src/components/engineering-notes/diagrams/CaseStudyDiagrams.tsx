@@ -46,12 +46,12 @@ function ChartCard({ title, subtitle, children, contentClassName, hideHeader = f
 
   const content = (
     <div
-      className={`rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow duration-300 ${contentClassName ?? ''}`}
+      className={`rounded-xl border border-slate-200 dark:border-panel-200 bg-white dark:bg-panel-50 p-4 shadow-sm hover:shadow-md transition-shadow duration-300 ${contentClassName ?? ''}`}
     >
       {!hideHeader && (
         <div className="mb-1 space-y-1">
-          <h5 className="text-l font-semibold text-slate-500">{title}</h5>
-          {subtitle && <p className="text-sm text-slate-600">{subtitle}</p>}
+          <h5 className="text-l font-semibold text-slate-500 dark:text-content-muted">{title}</h5>
+          {subtitle && <p className="text-sm text-slate-600 dark:text-content-muted">{subtitle}</p>}
         </div>
       )}
       {children}
@@ -186,10 +186,10 @@ export function TeacherModelComparisonDiagram() {
   return (
     <ChartCard title="Teacher model comparison" contentClassName="py-3" hideHeader>
       <div className="space-y-3">
-        <h5 className="text-l font-semibold text-slate-500">Teacher model comparison</h5>
+        <h5 className="text-l font-semibold text-slate-500 dark:text-content-muted">Teacher model comparison</h5>
         <div className="flex flex-col gap-4">
           <motion.div
-            className="h-64 sm:h-80 md:h-96 lg:h-[28rem] xl:h-[32rem] w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto rounded-xl border border-slate-100 bg-slate-50/70 p-4 shadow-sm"
+            className="h-64 sm:h-80 md:h-96 lg:h-[28rem] xl:h-[32rem] w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto rounded-xl border border-slate-100 dark:border-panel-200 bg-slate-50/70 dark:bg-panel-100 p-4 shadow-sm"
             initial={shouldReduceMotion ? {} : { opacity: 0, scale: 0.9 }}
             whileInView={shouldReduceMotion ? {} : { opacity: 1, scale: 1 }}
             viewport={{ once: true }}
@@ -219,8 +219,8 @@ export function TeacherModelComparisonDiagram() {
               <motion.div key={model.key} variants={itemVariants} className="flex items-center gap-2">
                 <span className="h-3 w-3 rounded-full flex-shrink-0" style={{ background: model.stroke }} />
                 <div className="flex flex-col leading-tight">
-                  <span className="text-sm font-medium text-slate-700">{model.label}</span>
-                  <span className="text-xs text-slate-500">Avg. {teacherAverages[model.key].toFixed(3)}</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-muted">{model.label}</span>
+                  <span className="text-xs text-slate-500 dark:text-content-muted">Avg. {teacherAverages[model.key].toFixed(3)}</span>
                 </div>
               </motion.div>
             ))}
@@ -275,7 +275,7 @@ export function QualityValidationFunnelDiagram() {
             )}
 
             {idx < tiers.length - 1 && idx !== 0 && (
-              <div className="h-4 w-0.5 bg-slate-300 my-1" />
+              <div className="h-4 w-0.5 bg-slate-300 dark:bg-panel-300 my-1" />
             )}
           </motion.div>
         ))}
@@ -302,7 +302,7 @@ export function TrainingDataDistributionDiagram() {
         viewport={{ once: true }}
       >
         <motion.div variants={itemVariants} className="space-y-3">
-          <p className="text-xs font-semibold text-slate-500">Roles</p>
+          <p className="text-xs font-semibold text-slate-500 dark:text-content-muted">Roles</p>
           {roleDistribution.map((role, idx) => (
             <motion.div
               key={role.label}
@@ -312,10 +312,10 @@ export function TrainingDataDistributionDiagram() {
               transition={{ delay: idx * 0.1 }}
             >
               <div className="flex justify-between text-sm items-center">
-                <span className="text-slate-700">{role.label}</span>
-                <span className="text-slate-500 font-medium">{role.value.toLocaleString()}</span>
+                <span className="text-slate-700 dark:text-muted">{role.label}</span>
+                <span className="text-slate-500 dark:text-content-muted font-medium">{role.value.toLocaleString()}</span>
               </div>
-              <div className="mt-1.5 h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div className="mt-1.5 h-2 rounded-full bg-slate-100 dark:bg-panel-200 overflow-hidden">
                 <motion.div
                   className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-indigo-600"
                   initial={shouldReduceMotion ? { width: `${(role.value / maxRole) * 100}%` } : { width: 0 }}
@@ -329,7 +329,7 @@ export function TrainingDataDistributionDiagram() {
         </motion.div>
 
         <motion.div variants={itemVariants} className="space-y-3">
-          <p className="text-xs font-semibold text-slate-500">Difficulty</p>
+          <p className="text-xs font-semibold text-slate-500 dark:text-content-muted">Difficulty</p>
           {difficultyDistribution.map((difficulty, idx) => (
             <motion.div
               key={difficulty.label}
@@ -339,13 +339,13 @@ export function TrainingDataDistributionDiagram() {
               transition={{ delay: idx * 0.1 + 0.3 }}
             >
               <div className="flex justify-between text-sm items-center">
-                <span className="flex items-center gap-2 text-slate-700">
+                <span className="flex items-center gap-2 text-slate-700 dark:text-muted">
                   <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: difficulty.color }} />
                   {difficulty.label}
                 </span>
-                <span className="text-slate-500 font-medium">{difficulty.value.toLocaleString()}</span>
+                <span className="text-slate-500 dark:text-content-muted font-medium">{difficulty.value.toLocaleString()}</span>
               </div>
-              <div className="mt-1.5 h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div className="mt-1.5 h-2 rounded-full bg-slate-100 dark:bg-panel-200 overflow-hidden">
                 <motion.div
                   className="h-full rounded-full"
                   style={{ backgroundColor: difficulty.color }}
@@ -362,17 +362,17 @@ export function TrainingDataDistributionDiagram() {
 
       <motion.div
         variants={itemVariants}
-        className="mt-5 rounded-xl bg-slate-50 border border-slate-200 p-4 flex flex-wrap gap-6 text-sm"
+        className="mt-5 rounded-xl bg-slate-50 dark:bg-panel-100 border border-slate-200 dark:border-panel-200 p-4 flex flex-wrap gap-6 text-sm"
       >
         <div className="flex items-center gap-2">
           <FileJson size={16} className="text-indigo-500" />
-          <span className="text-slate-600">Tokens:</span>
-          <span className="font-semibold text-slate-800">42.5M</span>
+          <span className="text-slate-600 dark:text-content-muted">Tokens:</span>
+          <span className="font-semibold text-slate-800 dark:text-content">42.5M</span>
         </div>
         <div className="flex items-center gap-2">
           <Clock size={16} className="text-indigo-500" />
-          <span className="text-slate-600">Avg. length:</span>
-          <span className="font-semibold text-slate-800">7,051 tokens</span>
+          <span className="text-slate-600 dark:text-content-muted">Avg. length:</span>
+          <span className="font-semibold text-slate-800 dark:text-content">7,051 tokens</span>
         </div>
       </motion.div>
     </ChartCard>
@@ -408,12 +408,12 @@ export function TrainingLossCurvesDiagram() {
             variants={itemVariants}
             className={`rounded-xl border p-4 ${
               experiment.winner
-                ? 'border-indigo-200 bg-indigo-50'
-                : 'border-slate-100 bg-slate-50'
+                ? 'border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-indigo-950/30'
+                : 'border-slate-100 dark:border-panel-200 bg-slate-50 dark:bg-panel-100'
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-semibold text-slate-800">{experiment.name}</p>
+              <p className="text-sm font-semibold text-slate-800 dark:text-content">{experiment.name}</p>
               {experiment.winner && (
                 <motion.span
                   variants={badgePopVariants}
@@ -440,7 +440,7 @@ export function TrainingLossCurvesDiagram() {
                 </LineChart>
               </ResponsiveContainer>
             </motion.div>
-            <div className="flex gap-4 mt-2 text-xs text-slate-500">
+            <div className="flex gap-4 mt-2 text-xs text-slate-500 dark:text-content-muted">
               <span className="flex items-center gap-1">
                 <span className="h-0.5 w-3 bg-indigo-600 rounded" /> Train
               </span>
@@ -476,8 +476,8 @@ export function ModelComparisonMatrixDiagram() {
             variants={itemVariants}
             className={`rounded-lg p-3 border transition-all hover:shadow-sm ${
               model.winner
-                ? 'border-indigo-400 bg-indigo-50'
-                : 'border-slate-200 bg-slate-50'
+                ? 'border-indigo-400 dark:border-indigo-500/40 bg-indigo-50 dark:bg-indigo-950/30'
+                : 'border-slate-200 dark:border-panel-200 bg-slate-50 dark:bg-panel-100'
             }`}
           >
             <div className="mb-1">
@@ -487,10 +487,10 @@ export function ModelComparisonMatrixDiagram() {
             <div className="space-y-2">
               <div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-500 flex items-center gap-1"><Brain size={12} /> Quality</span>
-                  <span className="font-semibold text-slate-700">{model.quality}/1.0</span>
+                  <span className="text-slate-500 dark:text-content-muted flex items-center gap-1"><Brain size={12} /> Quality</span>
+                  <span className="font-semibold text-slate-700 dark:text-muted">{model.quality}/1.0</span>
                 </div>
-                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-200 dark:bg-panel-200 h-1.5 rounded-full overflow-hidden">
                   <motion.div
                     className="bg-indigo-500 h-1.5 rounded-full"
                     initial={shouldReduceMotion ? { width: `${model.quality * 100}%` } : { width: 0 }}
@@ -503,10 +503,10 @@ export function ModelComparisonMatrixDiagram() {
 
               <div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-500 flex items-center gap-1"><Clock size={12} /> Latency P90</span>
-                  <span className="font-semibold text-slate-700">{model.latency}s</span>
+                  <span className="text-slate-500 dark:text-content-muted flex items-center gap-1"><Clock size={12} /> Latency P90</span>
+                  <span className="font-semibold text-slate-700 dark:text-muted">{model.latency}s</span>
                 </div>
-                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-200 dark:bg-panel-200 h-1.5 rounded-full overflow-hidden">
                   <motion.div
                     className={`h-1.5 rounded-full ${model.latency < 5 ? 'bg-green-500' : 'bg-amber-400'}`}
                     initial={shouldReduceMotion ? { width: `${Math.max(10, 100 - (model.latency * 4))}%` } : { width: 0 }}
@@ -519,10 +519,10 @@ export function ModelComparisonMatrixDiagram() {
 
               <div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-500 flex items-center gap-1"><DollarSign size={12} /> Cost / 1K</span>
-                  <span className="font-semibold text-slate-700">${model.cost.toFixed(2)}</span>
+                  <span className="text-slate-500 dark:text-content-muted flex items-center gap-1"><DollarSign size={12} /> Cost / 1K</span>
+                  <span className="font-semibold text-slate-700 dark:text-muted">${model.cost.toFixed(2)}</span>
                 </div>
-                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-200 dark:bg-panel-200 h-1.5 rounded-full overflow-hidden">
                   <motion.div
                     className={`h-1.5 rounded-full ${model.cost < 2 ? 'bg-green-500' : 'bg-red-400'}`}
                     initial={shouldReduceMotion ? { width: `${Math.max(10, 100 - (model.cost * 15))}%` } : { width: 0 }}
@@ -535,10 +535,10 @@ export function ModelComparisonMatrixDiagram() {
 
               <div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-500 flex items-center gap-1"><FileJson size={12} /> Parsing %</span>
-                  <span className="font-semibold text-slate-700">{model.parsing}%</span>
+                  <span className="text-slate-500 dark:text-content-muted flex items-center gap-1"><FileJson size={12} /> Parsing %</span>
+                  <span className="font-semibold text-slate-700 dark:text-muted">{model.parsing}%</span>
                 </div>
-                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-200 dark:bg-panel-200 h-1.5 rounded-full overflow-hidden">
                   <motion.div
                     className={`h-1.5 rounded-full ${model.parsing > 90 ? 'bg-green-500' : 'bg-amber-500'}`}
                     initial={shouldReduceMotion ? { width: `${model.parsing}%` } : { width: 0 }}
@@ -587,8 +587,8 @@ export function TeacherStudentArchitectureDiagram() {
               >
                 <span className={stage.iconColor}>{stage.icon}</span>
               </motion.div>
-              <p className="mt-2 text-sm font-semibold text-slate-800">{stage.title}</p>
-              <p className="text-xs text-slate-500">{stage.subtitle}</p>
+              <p className="mt-2 text-sm font-semibold text-slate-800 dark:text-content">{stage.title}</p>
+              <p className="text-xs text-slate-500 dark:text-content-muted">{stage.subtitle}</p>
             </div>
 
             {idx < architectureStages.length - 1 && (
@@ -607,17 +607,17 @@ export function TeacherStudentArchitectureDiagram() {
         variants={itemVariants}
         className="mt-4 grid grid-cols-3 gap-4 text-center text-xs"
       >
-        <div className="rounded-lg bg-purple-50 border border-purple-100 p-3">
-          <p className="font-semibold text-purple-700">Highest Quality</p>
-          <p className="text-slate-500">Best structural fidelity</p>
+        <div className="rounded-lg bg-purple-50 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-500/30 p-3">
+          <p className="font-semibold text-purple-700 dark:text-purple-400">Highest Quality</p>
+          <p className="text-slate-500 dark:text-content-muted">Best structural fidelity</p>
         </div>
-        <div className="rounded-lg bg-blue-50 border border-blue-100 p-3">
-          <p className="font-semibold text-blue-700">87% Pass Rate</p>
-          <p className="text-slate-500">Strict quality checks</p>
+        <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-500/30 p-3">
+          <p className="font-semibold text-blue-700 dark:text-blue-400">87% Pass Rate</p>
+          <p className="text-slate-500 dark:text-content-muted">Strict quality checks</p>
         </div>
-        <div className="rounded-lg bg-emerald-50 border border-emerald-100 p-3">
-          <p className="font-semibold text-emerald-700">10× Faster</p>
-          <p className="text-slate-500">95% cost reduction</p>
+        <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-500/30 p-3">
+          <p className="font-semibold text-emerald-700 dark:text-emerald-400">10× Faster</p>
+          <p className="text-slate-500 dark:text-content-muted">95% cost reduction</p>
         </div>
       </motion.div>
     </ChartCard>
@@ -720,23 +720,23 @@ export function EvaluationComparisonDiagram() {
         viewport={{ once: true }}
       >
         {/* Claude Column */}
-        <motion.div variants={itemVariants} className="rounded-xl border border-purple-200 bg-purple-50 p-4">
+        <motion.div variants={itemVariants} className="rounded-xl border border-purple-200 dark:border-purple-500/30 bg-purple-50 dark:bg-purple-950/30 p-4">
           <div className="flex items-center gap-1 mb-4">
             <span className="h-3 w-3 rounded-full bg-purple-500" />
-            <h5 className="font-semibold text-slate-800">Claude Sonnet 4</h5>
-            <span className="text-xs text-slate-500">(Teacher)</span>
+            <h5 className="font-semibold text-slate-800 dark:text-content">Claude Sonnet 4</h5>
+            <span className="text-xs text-slate-500 dark:text-content-muted">(Teacher)</span>
           </div>
           <div className="space-y-3">
             {comparisonDimensions.map((dim, idx) => (
               <div key={`claude-${dim.label}`}>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-600">{dim.label}</span>
-                  <span className={`font-semibold ${dim.better === 'claude' ? 'text-purple-600' : 'text-slate-500'}`}>
+                  <span className="text-slate-600 dark:text-content-muted">{dim.label}</span>
+                  <span className={`font-semibold ${dim.better === 'claude' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-500 dark:text-content-muted'}`}>
                     {dim.claude.toFixed(3)}
                     {dim.better === 'claude' && ' ✓'}
                   </span>
                 </div>
-                <div className="h-1.5 rounded-full bg-purple-100 overflow-hidden">
+                <div className="h-1.5 rounded-full bg-purple-100 dark:bg-purple-900/40 overflow-hidden">
                   <motion.div
                     className="h-full rounded-full bg-purple-500"
                     initial={shouldReduceMotion ? { width: `${dim.claude * 100}%` } : { width: 0 }}
@@ -751,23 +751,23 @@ export function EvaluationComparisonDiagram() {
         </motion.div>
 
         {/* Student Column */}
-        <motion.div variants={itemVariants} className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+        <motion.div variants={itemVariants} className="rounded-xl border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/30 p-4">
           <div className="flex items-center gap-2 mb-4">
             <span className="h-3 w-3 rounded-full bg-emerald-500" />
-            <h5 className="font-semibold text-slate-800">GPT-4.1-nano</h5>
-            <span className="text-xs text-slate-500">(Student)</span>
+            <h5 className="font-semibold text-slate-800 dark:text-content">GPT-4.1-nano</h5>
+            <span className="text-xs text-slate-500 dark:text-content-muted">(Student)</span>
           </div>
           <div className="space-y-3">
             {comparisonDimensions.map((dim, idx) => (
               <div key={`student-${dim.label}`}>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-600">{dim.label}</span>
-                  <span className={`font-semibold ${dim.better === 'student' ? 'text-emerald-600' : 'text-slate-500'}`}>
+                  <span className="text-slate-600 dark:text-content-muted">{dim.label}</span>
+                  <span className={`font-semibold ${dim.better === 'student' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-content-muted'}`}>
                     {dim.student.toFixed(3)}
                     {dim.better === 'student' && ' ✓'}
                   </span>
                 </div>
-                <div className="h-1.5 rounded-full bg-emerald-100 overflow-hidden">
+                <div className="h-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 overflow-hidden">
                   <motion.div
                     className="h-full rounded-full bg-emerald-500"
                     initial={shouldReduceMotion ? { width: `${dim.student * 100}%` } : { width: 0 }}
@@ -784,10 +784,10 @@ export function EvaluationComparisonDiagram() {
 
       <motion.div
         variants={itemVariants}
-        className="mt-4 text-center text-sm text-slate-600"
+        className="mt-4 text-center text-sm text-slate-600 dark:text-content-muted"
       >
-        Student wins on <span className="font-semibold text-emerald-600">3 technical dimensions</span>,
-        Teacher leads on <span className="font-semibold text-purple-600">3 contextual dimensions</span>
+        Student wins on <span className="font-semibold text-emerald-600 dark:text-emerald-400">3 technical dimensions</span>,
+        Teacher leads on <span className="font-semibold text-purple-600 dark:text-purple-400">3 contextual dimensions</span>
       </motion.div>
     </ChartCard>
   );
@@ -807,7 +807,7 @@ export function CostComparisonChart() {
         viewport={{ once: true }}
       >
         <table className="w-full text-sm">
-          <thead className="text-left text-xs text-slate-500 border-b border-slate-200">
+          <thead className="text-left text-xs text-slate-500 dark:text-content-muted border-b border-slate-200 dark:border-panel-200">
             <tr>
               <th className="py-2 pr-4 font-semibold">Volume</th>
               <th className="py-2 pr-4 font-semibold">Claude Sonnet 4</th>
@@ -815,14 +815,14 @@ export function CostComparisonChart() {
               <th className="py-2 pr-4 font-semibold text-emerald-600">Savings</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-panel-200">
             {costSeries.map((entry) => (
               <motion.tr
                 key={entry.volume}
                 variants={itemVariants}
-                className="hover:bg-slate-50 transition-colors"
+                className="hover:bg-slate-50 dark:hover:bg-panel-100 transition-colors"
               >
-                <td className="py-3 pr-4 font-semibold text-slate-700">{entry.volume}</td>
+                <td className="py-3 pr-4 font-semibold text-slate-700 dark:text-muted">{entry.volume}</td>
                 <td className="py-3 pr-4 text-red-600">${entry.claude.toFixed(2)}</td>
                 <td className="py-3 pr-4 text-emerald-600">${entry.student.toFixed(2)}</td>
                 <td className="py-3 pr-4">
@@ -893,8 +893,8 @@ export function RoiTimelineDiagram() {
         className="mt-4 flex items-center justify-center gap-2 text-sm"
       >
         <CheckCircle size={16} className="text-emerald-500" />
-        <span className="text-slate-600">Break-even:</span>
-        <span className="font-semibold text-slate-800">~90K transformations</span>
+        <span className="text-slate-600 dark:text-content-muted">Break-even:</span>
+        <span className="font-semibold text-slate-800 dark:text-content">~90K transformations</span>
         <span className="text-xs text-slate-400">(Month 1)</span>
       </motion.div>
     </ChartCard>
@@ -920,13 +920,13 @@ export function TcoComparisonDiagram() {
       >
         <motion.div variants={itemVariants}>
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-slate-600 flex items-center gap-2">
+            <span className="text-slate-600 dark:text-content-muted flex items-center gap-2">
               <span className="h-3 w-3 rounded bg-red-500" />
               Claude Sonnet 4
             </span>
-            <span className="font-bold text-red-600">${claude.toLocaleString()}</span>
+            <span className="font-bold text-red-600 dark:text-red-400">${claude.toLocaleString()}</span>
           </div>
-          <div className="h-4 rounded-full bg-slate-100 overflow-hidden">
+          <div className="h-4 rounded-full bg-slate-100 dark:bg-panel-200 overflow-hidden">
             <motion.div
               className="h-full rounded-full bg-gradient-to-r from-red-400 to-red-600"
               initial={shouldReduceMotion ? { width: '100%' } : { width: 0 }}
@@ -939,13 +939,13 @@ export function TcoComparisonDiagram() {
 
         <motion.div variants={itemVariants}>
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-slate-600 flex items-center gap-2">
+            <span className="text-slate-600 dark:text-content-muted flex items-center gap-2">
               <span className="h-3 w-3 rounded bg-emerald-500" />
               Fine-tuned GPT-4.1-nano
             </span>
-            <span className="font-bold text-emerald-600">${student.toLocaleString()}</span>
+            <span className="font-bold text-emerald-600 dark:text-emerald-400">${student.toLocaleString()}</span>
           </div>
-          <div className="h-4 rounded-full bg-slate-100 overflow-hidden">
+          <div className="h-4 rounded-full bg-slate-100 dark:bg-panel-200 overflow-hidden">
             <motion.div
               className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"
               initial={shouldReduceMotion ? { width: `${(student / claude) * 100}%` } : { width: 0 }}
@@ -961,18 +961,18 @@ export function TcoComparisonDiagram() {
           className="flex items-center justify-center gap-4 pt-2"
         >
           <div className="text-center">
-            <p className="text-2xl font-bold text-emerald-600">${(claude - student).toLocaleString()}</p>
-            <p className="text-xs text-slate-500">Annual Savings</p>
+            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">${(claude - student).toLocaleString()}</p>
+            <p className="text-xs text-slate-500 dark:text-content-muted">Annual Savings</p>
           </div>
-          <div className="h-10 w-px bg-slate-200" />
+          <div className="h-10 w-px bg-slate-200 dark:bg-panel-300" />
           <div className="text-center">
             <motion.p
               variants={badgePopVariants}
-              className="text-2xl font-bold text-emerald-600"
+              className="text-2xl font-bold text-emerald-600 dark:text-emerald-400"
             >
               91%
             </motion.p>
-            <p className="text-xs text-slate-500">Cost Reduction</p>
+            <p className="text-xs text-slate-500 dark:text-content-muted">Cost Reduction</p>
           </div>
         </motion.div>
       </motion.div>
@@ -1113,7 +1113,7 @@ export function QualityValidationPipelineDiagram() {
                 >
                   <span className={`${stage.iconColor} [&>svg]:h-5 [&>svg]:w-5`}>{stage.icon}</span>
                 </motion.div>
-                <span className="text-sm font-semibold text-slate-700 whitespace-nowrap">{stage.label}</span>
+                <span className="text-sm font-semibold text-slate-700 dark:text-muted whitespace-nowrap">{stage.label}</span>
               </motion.div>
               {idx < pipelineStages.length - 1 && (
                 <ArrowRight size={16} className="text-slate-300 flex-shrink-0" />

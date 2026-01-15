@@ -149,7 +149,7 @@ function ComingSoonModal({ feature, message }: { feature: string; message?: stri
     <div className="text-center py-12 px-6">
       <Clock className="w-16 h-16 mx-auto text-blue-600 mb-4" />
       <h3 className="text-2xl font-bold mb-2 text-content font-playfair">Coming Soon!</h3>
-      <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
+      <p className="text-gray-600 dark:text-content-muted mb-6 text-sm">
         {message || `${feature} is currently in development and will be available soon.`}
       </p>
       <p className="text-sm text-gray-500">We&rsquo;ll notify you when this feature launches. Stay tuned!</p>
@@ -261,12 +261,12 @@ function UpgradeModal({ isOpen, onClose, monthlyPrice }: UpgradeModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-lg w-full p-8">
+      <div className="bg-white dark:bg-panel-100 rounded-2xl shadow-xl max-w-lg w-full p-8">
         {/* Header */}
         <div className="text-center mb-6">
           <Crown className="w-16 h-16 mx-auto text-mint-600 mb-4" />
           <h2 className="text-3xl font-bold mb-2 text-content font-playfair">Upgrade to Premium</h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600 dark:text-content-muted">
             Unlock unlimited study plans and advanced features
           </p>
         </div>
@@ -279,10 +279,10 @@ function UpgradeModal({ isOpen, onClose, monthlyPrice }: UpgradeModalProps) {
         )}
 
         {/* Pricing */}
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 mb-6">
+        <div className="bg-gray-50 dark:bg-background rounded-xl p-6 mb-6">
           <div className="text-center mb-4">
             <span className="text-4xl font-bold">₹{monthlyPrice}</span>
-            <span className="text-gray-600 dark:text-gray-400">/month</span>
+            <span className="text-gray-600 dark:text-content-muted">/month</span>
             <p className="text-sm text-gray-500 mt-1">~${(monthlyPrice / 83).toFixed(2)} USD</p>
           </div>
 
@@ -310,7 +310,7 @@ function UpgradeModal({ isOpen, onClose, monthlyPrice }: UpgradeModalProps) {
           </ul>
 
           {/* Payment Methods */}
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-panel-200">
             <p className="text-xs text-gray-500 text-center mb-2">Secure payment powered by Razorpay</p>
             <div className="flex justify-center items-center gap-3 text-xs text-gray-400">
               <span>💳 Cards</span>
@@ -327,7 +327,7 @@ function UpgradeModal({ isOpen, onClose, monthlyPrice }: UpgradeModalProps) {
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="flex-1 px-6 py-3 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-6 py-3 border border-gray-300 dark:border-panel-300 hover:bg-gray-50 dark:hover:bg-panel-200 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Maybe Later
           </button>

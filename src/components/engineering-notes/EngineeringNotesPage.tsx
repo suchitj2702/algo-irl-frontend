@@ -25,8 +25,8 @@ export const engineeringNotes: Record<string, EngineeringNote> = {
 
 export function EngineeringNotesPage() {
   return (
-    <div className="min-h-screen bg-panel-50 text-content font-sans">
-      <header className="border-b border-outline-subtle/30 bg-white">
+    <div className="min-h-screen bg-panel-50 dark:bg-background text-content font-sans">
+      <header className="border-b border-outline-subtle/30 dark:border-panel-200 bg-white dark:bg-panel-50">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-[clamp(2.5rem,5vw,4rem)] space-y-3 sm:space-y-4 text-center">
           <h1 className="font-playfair text-3xl sm:text-4xl tracking-tight font-light text-content">
             Engineering Notes
@@ -45,7 +45,7 @@ export function EngineeringNotesPage() {
               to={`/engineering-notes/${note.slug}`}
               className="block group"
             >
-              <article className="rounded-xl sm:rounded-2xl border border-outline-subtle/40 bg-white p-4 sm:p-6 transition-all hover:border-primary/40 hover:shadow-lg">
+              <article className="rounded-xl sm:rounded-2xl border border-outline-subtle/40 dark:border-panel-200 bg-white dark:bg-panel-50 p-4 sm:p-6 transition-all hover:border-primary/40 hover:shadow-lg">
                 <div className="space-y-2 sm:space-y-3">
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-content-muted">
                     <div className="flex items-center gap-1.5">

@@ -95,7 +95,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onEngin
   setIsMenuOpen(false);
  };
 
- return <header className="bg-white/40 dark:bg-gray-900/30 backdrop-blur-xl backdrop-saturate-150 shadow-sm sticky top-0 z-50 transition-all duration-200 border-b border-white/20 dark:border-gray-800/30">
+ return <header className="bg-white/40 dark:bg-surface/80 backdrop-blur-xl backdrop-saturate-150 shadow-sm sticky top-0 z-50 transition-all duration-200 border-b border-white/20 dark:border-panel-200/30">
    <div className="mx-auto px-4 lg:px-6">
     <div className="flex justify-between items-center h-14">
      {!hideLogo && (
@@ -112,26 +112,26 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onEngin
      <div className="hidden md:flex items-center space-x-2">
       <button
        onClick={handleStudyPlansClick}
-       className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-medium text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
+       className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-medium text-content bg-white/50 dark:bg-panel-100/80 hover:bg-white/70 dark:hover:bg-panel-200/80 border border-gray-200/50 dark:border-panel-200/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
       >
        Study Plans
       </button>
       <button
        onClick={handleBlind75Click}
-       className="inline-flex items-center px-4 py-2 text-[15px] font-medium text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
+       className="inline-flex items-center px-4 py-2 text-[15px] font-medium text-content bg-white/50 dark:bg-panel-100/80 hover:bg-white/70 dark:hover:bg-panel-200/80 border border-gray-200/50 dark:border-panel-200/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
       >
        Practice Blind 75
       </button>
       <button
        onClick={handleEngineeringNotesClick}
-       className="inline-flex items-center px-4 py-2 text-[15px] font-medium text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
+       className="inline-flex items-center px-4 py-2 text-[15px] font-medium text-content bg-white/50 dark:bg-panel-100/80 hover:bg-white/70 dark:hover:bg-panel-200/80 border border-gray-200/50 dark:border-panel-200/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
       >
        Engineering Notes
       </button>
       {showDarkModeToggle && (
        <button
         onClick={toggleDarkMode}
-        className="p-2.5 text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.95] backdrop-blur-sm"
+        className="p-2.5 text-content bg-white/50 dark:bg-panel-100/80 hover:bg-white/70 dark:hover:bg-panel-200/80 border border-gray-200/50 dark:border-panel-200/50 rounded-[14px] transition-all duration-200 active:scale-[0.95] backdrop-blur-sm"
         aria-label="Toggle dark mode"
        >
         {isDarkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
@@ -144,7 +144,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onEngin
         <div className="relative">
          <button
           onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-          className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-medium text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
+          className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-medium text-content bg-white/50 dark:bg-panel-100/80 hover:bg-white/70 dark:hover:bg-panel-200/80 border border-gray-200/50 dark:border-panel-200/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
          >
           <User className="h-4 w-4" />
           <span className="max-w-[150px] truncate">{user.displayName || user.email || 'Account'}</span>
@@ -160,7 +160,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onEngin
            />
 
            {/* Dropdown menu */}
-           <div className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden z-20">
+           <div className="absolute right-0 mt-2 w-64 bg-white/95 dark:bg-surface/95 backdrop-blur-xl rounded-xl shadow-xl border border-gray-200/50 dark:border-panel-200/50 overflow-hidden z-20">
             <div className="px-4 py-3 border-b border-outline-subtle">
              <p className="text-sm font-medium text-content">{user.displayName || 'User'}</p>
              <p className="text-xs text-content-muted truncate">{user.email}</p>
@@ -179,7 +179,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onEngin
         !navSignInHidden && (
          <button
           onClick={handleSignInClick}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-medium text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-medium text-content bg-white/50 dark:bg-panel-100/80 hover:bg-white/70 dark:hover:bg-panel-200/80 border border-gray-200/50 dark:border-panel-200/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
          >
           Sign In
          </button>
@@ -191,7 +191,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onEngin
       {showDarkModeToggle && (
        <button
         onClick={toggleDarkMode}
-        className="p-2 text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[12px] transition-all duration-200 active:scale-[0.95] backdrop-blur-sm"
+        className="p-2 text-content bg-white/50 dark:bg-panel-100/80 hover:bg-white/70 dark:hover:bg-panel-200/80 border border-gray-200/50 dark:border-panel-200/50 rounded-[12px] transition-all duration-200 active:scale-[0.95] backdrop-blur-sm"
         aria-label="Toggle dark mode"
        >
         {isDarkMode ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
@@ -200,7 +200,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onEngin
       <button
        onClick={() => setIsMenuOpen(!isMenuOpen)}
        type="button"
-       className="p-2 text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[12px] transition-all duration-200 active:scale-[0.95] backdrop-blur-sm"
+       className="p-2 text-content bg-white/50 dark:bg-panel-100/80 hover:bg-white/70 dark:hover:bg-panel-200/80 border border-gray-200/50 dark:border-panel-200/50 rounded-[12px] transition-all duration-200 active:scale-[0.95] backdrop-blur-sm"
       >
        <span className="sr-only">Open main menu</span>
        {isMenuOpen ? <XIcon className="block h-6 w-6" aria-hidden="true" /> : <MenuIcon className="block h-6 w-6" aria-hidden="true" />}
@@ -208,23 +208,23 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onEngin
      </div>
     </div>
    </div>
-   {isMenuOpen && <div className="md:hidden bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl border-t border-white/20 dark:border-gray-800/30">
+   {isMenuOpen && <div className="md:hidden bg-white/95 dark:bg-surface/95 backdrop-blur-xl border-t border-white/20 dark:border-panel-200/30">
      <div className="pt-2 pb-3 space-y-2 px-4 lg:px-6">
       <button
        onClick={handleStudyPlansClick}
-       className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
+       className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-content bg-white/50 dark:bg-panel-100/80 hover:bg-white/70 dark:hover:bg-panel-200/80 border border-gray-200/50 dark:border-panel-200/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
       >
        Study Plans
       </button>
       <button
        onClick={handleBlind75Click}
-       className="flex items-center w-full px-4 py-2.5 text-[15px] font-medium text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
+       className="flex items-center w-full px-4 py-2.5 text-[15px] font-medium text-content bg-white/50 dark:bg-panel-100/80 hover:bg-white/70 dark:hover:bg-panel-200/80 border border-gray-200/50 dark:border-panel-200/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
       >
        Practice Blind 75
       </button>
       <button
        onClick={handleEngineeringNotesClick}
-       className="flex items-center w-full px-4 py-2.5 text-[15px] font-medium text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
+       className="flex items-center w-full px-4 py-2.5 text-[15px] font-medium text-content bg-white/50 dark:bg-panel-100/80 hover:bg-white/70 dark:hover:bg-panel-200/80 border border-gray-200/50 dark:border-panel-200/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
       >
        Engineering Notes
       </button>
@@ -233,7 +233,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onEngin
       {!loading && (
        user ? (
         <>
-         <div className="flex items-center gap-2 px-4 py-2.5 text-[15px] text-content bg-white/50 dark:bg-white/10 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] backdrop-blur-sm">
+         <div className="flex items-center gap-2 px-4 py-2.5 text-[15px] text-content bg-white/50 dark:bg-panel-100/80 border border-gray-200/50 dark:border-panel-200/50 rounded-[14px] backdrop-blur-sm">
           <User className="h-4 w-4" />
           <div className="flex-1 min-w-0">
            <p className="text-sm font-medium truncate">{user.displayName || 'User'}</p>
@@ -251,7 +251,7 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onEngin
         !navSignInHidden && (
          <button
           onClick={handleSignInClick}
-          className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-content bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-gray-200/50 dark:border-gray-700/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
+          className="flex items-center gap-2 w-full px-4 py-2.5 text-[15px] font-medium text-content bg-white/50 dark:bg-panel-100/80 hover:bg-white/70 dark:hover:bg-panel-200/80 border border-gray-200/50 dark:border-panel-200/50 rounded-[14px] transition-all duration-200 active:scale-[0.98] backdrop-blur-sm"
          >
           Sign In
          </button>

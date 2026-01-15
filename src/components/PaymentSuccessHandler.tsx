@@ -265,11 +265,11 @@ function PaymentSuccessHandlerContent() {
 
     const content = (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div className="w-full max-w-sm rounded-lg bg-white p-8 shadow-xl dark:bg-slate-900/95">
+        <div className="w-full max-w-sm rounded-lg bg-white p-8 shadow-xl dark:bg-background/95">
           <div className="flex flex-col items-center text-center">
             <Loader2 className="h-12 w-12 animate-spin text-mint-600" aria-hidden="true" />
-            <p className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">Processing payment…</p>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Please don&apos;t close this window.</p>
+            <p className="mt-4 text-lg font-semibold text-slate-900 dark:text-content">Processing payment…</p>
+            <p className="mt-2 text-sm text-slate-500 dark:text-content-muted">Please don&apos;t close this window.</p>
           </div>
         </div>
       </div>

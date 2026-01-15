@@ -79,7 +79,7 @@ export function CircularProgress({
           fill="none"
           stroke="currentColor"
           strokeWidth={strokeWidth}
-          className="text-gray-200 dark:text-gray-700"
+          className="text-gray-200 dark:text-panel-200"
         />
 
         {/* Progress circle with gradient */}
@@ -109,7 +109,7 @@ export function CircularProgress({
           >
             {Math.round(value)}
           </motion.span>
-          <span className="text-[10px] text-gray-500 dark:text-gray-400">
+          <span className="text-[10px] text-gray-500 dark:text-content-muted">
             / 100
           </span>
         </div>

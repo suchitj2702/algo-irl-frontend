@@ -96,7 +96,7 @@ export default function CodeEditor({
  };
 
  return (
-  <div className="code-editor-container w-full h-full bg-white dark:bg-neutral-900">
+  <div className="code-editor-container w-full h-full bg-white dark:bg-background">
    {editorError ? (
     <div className="p-4 text-button-foreground">
      <div className="mb-4">
@@ -114,7 +114,7 @@ export default function CodeEditor({
       </button>
       <button 
        onClick={() => window.location.reload()}
-       className="px-3 py-1 bg-neutral-600 hover:bg-neutral-700 text-button-foreground text-sm rounded"
+       className="px-3 py-1 bg-panel-200 hover:bg-panel-300 text-button-foreground text-sm rounded"
       >
        Refresh Page
       </button>
@@ -122,7 +122,7 @@ export default function CodeEditor({
      <textarea
       value={code}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full h-[calc(100%-120px)] p-4 font-mono text-sm bg-neutral-900 text-neutral-200 focus:outline-none resize-none border border-neutral-700"
+      className="w-full h-[calc(100%-120px)] p-4 font-mono text-sm bg-neutral-900 text-muted focus:outline-none resize-none border border-panel-200"
       spellCheck="false"
       placeholder="// Fallback text editor - Monaco Editor failed to load"
      />

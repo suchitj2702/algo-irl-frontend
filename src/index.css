@@ -264,6 +264,33 @@ input[type='range']::-moz-range-track {
 .dark {
   color-scheme: dark;
 }
+
+/* Native select dark mode styling */
+.dark select {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.dark select option {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Form inputs dark mode */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="number"],
+.dark textarea {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Placeholder text dark mode */
+.dark ::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
 /* Improved transitions - exclude framer-motion animated elements */
 *:not([data-framer-motion]) {
   transition-property: background-color, border-color, color, fill, stroke, box-shadow;

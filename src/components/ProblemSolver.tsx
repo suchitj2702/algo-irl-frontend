@@ -105,7 +105,7 @@ const renderTextWithBackticks = (text: string, keyPrefix: string) => {
  return backtickParts.map((part, backtickIndex) => {
   if (backtickIndex % 2 === 1) {
    // Content inside backticks - render as code
-   return <code key={`${keyPrefix}-bt-${backtickIndex}`} className="font-mono bg-mint-light/30 dark:bg-gray-700 px-1 py-0.5 rounded text-sm">{part}</code>;
+   return <code key={`${keyPrefix}-bt-${backtickIndex}`} className="font-mono bg-mint-light/30 dark:bg-panel-200 px-1 py-0.5 rounded text-sm">{part}</code>;
   } else {
    // Normal text - check for bold formatting
    const boldParts = part.split('**');
@@ -508,7 +508,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
     <div className="glass-panel border border-transparent border-b border-outline-subtle/60 px-4 py-3">
      <button
       onClick={onReturnToBlind75}
-      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-content shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-neutral-900 dark:text-content-subtle dark:hover:bg-neutral-800"
+      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-content shadow-sm transition hover:bg-slate-50 dark:border-panel-200 dark:bg-background dark:text-content-subtle dark:hover:bg-panel-100"
      >
       <ArrowLeft className="h-3.5 w-3.5" />
       Back to List
@@ -531,7 +531,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
          </span>
         )}
         {planStatusLabel && (
-         <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 text-xs font-medium text-content-muted dark:text-content-subtle">
+         <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-panel-100/80 px-2 py-0.5 text-xs font-medium text-content-muted dark:text-content-subtle">
           {planStatusLabel}
          </span>
         )}
@@ -545,7 +545,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
       <div className="flex flex-wrap gap-2">
        <button
         onClick={planContext.onReturnToPlan}
-        className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-content shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-neutral-900 dark:text-content-subtle dark:hover:bg-neutral-800"
+        className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-content shadow-sm transition hover:bg-slate-50 dark:border-panel-200 dark:bg-background dark:text-content-subtle dark:hover:bg-panel-100"
        >
         <BookOpenCheck className="h-3.5 w-3.5" />
         View Plan
@@ -555,7 +555,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
         className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
          planContext.isBookmarked
           ? 'border-amber-400 bg-amber-50 text-amber-700 dark:border-amber-500 dark:bg-amber-900/30 dark:text-amber-300'
-          : 'border-slate-200 bg-white text-content hover:bg-slate-50 dark:border-slate-700 dark:bg-neutral-900 dark:text-content-subtle dark:hover:bg-neutral-800'
+          : 'border-slate-200 bg-white text-content hover:bg-slate-50 dark:border-panel-200 dark:bg-background dark:text-content-subtle dark:hover:bg-panel-100'
         }`}
        >
         {planContext.isBookmarked ? (
@@ -571,7 +571,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
         className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
          planContext.isCompleted
           ? 'border-emerald-400 bg-emerald-50 text-emerald-700 dark:border-emerald-500 dark:bg-emerald-900/30 dark:text-emerald-300'
-          : 'border-slate-200 bg-white text-content hover:bg-slate-50 dark:border-slate-700 dark:bg-neutral-900 dark:text-content-subtle dark:hover:bg-neutral-800'
+          : 'border-slate-200 bg-white text-content hover:bg-slate-50 dark:border-panel-200 dark:bg-background dark:text-content-subtle dark:hover:bg-panel-100'
         }`}
        >
         <CheckCircle2 className="h-3.5 w-3.5" />
@@ -580,7 +580,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
        <button
         ref={regenerateButtonRef}
         onClick={handleRegenerateClick}
-        className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-content hover:bg-slate-50 dark:border-slate-700 dark:bg-neutral-900 dark:text-content-subtle dark:hover:bg-neutral-800 disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-content hover:bg-slate-50 dark:border-panel-200 dark:bg-background dark:text-content-subtle dark:hover:bg-panel-100 disabled:opacity-50"
         disabled={!planContext.onRegenerate}
         aria-describedby="regenerate-tooltip"
         onMouseEnter={() => {
@@ -597,7 +597,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
         <RotateCcwIcon className="h-3.5 w-3.5" />
         Regenerate
        </button>
-       <div className="flex items-center overflow-hidden rounded-full border border-slate-200 bg-white dark:border-slate-700 dark:bg-neutral-900">
+       <div className="flex items-center overflow-hidden rounded-full border border-slate-200 bg-white dark:border-panel-200 dark:bg-background">
         <button
          onClick={() => planContext.onPrev?.()}
          disabled={!planContext.hasPrev}
@@ -606,7 +606,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
          <ArrowLeft className="h-3.5 w-3.5" />
          Prev
         </button>
-        <div className="h-full w-px bg-slate-200 dark:bg-slate-700" />
+        <div className="h-full w-px bg-slate-200 dark:bg-panel-200" />
         <button
          onClick={() => planContext.onNext?.()}
          disabled={!planContext.hasNext}
@@ -621,7 +621,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
     </div>
    )}
    <div className="flex flex-1 flex-col md:flex-row md:overflow-hidden">
-    <div className="w-full md:w-1/2 md:h-full flex flex-col bg-white dark:bg-neutral-850 border-r border-gray-200 dark:border-neutral-700">
+    <div className="w-full md:w-1/2 md:h-full flex flex-col bg-white dark:bg-panel-50 border-r border-gray-200 dark:border-panel-200">
      <div className="flex-1 md:overflow-y-auto">
       <div className="px-4 md:px-6 pt-3 pb-6">
        {isLoading ? (
@@ -638,10 +638,10 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
       </div>
      </div>
     </div>
-    <div className={`w-full md:w-1/2 md:h-full flex flex-col bg-white dark:bg-neutral-900 transition-all duration-500 transform ${showEditor ? 'translate-x-0 opacity-100' : 'md:translate-x-8 md:opacity-0'} ${isLoading ? 'hidden md:flex' : ''}`}>
-     <div className="flex-shrink-0 p-3 bg-white dark:bg-neutral-800 flex justify-between items-center border-b border-gray-200 dark:border-neutral-700"><div className="flex items-center"><h3 className="font-medium text-button-foreground">Solution Editor</h3><div className="ml-3 flex items-center text-xs text-content-muted/70 border-l border-neutral-600 pl-3"><InfoIcon className="h-3 w-3 mr-1 flex-shrink-0" /><span>{codeDetails?.language || 'python'}</span><div className="ml-2 text-xs text-content-muted/70">(support for more languages coming soon)</div></div></div><button onClick={handleReset} disabled={isLoadingRun || isLoadingSubmit || isLoading} className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(255,255,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"><RotateCcwIcon className="w-4 h-4" /> Reset</button></div>
+    <div className={`w-full md:w-1/2 md:h-full flex flex-col bg-white dark:bg-background transition-all duration-500 transform ${showEditor ? 'translate-x-0 opacity-100' : 'md:translate-x-8 md:opacity-0'} ${isLoading ? 'hidden md:flex' : ''}`}>
+     <div className="flex-shrink-0 p-3 bg-white dark:bg-panel-100 flex justify-between items-center border-b border-gray-200 dark:border-panel-200"><div className="flex items-center"><h3 className="font-medium text-button-foreground">Solution Editor</h3><div className="ml-3 flex items-center text-xs text-content-muted/70 border-l border-neutral-600 pl-3"><InfoIcon className="h-3 w-3 mr-1 flex-shrink-0" /><span>{codeDetails?.language || 'python'}</span><div className="ml-2 text-xs text-content-muted/70">(support for more languages coming soon)</div></div></div><button onClick={handleReset} disabled={isLoadingRun || isLoadingSubmit || isLoading} className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] font-medium text-button-foreground bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.3),0_1px_20px_rgba(255,255,255,0.1)_inset] hover:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_2px_30px_rgba(255,255,255,0.15)_inset] active:scale-[0.98] transition-all duration-200 disabled:opacity-40"><RotateCcwIcon className="w-4 h-4" /> Reset</button></div>
      <div className="flex-1 flex flex-col md:overflow-hidden">
-      <div className={`${showResultsPanel ? 'h-96 md:h-3/4' : 'h-96 md:h-full'} bg-white dark:bg-neutral-900 md:overflow-hidden transition-all duration-300`}>
+      <div className={`${showResultsPanel ? 'h-96 md:h-3/4' : 'h-96 md:h-full'} bg-white dark:bg-background md:overflow-hidden transition-all duration-300`}>
        {isLoading || !codeDetails ? (
         <div className="flex items-center justify-center h-full">
          <div className="text-center text-content-muted">
@@ -654,7 +654,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
        )}
       </div>
       {showResultsPanel && executionResults && (
-       <div className={'h-64 md:h-1/4 flex-shrink-0 border-t border-neutral-700 bg-gray-50 dark:bg-neutral-800 overflow-y-auto p-3 transition-all duration-300 opacity-100'}>
+       <div className={'h-64 md:h-1/4 flex-shrink-0 border-t border-neutral-700 bg-gray-50 dark:bg-panel-100 overflow-y-auto p-3 transition-all duration-300 opacity-100'}>
         {(isLoadingRun || isLoadingSubmit) ? (
           <div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 dark:border-white"></div><p className="ml-3 text-sm text-button-foreground">{isLoadingRun ? "Running sample tests..." : "Submitting and running all tests..."}</p></div>
         ) : (
@@ -699,7 +699,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
 
                 {tcResult.error && <p className="font-mono text-red-700 dark:text-red-300">Detail: {tcResult.error}</p>}
                 {/* {tcResult.stdout && <pre className="font-mono text-xs text-content-subtle bg-neutral-700/50 p-1 my-0.5 rounded max-h-20 overflow-y-auto whitespace-pre-wrap">Stdout: {tcResult.stdout}</pre>} */}
-                {tcResult.stderr && <pre className="font-mono text-xs text-red-700 dark:text-red-300 bg-neutral-200/50 dark:bg-neutral-700/50 p-1 my-0.5 rounded max-h-20 overflow-y-auto whitespace-pre-wrap">Stderr: {tcResult.stderr}</pre>}
+                {tcResult.stderr && <pre className="font-mono text-xs text-red-700 dark:text-red-300 bg-neutral-200/50 dark:bg-panel-200/50 p-1 my-0.5 rounded max-h-20 overflow-y-auto whitespace-pre-wrap">Stderr: {tcResult.stderr}</pre>}
                 </div>
               );
             })}
@@ -724,7 +724,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
        {problem && rawPrepareResponse !== undefined && (
         <button
          onClick={() => setIsIssueReportMenuOpen(true)}
-         className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-content-muted hover:text-content bg-transparent hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-md transition-colors"
+         className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-content-muted hover:text-content bg-transparent hover:bg-gray-100 dark:hover:bg-panel-100 rounded-md transition-colors"
          title="Report an issue with this problem"
         >
          <Flag className="h-3.5 w-3.5" />
@@ -813,12 +813,12 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
        transform: 'translate(-50%, 0)'
       }}
      >
-      <div className="relative rounded-2xl border border-emerald-200/70 bg-white/95 px-4 py-3 text-[11px] text-slate-700 shadow-xl ring-1 ring-emerald-100/50 backdrop-blur-sm dark:border-emerald-700/60 dark:bg-neutral-950/95 dark:text-slate-200 dark:ring-emerald-800/50">
-       <div className="absolute left-1/2 -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45 border border-emerald-200/70 bg-white/95 dark:border-emerald-700/60 dark:bg-neutral-950/95" />
+      <div className="relative rounded-2xl border border-emerald-200/70 bg-white/95 px-4 py-3 text-[11px] text-slate-700 shadow-xl ring-1 ring-emerald-100/50 backdrop-blur-sm dark:border-emerald-700/60 dark:bg-background/95 dark:text-muted dark:ring-emerald-800/50">
+       <div className="absolute left-1/2 -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45 border border-emerald-200/70 bg-white/95 dark:border-emerald-700/60 dark:bg-background/95" />
        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-300">
         Prompt Remix
        </div>
-       <p className="mt-2 text-[12px] leading-5 text-slate-700 dark:text-slate-200">
+       <p className="mt-2 text-[12px] leading-5 text-slate-700 dark:text-muted">
         Let the AI reimagine this problem.
        </p>
       </div>

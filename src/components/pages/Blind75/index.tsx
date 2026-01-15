@@ -207,7 +207,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
    case 'Easy': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
    case 'Medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
    case 'Hard': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-   default: return 'bg-gray-100 text-content dark:bg-gray-800/30 dark:text-content-subtle';
+   default: return 'bg-gray-100 text-content dark:bg-panel-100/30 dark:text-content-subtle';
   }
  };
 
@@ -226,7 +226,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
  };
 
  return (
-  <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-neutral-900 p-6">
+  <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-background p-6">
    <div className="max-w-5xl mx-auto">
     {/* Header */}
     <div className="text-center mb-6">
@@ -247,7 +247,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
     </div>
 
     {/* Cool Progress Stats */}
-    <div className="bg-gradient-to-br from-panel-muted via-panel-100 to-panel-accent dark:from-gray-800 dark:via-gray-850 dark:to-indigo-900/20 rounded-xl shadow-lg border border-panel-200 dark:border-gray-700/50 p-5 sm:p-6 mb-8 backdrop-blur-sm">
+    <div className="bg-gradient-to-br from-panel-muted via-panel-100 to-panel-accent dark:from-panel-100 dark:via-panel-200 dark:to-indigo-900/20 rounded-xl shadow-lg border border-panel-200 dark:border-panel-200 p-5 sm:p-6 mb-8 backdrop-blur-sm">
      {/* Main Progress Circle and Stats */}
      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
       {/* Animated Progress Circle */}
@@ -353,7 +353,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
      {/* Difficulty Breakdown with Mini Progress Bars */}
      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
       {/* Easy */}
-      <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 sm:p-4 backdrop-blur-sm border border-sage/40 dark:border-green-800/30">
+      <div className="bg-white/70 dark:bg-panel-100/70 rounded-lg p-3 sm:p-4 backdrop-blur-sm border border-sage/40 dark:border-green-800/30">
        <div className="flex items-center justify-between mb-2">
         <span className="text-xs sm:text-sm font-medium text-mint-dark dark:text-green-300">Easy</span>
         <span className="text-[11px] sm:text-xs text-mint-dark dark:text-green-400 font-mono">
@@ -374,7 +374,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
       </div>
 
       {/* Medium */}
-      <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 sm:p-4 backdrop-blur-sm border border-mint/40 dark:border-yellow-800/30">
+      <div className="bg-white/70 dark:bg-panel-100/70 rounded-lg p-3 sm:p-4 backdrop-blur-sm border border-mint/40 dark:border-yellow-800/30">
        <div className="flex items-center justify-between mb-2">
         <span className="text-xs sm:text-sm font-medium text-teal-dark dark:text-yellow-300">Medium</span>
         <span className="text-[11px] sm:text-xs text-teal-dark dark:text-yellow-400 font-mono">
@@ -395,7 +395,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
       </div>
 
       {/* Hard */}
-      <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-3 sm:p-4 backdrop-blur-sm border border-slate/40 dark:border-red-800/30">
+      <div className="bg-white/70 dark:bg-panel-100/70 rounded-lg p-3 sm:p-4 backdrop-blur-sm border border-slate/40 dark:border-red-800/30">
        <div className="flex items-center justify-between mb-2">
         <span className="text-xs sm:text-sm font-medium text-content">Hard</span>
         <span className="text-[11px] sm:text-xs text-content font-mono">
@@ -530,7 +530,7 @@ export function Blind75({ onPracticeWithContext, onResumeProblem, highlightedPro
     {/* Reset Confirmation Modal */}
     {showResetConfirmation && (
      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+      <div className="bg-white dark:bg-panel-100 rounded-lg shadow-xl max-w-md w-full p-6">
        <div className="flex items-center gap-3 mb-4">
         <div className="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
          <AlertTriangleIcon className="w-5 h-5 text-red-600 dark:text-red-400" />

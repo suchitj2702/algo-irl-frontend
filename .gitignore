@@ -40,9 +40,6 @@ coverage
 # Log files
 logs_result*
 
-# Claude file
-CLAUDE.md
-
 # Documentation
 docs/*
 
@@ -73,6 +70,7 @@ coordination/orchestration/*
 *.sqlite-wal
 claude-flow
 .claude
+.playwright-mcp
 # Removed Windows wrapper files per user request
 hive-mind-prompt-*.txt
 

@@ -163,7 +163,7 @@ export function CompanyContextForm({ onSubmit, onCancel, problemSlug }: CompanyC
   : '';
 
  return (
-  <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-white dark:bg-neutral-900">
+  <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-white dark:bg-background">
    <div className="w-full max-w-md bg-panel-100 dark:bg-panel-300 rounded-lg shadow-medium border border-panel-200 dark:border-panel-300 p-6">
     <h2 className="text-xl font-medium text-content text-center mb-2">
      Practice with Company Context
@@ -292,7 +292,7 @@ export function CompanyContextForm({ onSubmit, onCancel, problemSlug }: CompanyC
       <button
        type="button"
        onClick={onCancel}
-       className="w-full px-4 py-2.5 text-base font-medium text-content-muted dark:text-content-subtle bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-all duration-200"
+       className="w-full px-4 py-2.5 text-base font-medium text-content-muted dark:text-content-subtle bg-gray-100 dark:bg-panel-200 hover:bg-gray-200 dark:hover:bg-panel-300 rounded-lg transition-all duration-200"
       >
        Cancel
       </button>

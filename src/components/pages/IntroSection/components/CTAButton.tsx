@@ -23,7 +23,7 @@ export default function CTAButton({
 
   const variantClasses = {
     primary: 'bg-button-600 hover:bg-button-500 border border-button-700 text-button-foreground shadow-[0_1px_2px_rgba(63,74,88,0.25)]',
-    secondary: 'border border-outline-subtle/50 hover:border-mint text-content hover:text-mint',
+    secondary: 'border border-outline-subtle/50 dark:border-panel-300 hover:border-mint text-content hover:text-mint',
     ghost: 'text-content-muted hover:text-content'
   };
 

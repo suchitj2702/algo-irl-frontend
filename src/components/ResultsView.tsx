@@ -60,7 +60,7 @@ export function ResultsView({
     </div>
 
     <div className="space-y-4 mb-8">
-     <div className="flex justify-between items-center p-4 bg-slate-50/80 dark:bg-gray-700 rounded-lg border border-slate-200/60 dark:border-gray-600">
+     <div className="flex justify-between items-center p-4 bg-slate-50/80 dark:bg-panel-200 rounded-lg border border-slate-200/60 dark:border-panel-300">
       <span className="text-slate-700 dark:text-content-subtle font-medium">Execution Time:</span>
       <span className="font-mono text-slate-900 dark:text-content-subtle font-semibold">{results.executionTime}</span>
      </div>

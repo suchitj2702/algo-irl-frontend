@@ -12,7 +12,7 @@ export default function CardSlot({
   const baseClasses = 'rounded-3xl p-6 sm:p-8 lg:p-12 shadow-subtle';
 
   const variantClasses = {
-    default: 'border border-outline-subtle/40 bg-surface/80',
+    default: 'border border-outline-subtle/40 dark:border-panel-200 bg-surface/80',
     highlighted: 'border border-mint bg-background'
   };
 

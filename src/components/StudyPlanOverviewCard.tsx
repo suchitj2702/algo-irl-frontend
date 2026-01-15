@@ -247,7 +247,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
      onClick={() => setShowUsageGuide(false)}
     >
      <div
-      className="relative bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-blue-200 dark:border-blue-700"
+      className="relative bg-white dark:bg-background rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-blue-200 dark:border-blue-700"
       onClick={(e) => e.stopPropagation()}
      >
       {/* Close button */}
@@ -335,7 +335,7 @@ export function StudyPlanOverviewCard({ studyPlan, companyId, progress }: StudyP
         </ul>
        </div>
 
-       <p className="text-xs text-content bg-gray-50/50 dark:bg-gray-900/10 rounded p-3 border-l-2 border-blue-400">
+       <p className="text-xs text-content bg-gray-50/50 dark:bg-background/10 rounded p-3 border-l-2 border-blue-400">
         💡 <strong>Tip:</strong> Focus on completing problems in order to build a strong foundation. The hotness score helps you prioritize what's most relevant for {companyName} interviews.
        </p>
       </div>

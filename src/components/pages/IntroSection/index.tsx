@@ -543,13 +543,13 @@ export function IntroSection() {
           </p>
         </div>
         <div className="grid gap-4 sm:gap-6 lg:gap-8 text-center lg:grid-cols-[minmax(0,320px),1fr]">
-          <div className="space-y-2 sm:space-y-3 rounded-3xl border border-outline-subtle/25 bg-background p-4 text-center">
+          <div className="space-y-2 sm:space-y-3 rounded-3xl border border-outline-subtle/25 bg-background dark:bg-panel-50 dark:border-panel-200 p-4 text-center">
             <div className="space-y-2">
               <label className="text-sm font-medium text-content">Select problem</label>
               <select
                 value={selectedProblem}
                 onChange={(event) => handleProblemChange(event.target.value as (typeof PROBLEM_OPTIONS)[number]['id'])}
-                className="w-full rounded-xl border border-outline-subtle/25 bg-background px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
+                className="w-full rounded-xl border border-outline-subtle/25 bg-background dark:bg-panel-100 dark:border-panel-300 px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
               >
                 {PROBLEM_OPTIONS.map((option) => (
                   <option key={option.id} value={option.id}>
@@ -564,7 +564,7 @@ export function IntroSection() {
                 <select
                   value={selectedCompany}
                   onChange={(event) => setSelectedCompany(event.target.value as (typeof COMPANY_OPTIONS)[number]['id'])}
-                  className="w-full rounded-xl border border-outline-subtle/25 bg-background px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
+                  className="w-full rounded-xl border border-outline-subtle/25 bg-background dark:bg-panel-100 dark:border-panel-300 px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
                 >
                   {COMPANY_OPTIONS.map((option) => (
                     <option key={option.id} value={option.id}>
@@ -578,7 +578,7 @@ export function IntroSection() {
                 <select
                   value={selectedRole}
                   onChange={(event) => setSelectedRole(event.target.value as (typeof ROLE_OPTIONS)[number]['id'])}
-                  className="w-full rounded-xl border border-outline-subtle/25 bg-background px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
+                  className="w-full rounded-xl border border-outline-subtle/25 bg-background dark:bg-panel-100 dark:border-panel-300 px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
                 >
                   {ROLE_OPTIONS.map((option) => (
                     <option key={option.id} value={option.id}>
@@ -599,7 +599,7 @@ export function IntroSection() {
                   <div className="text-xs font-medium text-content-muted">
                     Original LeetCode problem
                   </div>
-                  <div className="rounded-3xl border border-outline-subtle/25 bg-background p-6">
+                  <div className="rounded-3xl border border-outline-subtle/25 bg-background dark:bg-panel-50 dark:border-panel-200 p-6">
                     <div className="prose prose-sm max-w-none text-content dark:prose-invert text-left">
                       <h3 className="text-lg font-thin text-content font-playfair">{originalProblem.title}</h3>
                       <ReactMarkdown>{originalProblem.description}</ReactMarkdown>
@@ -616,7 +616,7 @@ export function IntroSection() {
               </div>
             )}
             {isTransforming ? (
-              <div className="rounded-3xl border border-outline-subtle/25 bg-background p-6">
+              <div className="rounded-3xl border border-outline-subtle/25 bg-background dark:bg-panel-50 dark:border-panel-200 p-6">
                 <div className="flex min-h-[100px] items-start justify-start">
                   <ThinkingIndicator
                     states={[
@@ -633,7 +633,7 @@ export function IntroSection() {
                 </div>
               </div>
             ) : demoError ? (
-              <div className="rounded-3xl border border-outline-subtle/25 bg-background p-6">
+              <div className="rounded-3xl border border-outline-subtle/25 bg-background dark:bg-panel-50 dark:border-panel-200 p-6">
                 <div className="text-sm text-destructive">{demoError}</div>
               </div>
             ) : demoState ? (
@@ -643,7 +643,7 @@ export function IntroSection() {
                     Contextualized by AlgoIRL for {COMPANY_OPTIONS.find((company) => company.id === selectedCompany)?.label}{' '}
                     {ROLE_OPTIONS.find((role) => role.id === selectedRole)?.label} role
                   </div>
-                  <div className="rounded-3xl border border-mint/60 bg-background p-6">
+                  <div className="rounded-3xl border border-mint/60 bg-background dark:bg-panel-50 p-6">
                     <div className="prose prose-sm max-w-none text-content dark:prose-invert text-left">
                       {demoState.title && <h3 className="text-lg font-thin text-content font-playfair">{demoState.title}</h3>}
                       {demoState.background && <p className="text-content-muted">{demoState.background}</p>}
@@ -651,17 +651,17 @@ export function IntroSection() {
                     </div>
                   </div>
                 </div>
-                <div className="rounded-2xl border border-dashed border-outline-subtle/40 bg-background/70 p-4 text-xs text-content-muted">
+                <div className="rounded-2xl border border-dashed border-outline-subtle/40 dark:border-panel-300 bg-background/70 dark:bg-panel-100 p-4 text-xs text-content-muted">
                   <strong>Does this look similar to what you've seen in real interviews?</strong> Our LLM has been trained to provide hyperrealistic interviewing scenarios tailored to each company's style, products, and tech stack, combined with role-specific insights. AlgoIRL evaluates every scenario across six quality metrics to maintain high company relevance and role accuracy.
                 </div>
               </div>
             ) : originalProblem ? (
-              <div className="rounded-3xl border border-dashed border-outline-subtle/40 bg-background/70 p-8 text-center text-sm text-content-muted">
+              <div className="rounded-3xl border border-dashed border-outline-subtle/40 dark:border-panel-300 bg-background/70 dark:bg-panel-100 p-8 text-center text-sm text-content-muted">
                 Click "Contextualize" to see how AlgoIRL transforms this problem for {COMPANY_OPTIONS.find((company) => company.id === selectedCompany)?.label}{' '}
                 {ROLE_OPTIONS.find((role) => role.id === selectedRole)?.label} role.
               </div>
             ) : (
-              <div className="rounded-3xl border border-dashed border-outline-subtle/40 bg-background/70 p-8 text-center text-sm text-content-muted">
+              <div className="rounded-3xl border border-dashed border-outline-subtle/40 dark:border-panel-300 bg-background/70 dark:bg-panel-100 p-8 text-center text-sm text-content-muted">
                 Select a problem to get started.
               </div>
             )}
@@ -680,7 +680,7 @@ export function IntroSection() {
 
           <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-8">
             <div className="w-full space-y-6 px-1 flex-none lg:w-1/2 lg:max-w-none">
-              <div className="w-full overflow-hidden rounded-2xl border border-outline-subtle/25 bg-background/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] dark:shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
+              <div className="w-full overflow-hidden rounded-2xl border border-outline-subtle/25 bg-background/90 dark:bg-panel-50 dark:border-panel-200 shadow-[0_18px_45px_rgba(15,23,42,0.06)] dark:shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
                 {STUDY_PLAN_STEPS.map((step, index) => {
                   const isOpen = openStudyPlanSteps.includes(index);
                   return (
@@ -699,7 +699,7 @@ export function IntroSection() {
                           return prev.filter((value) => value !== index);
                         });
                       }}
-                      className="group relative border-t border-outline-subtle/20 transition-colors first:border-t-0 open:bg-panel-50/60 dark:open:bg-panel-200/30"
+                      className="group relative border-t border-outline-subtle/20 dark:border-t-[#3a4555] transition-colors first:border-t-0 open:bg-panel-50/60 dark:open:bg-panel-200/30"
                     >
                       <summary className="flex w-full cursor-pointer list-none items-start justify-between gap-3 sm:gap-4 py-4 sm:py-5 pl-5 pr-5 sm:pl-6 sm:pr-6 text-left text-base font-medium leading-snug text-content transition-colors duration-200 sm:text-lg">
                         <span className="flex flex-1 items-start gap-3 sm:gap-4">
@@ -772,7 +772,7 @@ export function IntroSection() {
           </p>
 
           <div className="grid gap-3 sm:gap-4 text-left md:grid-cols-2">
-            <div className="space-y-1.5 sm:space-y-2 rounded-3xl border border-outline-subtle/25 bg-background p-4 sm:p-5">
+            <div className="space-y-1.5 sm:space-y-2 rounded-3xl border border-outline-subtle/25 bg-background dark:bg-panel-50 dark:border-panel-200 p-4 sm:p-5">
               <h3 className="text-lg font-thin text-content font-playfair">Without AlgoIRL</h3>
               <p className="text-sm text-content-muted">
                 Pure problem drilling builds algorithmic skill but rarely mirrors how your target company sets the stage.
@@ -781,7 +781,7 @@ export function IntroSection() {
                 <li>No product or stack context to anchor pattern recognition under stress.</li>
               </ul>
             </div>
-            <div className="space-y-1.5 sm:space-y-2 rounded-3xl border border-outline-subtle/25 bg-background p-4 sm:p-5">
+            <div className="space-y-1.5 sm:space-y-2 rounded-3xl border border-outline-subtle/25 bg-background dark:bg-panel-50 dark:border-panel-200 p-4 sm:p-5">
               <h3 className="text-lg font-thin text-content font-playfair">With AlgoIRL</h3>
               <p className="text-sm text-content-muted">
                 Hyperrealistic scenarios rehearse recognition, not just solutions, so you stay composed when the framing shifts.
@@ -793,7 +793,7 @@ export function IntroSection() {
             </div>
           </div>
 
-          <div className="space-y-2 sm:space-y-3 rounded-3xl border border-outline-subtle/25 bg-background p-4 sm:p-5">
+          <div className="space-y-2 sm:space-y-3 rounded-3xl border border-outline-subtle/25 bg-background dark:bg-panel-50 dark:border-panel-200 p-4 sm:p-5">
             <h3 className="text-lg font-thin text-content font-playfair">How AlgoIRL closes the gap</h3>
             <div className="space-y-2.5 sm:space-y-3">
               {DATA_FACTORS.map((factor) => (
@@ -823,7 +823,7 @@ export function IntroSection() {
             </p>
           </div>
           <div className="grid gap-4 sm:gap-6 text-center md:grid-cols-2">
-            <div className="flex flex-col rounded-3xl border border-outline-subtle/25 bg-background p-6 sm:p-8 text-center">
+            <div className="flex flex-col rounded-3xl border border-outline-subtle/25 dark:border-panel-200 bg-background dark:bg-panel-50 p-6 sm:p-8 text-center">
             <div className="text-sm font-semibold uppercase tracking-wide text-content-muted">Free</div>
             <div className="mt-3 text-3xl font-semibold text-content">$0</div>
             <div className="text-sm text-content-muted">Always available</div>
@@ -852,7 +852,7 @@ export function IntroSection() {
             <button
               type="button"
               onClick={handlePlansRedirect}
-              className={`${planButtonBaseClasses} border border-outline-subtle/40 bg-background text-content shadow-sm hover:border-mint/60 hover:text-mint hover:shadow-md`}
+              className={`${planButtonBaseClasses} border border-outline-subtle/40 dark:border-panel-300 bg-background text-content shadow-sm hover:border-mint/60 hover:text-mint hover:shadow-md`}
             >
               Start free today
             </button>
@@ -907,11 +907,11 @@ export function IntroSection() {
           <h2 className="text-3xl font-thin text-content font-playfair sm:text-4xl">Frequently asked questions</h2>
         </div>
         <div className="mx-auto w-full max-w-3xl px-1">
-          <div className="w-full overflow-hidden rounded-2xl border border-outline-subtle/25 bg-background/90 shadow-[0_18px_45px_rgba(15,23,42,0.06)] dark:shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
+          <div className="w-full overflow-hidden rounded-2xl border border-outline-subtle/25 bg-background/90 dark:bg-panel-50 dark:border-panel-200 shadow-[0_18px_45px_rgba(15,23,42,0.06)] dark:shadow-[0_18px_45px_rgba(15,23,42,0.35)]">
             {FAQ_ITEMS.map((faq) => (
               <details
                 key={faq.question}
-                className="group relative border-t border-outline-subtle/20 transition-colors first:border-t-0 open:bg-panel-50/60 dark:open:bg-panel-200/30"
+                className="group relative border-t border-outline-subtle/20 dark:border-t-[#3a4555] transition-colors first:border-t-0 open:bg-panel-50/60 dark:open:bg-panel-200/30"
               >
                 <summary className="flex w-full cursor-pointer list-none items-start justify-between gap-3 sm:gap-4 py-4 sm:py-5 pl-5 pr-5 sm:pl-6 sm:pr-6 text-left text-base font-medium leading-snug text-content transition-colors duration-200 sm:text-lg">
                   <span className="flex-1 tracking-tight">{faq.question}</span>

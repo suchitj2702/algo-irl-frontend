@@ -265,7 +265,7 @@ export function StudyPlanView({
  }, []);
 
  return (
-  <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-neutral-900 py-8 px-4 font-sans">
+  <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-background py-8 px-4 font-sans">
    <div className="max-w-6xl mx-auto">
     {/* Header */}
     <div className="mb-8">
@@ -342,18 +342,18 @@ export function StudyPlanView({
        <button
         type="button"
         onClick={() => dispatchFilter({ type: 'TOGGLE_TOPICS' })}
-        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-slate-100 shadow-sm hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors"
+        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-panel-300 bg-white dark:bg-panel-200 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content shadow-sm hover:bg-gray-50 dark:hover:bg-panel-300 transition-colors"
         aria-pressed={filterState.showTopics}
        >
         <span>Show topics</span>
         <span
          className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-          filterState.showTopics ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-gray-300 dark:bg-slate-700'
+          filterState.showTopics ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-gray-300 dark:bg-panel-300'
          }`}
         >
          <span
           className={`inline-block h-4 w-4 transform rounded-full shadow will-change-transform ${
-           filterState.showTopics ? 'translate-x-4 bg-white' : 'translate-x-1 bg-white dark:bg-slate-200'
+           filterState.showTopics ? 'translate-x-4 bg-white' : 'translate-x-1 bg-white dark:bg-panel-100'
           }`}
          />
         </span>
@@ -361,18 +361,18 @@ export function StudyPlanView({
        <button
         type="button"
         onClick={() => dispatchFilter({ type: 'TOGGLE_DIFFICULTY' })}
-        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-slate-100 shadow-sm hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors"
+        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-panel-300 bg-white dark:bg-panel-200 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content shadow-sm hover:bg-gray-50 dark:hover:bg-panel-300 transition-colors"
         aria-pressed={filterState.showDifficulty}
        >
         <span>Show difficulty</span>
         <span
          className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-          filterState.showDifficulty ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-gray-300 dark:bg-slate-700'
+          filterState.showDifficulty ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-gray-300 dark:bg-panel-300'
          }`}
         >
          <span
           className={`inline-block h-4 w-4 transform rounded-full shadow will-change-transform ${
-           filterState.showDifficulty ? 'translate-x-4 bg-white' : 'translate-x-1 bg-white dark:bg-slate-200'
+           filterState.showDifficulty ? 'translate-x-4 bg-white' : 'translate-x-1 bg-white dark:bg-panel-100'
           }`}
          />
         </span>
@@ -380,18 +380,18 @@ export function StudyPlanView({
        <button
         type="button"
         onClick={() => dispatchFilter({ type: 'TOGGLE_SAVED_ONLY' })}
-        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-slate-500 bg-white dark:bg-slate-600 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-slate-100 shadow-sm hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors"
+        className="inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-panel-300 bg-white dark:bg-panel-200 px-3 py-1.5 text-sm font-medium text-content-muted dark:text-content shadow-sm hover:bg-gray-50 dark:hover:bg-panel-300 transition-colors"
         aria-pressed={filterState.showSavedOnly}
        >
         <span>Saved problems only</span>
         <span
          className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-          filterState.showSavedOnly ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-gray-300 dark:bg-slate-700'
+          filterState.showSavedOnly ? 'bg-indigo-500 dark:bg-indigo-400' : 'bg-gray-300 dark:bg-panel-300'
          }`}
         >
          <span
           className={`inline-block h-4 w-4 transform rounded-full shadow will-change-transform ${
-           filterState.showSavedOnly ? 'translate-x-4 bg-white' : 'translate-x-1 bg-white dark:bg-slate-200'
+           filterState.showSavedOnly ? 'translate-x-4 bg-white' : 'translate-x-1 bg-white dark:bg-panel-100'
           }`}
          />
         </span>

@@ -144,7 +144,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
 
  if (loading) {
   return (
-   <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-neutral-900 py-8 px-4 flex items-center justify-center">
+   <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-background py-8 px-4 flex items-center justify-center">
     <div className="text-center">
      <div className="animate-spin w-12 h-12 border-4 border-mint-600 border-t-transparent rounded-full mx-auto mb-4"></div>
      <p className="text-content-muted">Loading your study plans...</p>
@@ -155,7 +155,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
 
  if (error) {
   return (
-   <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-neutral-900 py-8 px-4 flex items-center justify-center">
+   <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-background py-8 px-4 flex items-center justify-center">
     <div className="text-center max-w-md">
      <div className="text-red-600 dark:text-red-400 mb-4 text-4xl">⚠️</div>
      <p className="text-content mb-4">{error}</p>
@@ -171,7 +171,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
  }
 
  return (
-  <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-neutral-900 py-8 px-4">
+  <div className="min-h-[calc(100vh-3.5rem)] bg-white dark:bg-background py-8 px-4">
    <div className="max-w-6xl mx-auto">
     {/* Header */}
     <div className="mb-8">
@@ -198,7 +198,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
     {/* Study Plans List */}
     {studyPlans.length === 0 ? (
      <div className="text-center py-16 animate-fade-in" style={{ animationDelay: '100ms' }}>
-      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-panel-100 mb-4">
        <BookOpen className="w-10 h-10 text-content-subtle dark:text-content-muted" />
       </div>
       <h3 className="text-xl font-semibold text-content mb-2 font-playfair">
@@ -239,7 +239,7 @@ export function MyStudyPlansPage({ onCreateNew, onViewPlan }: MyStudyPlansPagePr
          style={{ animationDelay: `${index * 50}ms` }}
         >
          {/* Progress Bar at Top */}
-         <div className="absolute top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700">
+         <div className="absolute top-0 left-0 right-0 h-1 bg-gray-200 dark:bg-panel-200">
           <div
            className="h-full bg-gradient-to-r from-mint to-mint-dark dark:from-mint-500 dark:to-mint-600 transition-all duration-300"
            style={{ width: `${completionPercentage}%` }}

@@ -49,18 +49,18 @@ export function ScoreBreakdownBar({
               <Icon className="w-4 h-4" />
             </div>
           )}
-          <span className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300 flex-shrink-0">
+          <span className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-muted flex-shrink-0">
             {label}
           </span>
           <span className="text-sm font-bold text-gray-900 dark:text-white ml-auto flex-shrink-0">
             {value}/{maxValue}
           </span>
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 flex-shrink-0">
+          <span className="text-xs font-medium text-gray-500 dark:text-content-muted flex-shrink-0">
             {percentage}%
           </span>
         </div>
 
-        <div className="relative w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mb-1">
+        <div className="relative w-full h-2 bg-gray-200 dark:bg-panel-200 rounded-full overflow-hidden mb-1">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${percentage}%` }}
@@ -69,7 +69,7 @@ export function ScoreBreakdownBar({
           />
         </div>
 
-        <p className="text-xs text-gray-600 dark:text-gray-400 truncate group-hover:text-clip group-hover:whitespace-normal transition-all" title={description}>
+        <p className="text-xs text-gray-600 dark:text-content-muted truncate group-hover:text-clip group-hover:whitespace-normal transition-all" title={description}>
           {description}
         </p>
       </div>

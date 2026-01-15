@@ -342,7 +342,7 @@ export function StudyPlanForm({ onSubmit, onCancel, isLoading = false, error: ex
 
  return (
   <PremiumGate feature="Study Plan Generation">
-   <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-white dark:bg-neutral-900">
+   <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-white dark:bg-background">
     <div className="w-full max-w-lg">
      <div className="bg-panel-100 dark:bg-panel-300 rounded-[20px] shadow-lg border border-panel-200 dark:border-panel-300 overflow-hidden">
       {/* Header */}

@@ -248,7 +248,7 @@ export function ProblemForm({
     formData.company)
   : '';
 
- return <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-white dark:bg-neutral-900">
+ return <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-white dark:bg-background">
   <div className="w-full max-w-md bg-panel-100 dark:bg-panel-300 rounded-xl shadow-lg border border-panel-200 dark:border-panel-300 p-6">
    <div className="text-center mb-6">
     <h2 className="text-xl font-bold text-content mb-1 font-playfair">
@@ -349,7 +349,7 @@ export function ProblemForm({
            }
           }}
           disabled={isLoading || otherCompanies.length === 0}
-          className="block w-full rounded-lg border border-mint/40 dark:border-neutral-700 bg-cream dark:bg-neutral-800 text-content shadow-sm focus:border-mint focus:ring-2 focus:ring-mint-light dark:focus:ring-indigo-700/50 sm:text-sm px-4 py-3 pr-10 transition-all duration-200 appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="block w-full rounded-lg border border-mint/40 dark:border-panel-300 bg-cream dark:bg-panel-100 text-content shadow-sm focus:border-mint focus:ring-2 focus:ring-mint-light dark:focus:ring-indigo-700/50 sm:text-sm px-4 py-3 pr-10 transition-all duration-200 appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
          >
           <option value="">
            {otherCompanies.length > 0
@@ -474,7 +474,7 @@ export function ProblemForm({
    </form>
 
    {/* Copyright Notice */}
-   <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+   <div className="mt-8 pt-6 border-t border-gray-200 dark:border-panel-200">
     <p className="text-center text-sm text-content-subtle">
      Copyright © 2025 <span className="font-playfair">AlgoIRL</span>. All rights reserved.
     </p>

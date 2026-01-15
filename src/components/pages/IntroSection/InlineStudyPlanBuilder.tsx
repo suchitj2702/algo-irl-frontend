@@ -120,13 +120,13 @@ export const InlineStudyPlanBuilder: React.FC<InlineStudyPlanBuilderProps> = ({
 
   const timelineSliderClasses = [
     sliderBaseClasses,
-    'bg-gradient-to-r from-blue-500 via-blue-300 to-blue-100',
+    'bg-gradient-to-r from-blue-500 via-blue-300 to-blue-100 dark:from-blue-600 dark:via-blue-500 dark:to-blue-400',
     sliderThumbClasses,
   ].join(' ');
 
   const hoursSliderClasses = [
     sliderBaseClasses,
-    'bg-gradient-to-r from-indigo-100 via-blue-300 to-indigo-500',
+    'bg-gradient-to-r from-indigo-100 via-blue-300 to-indigo-500 dark:from-indigo-400 dark:via-blue-500 dark:to-indigo-600',
     sliderThumbClasses,
   ].join(' ');
 
@@ -143,7 +143,7 @@ export const InlineStudyPlanBuilder: React.FC<InlineStudyPlanBuilderProps> = ({
         </div>
       </div>
 
-      <div className="space-y-6 rounded-3xl border border-outline-subtle/25 bg-background/95 p-6 shadow-[0_20px_45px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-outline-subtle/40 dark:bg-panel-400/50 dark:shadow-[0_20px_45px_rgba(2,6,23,0.55)] sm:p-7">
+      <div className="space-y-6 rounded-3xl border border-outline-subtle/25 bg-background/95 p-6 shadow-[0_20px_45px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:border-panel-200 dark:bg-panel-50 dark:shadow-[0_20px_45px_rgba(2,6,23,0.55)] sm:p-7">
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
@@ -154,7 +154,7 @@ export const InlineStudyPlanBuilder: React.FC<InlineStudyPlanBuilderProps> = ({
               id="inline-company-select"
               value={selectedCompany}
               onChange={(event) => setSelectedCompany(event.target.value)}
-              className="w-full rounded-xl border border-outline-subtle/25 bg-background px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
+              className="w-full rounded-xl border border-outline-subtle/25 bg-background dark:bg-panel-100 dark:border-panel-300 px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
             >
               {COMPANY_OPTIONS.map((option) => (
                 <option key={option.id} value={option.id}>
@@ -172,7 +172,7 @@ export const InlineStudyPlanBuilder: React.FC<InlineStudyPlanBuilderProps> = ({
               id="inline-role-select"
               value={selectedRole}
               onChange={(event) => setSelectedRole(event.target.value as RoleFamily)}
-              className="w-full rounded-xl border border-outline-subtle/25 bg-background px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
+              className="w-full rounded-xl border border-outline-subtle/25 bg-background dark:bg-panel-100 dark:border-panel-300 px-3 py-2 text-sm text-content focus:border-mint focus:outline-none focus:ring-2 focus:ring-mint/30"
             >
               {ROLE_OPTIONS.map((option) => (
                 <option key={option.id} value={option.id}>

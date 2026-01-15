@@ -95,7 +95,7 @@ export function IssueDescriptionDialog({
               onKeyDown={handleKeyDown}
               disabled={isSubmitting}
               placeholder="Please describe what went wrong..."
-              className="w-full min-h-[120px] px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-neutral-800 text-content placeholder:text-content-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full min-h-[120px] px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-panel-300 bg-white dark:bg-panel-100 text-content placeholder:text-content-muted focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed"
               rows={6}
             />
 
@@ -113,11 +113,11 @@ export function IssueDescriptionDialog({
 
               {/* Keyboard shortcut hint */}
               <span className="text-content-muted">
-                <kbd className="px-1.5 py-0.5 text-xs font-semibold text-content bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">
+                <kbd className="px-1.5 py-0.5 text-xs font-semibold text-content bg-gray-100 dark:bg-panel-200 border border-gray-300 dark:border-panel-300 rounded">
                   {navigator.userAgent.includes('Mac') ? '⌘' : 'Ctrl'}
                 </kbd>
                 {' + '}
-                <kbd className="px-1.5 py-0.5 text-xs font-semibold text-content bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded">
+                <kbd className="px-1.5 py-0.5 text-xs font-semibold text-content bg-gray-100 dark:bg-panel-200 border border-gray-300 dark:border-panel-300 rounded">
                   Enter
                 </kbd>
                 {' to submit'}

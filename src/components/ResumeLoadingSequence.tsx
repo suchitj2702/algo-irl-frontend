@@ -79,7 +79,7 @@ export function ResumeLoadingSequence({
   <div className="flex flex-col items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 bg-surface dark:bg-surface">
    <div className="w-full max-w-2xl">
     <div className="mb-8 relative">
-     <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+     <div className="h-2 bg-slate-200 dark:bg-panel-200 rounded-full overflow-hidden">
       <div
        className="h-full bg-gradient-to-r from-mint-500 to-mint-600 rounded-full transition-all duration-100 ease-out"
        style={{ width: `${progress}%` }}

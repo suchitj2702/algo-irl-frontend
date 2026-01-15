@@ -9,7 +9,7 @@ const STUDY_PLAN_STATES = [
 
 export function StudyPlanLoading() {
   return (
-    <div className="min-h-[calc(100dvh-3.5rem)] bg-white dark:bg-neutral-900 flex items-center justify-center px-6">
+    <div className="min-h-[calc(100dvh-3.5rem)] bg-white dark:bg-background flex items-center justify-center px-6">
       <ThinkingIndicator
         title="Generating your personalized study plan"
         states={STUDY_PLAN_STATES}

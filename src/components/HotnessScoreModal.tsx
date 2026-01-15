@@ -97,10 +97,10 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
           transition={{ type: 'spring', duration: 0.5 }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl shadow-2xl w-[420px] h-[670px] overflow-hidden flex flex-col"
+          className="bg-white/90 dark:bg-panel-100/90 backdrop-blur-xl rounded-2xl shadow-2xl w-[420px] h-[670px] overflow-hidden flex flex-col"
         >
           {/* Compact Header */}
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-4 py-2 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+          <div className="bg-white/95 dark:bg-panel-100/95 backdrop-blur-sm px-4 py-2 flex items-center justify-between border-b border-gray-200 dark:border-panel-200">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <h2 className="text-lg font-medium text-gray-900 dark:text-white truncate">
                 Why This Problem Was Prioritized
@@ -108,9 +108,9 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-panel-200 transition-colors flex-shrink-0"
             >
-              <X className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              <X className="w-4 h-4 text-gray-600 dark:text-content-muted" />
             </button>
           </div>
 
@@ -118,7 +118,7 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
           <div className="flex-1 overflow-y-auto">
             <div className="p-4 space-y-4">
               {/* Score Focus Section */}
-              <div className="bg-gradient-to-br from-mint-50/80 to-blue-50/80 dark:from-gray-800/50 dark:to-gray-900/50 backdrop-blur-md p-4 rounded-xl flex flex-col items-center gap-3">
+              <div className="bg-gradient-to-br from-mint-50/80 to-blue-50/80 dark:from-panel-100/50 dark:to-background/50 backdrop-blur-md p-4 rounded-xl flex flex-col items-center gap-3">
                 <div className="w-full flex flex-col items-center gap-3">
                   {/* Heat Score Above */}
                   <div className="text-center">
@@ -128,7 +128,7 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
                     >
                       {scoreBadge.label}
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-500 dark:text-content-muted mt-0.5">
                       Heat Score
                     </p>
                   </div>
@@ -146,7 +146,7 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
                   <div className="w-full mt-2">
                     <button
                       onClick={() => setShowAllTopics(!showAllTopics)}
-                      className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300 hover:text-mint-600 dark:hover:text-mint-400 transition-colors mb-2"
+                      className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-muted hover:text-mint-600 dark:hover:text-mint-400 transition-colors mb-2"
                     >
                       <span>Topics</span>
                       {showAllTopics ? (
@@ -172,7 +172,7 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
                                 initial={{ opacity: 0, scale: 0.8 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: index * 0.02 }}
-                                className="px-2 py-0.5 bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm text-gray-700 dark:text-gray-300 rounded-md text-[10px] font-medium border border-gray-200/50 dark:border-gray-600/50"
+                                className="px-2 py-0.5 bg-white/60 dark:bg-panel-200/60 backdrop-blur-sm text-gray-700 dark:text-muted rounded-md text-[10px] font-medium border border-gray-200/50 dark:border-panel-300/50"
                                 title={`${topic.category}: ${topic.text}`}
                               >
                                 {topic.text}
@@ -234,7 +234,7 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
           </div>
 
           {/* Compact Footer */}
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-4 py-2 border-t border-gray-200 dark:border-gray-700">
+          <div className="bg-white/95 dark:bg-panel-100/95 backdrop-blur-sm px-4 py-2 border-t border-gray-200 dark:border-panel-200">
             <button
               onClick={onClose}
               className="w-full px-4 py-2 bg-mint-600 hover:bg-mint-700 text-white font-medium rounded-lg transition-colors text-sm"

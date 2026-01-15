@@ -112,17 +112,17 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
       {children}
     </strong>
   ),
-  hr: () => <hr className="my-12 border-outline-subtle/30" />,
+  hr: () => <hr className="my-12 border-outline-subtle/30 dark:border-panel-200/30" />,
   code: ({ inline, children }) =>
     inline ? (
-      <code className="rounded-md bg-panel-100 px-2 py-0.5 text-sm text-content">{children}</code>
+      <code className="rounded-md bg-panel-100 dark:bg-panel-100 px-2 py-0.5 text-sm text-content">{children}</code>
     ) : (
-      <code className="block whitespace-pre-wrap rounded-2xl bg-panel-100 p-4 text-sm text-content">
+      <code className="block whitespace-pre-wrap rounded-2xl bg-panel-100 dark:bg-panel-100 p-4 text-sm text-content">
         {children}
       </code>
     ),
   pre: ({ children }) => (
-    <pre className="my-6 overflow-x-auto rounded-2xl border border-outline-subtle/40 bg-panel-50 p-6 text-sm text-content">
+    <pre className="my-6 overflow-x-auto rounded-2xl border border-outline-subtle/40 dark:border-panel-200 bg-panel-50 dark:bg-surface p-6 text-sm text-content">
       {children}
     </pre>
   ),
@@ -137,14 +137,14 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
     </a>
   ),
   table: ({ children }) => (
-    <div className="my-3 -mx-6 sm:mx-0 overflow-x-auto rounded-none sm:rounded-2xl border-y sm:border border-outline-subtle/30 bg-white">
+    <div className="my-3 -mx-6 sm:mx-0 overflow-x-auto rounded-none sm:rounded-2xl border-y sm:border border-outline-subtle/30 dark:border-panel-200/30 bg-white dark:bg-panel-50">
       <table className="min-w-[600px] w-full text-sm text-left">{children}</table>
     </div>
   ),
   thead: ({ children }) => (
-    <thead className="bg-panel-100 text-xs uppercase text-content-muted tracking-widest">{children}</thead>
+    <thead className="bg-panel-100 dark:bg-panel-100 text-xs uppercase text-content-muted tracking-widest">{children}</thead>
   ),
-  tbody: ({ children }) => <tbody className="divide-y divide-outline-subtle/20">{children}</tbody>,
+  tbody: ({ children }) => <tbody className="divide-y divide-outline-subtle/20 dark:divide-transparent">{children}</tbody>,
   th: ({ children }) => <th className="px-3 sm:px-4 py-3 font-semibold text-content whitespace-nowrap">{children}</th>,
   td: ({ children }) => <td className="px-3 sm:px-4 py-3 text-content-muted text-sm">{children}</td>,
   blockquote: ({ children }) => (
@@ -165,9 +165,9 @@ const createMarkdownComponents = (variant: 'hero' | 'body'): Components => ({
 
 export function DistillingIntelligencePage() {
   return (
-    <div className="bg-panel-50 text-content font-sans">
+    <div className="bg-panel-50 dark:bg-background text-content font-sans">
       {/* Header spans full width */}
-      <header className="border-b border-outline-subtle/30 bg-white">
+      <header className="border-b border-outline-subtle/30 dark:border-panel-200 bg-white dark:bg-panel-50">
         <div className="mx-auto max-w-5xl px-6 py-12 space-y-8">
           <div className="space-y-4 text-center">
             <div className="space-y-2">

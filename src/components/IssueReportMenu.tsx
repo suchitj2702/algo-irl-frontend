@@ -205,7 +205,7 @@ export function IssueReportMenu({
                     key={type}
                     onClick={onClick}
                     disabled={isLoading || loadingType !== null}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-750 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg border border-gray-200 dark:border-panel-200 bg-white dark:bg-panel-100 hover:bg-gray-50 dark:hover:bg-panel-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? (
                       <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-l-transparent border-t-transparent flex-shrink-0" />
@@ -249,7 +249,7 @@ export function IssueReportMenu({
               </button>
               <button
                 onClick={() => handleRegenerateDialogAction('report')}
-                className="w-full px-4 py-2.5 text-sm font-medium text-content bg-white dark:bg-neutral-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-neutral-750 rounded-lg transition-colors"
+                className="w-full px-4 py-2.5 text-sm font-medium text-content bg-white dark:bg-panel-100 border border-gray-200 dark:border-panel-200 hover:bg-gray-50 dark:hover:bg-panel-200 rounded-lg transition-colors"
               >
                 Report Issue Anyway
               </button>
