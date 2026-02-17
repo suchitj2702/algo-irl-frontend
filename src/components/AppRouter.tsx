@@ -2118,6 +2118,7 @@ const handleBeforeSignOut = useCallback(async () => {
        rawPrepareResponse={rawPrepareResponse}
        companyId={currentCompanyId}
        roleId={null}
+       leetcodeProblemSlug={selectedProblemSlug || undefined}
       />
      } />
 
@@ -2145,6 +2146,7 @@ const handleBeforeSignOut = useCallback(async () => {
         rawPrepareResponse={rawPrepareResponse}
         companyId={currentCompanyId}
         roleId={null}
+        leetcodeProblemSlug={selectedProblemSlug || studyPlanSolverContext?.problemId || undefined}
        />
       ) : (
        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">
@@ -2175,6 +2177,7 @@ const handleBeforeSignOut = useCallback(async () => {
          rawPrepareResponse={rawPrepareResponse}
          companyId={currentCompanyId}
          roleId={studyPlanConfig?.roleFamily || null}
+         leetcodeProblemSlug={studyPlanSolverContext?.problemId || undefined}
         />
        ) : (
         <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)]">

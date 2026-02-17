@@ -85,6 +85,7 @@ interface ProblemSolverProps {
  rawPrepareResponse?: unknown; // Full prepare API response for issue reporting
  companyId?: string | null; // Company ID for context
  roleId?: string | null; // Role ID for context
+ leetcodeProblemSlug?: string; // Original LeetCode slug for issue reporting
 }
 
 const THINKING_STATES = [
@@ -138,7 +139,8 @@ export function ProblemSolver({
  lastSaveTime,
  rawPrepareResponse,
  companyId = null,
- roleId = null
+ roleId = null,
+ leetcodeProblemSlug
 }: ProblemSolverProps) {
  const processedProblem = useRef<Problem | null>(problem);
  const [isIssueReportMenuOpen, setIsIssueReportMenuOpen] = useState(false);
@@ -831,7 +833,7 @@ const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
    <IssueReportMenu
     isOpen={isIssueReportMenuOpen}
     onClose={() => setIsIssueReportMenuOpen(false)}
-    problemId={problem.leetcodeUrl ? problem.leetcodeUrl.split('/').pop()?.replace('/', '') || problem.title.toLowerCase().replace(/\s+/g, '-') : problem.title.toLowerCase().replace(/\s+/g, '-')}
+    problemId={leetcodeProblemSlug || (problem.leetcodeUrl ? problem.leetcodeUrl.split('/').pop()?.replace('/', '') || problem.title.toLowerCase().replace(/\s+/g, '-') : problem.title.toLowerCase().replace(/\s+/g, '-'))}
     rawPrepareResponse={rawPrepareResponse}
     companyId={companyId}
     roleId={roleId}
