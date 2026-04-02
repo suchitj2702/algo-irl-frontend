@@ -53,9 +53,6 @@ export function ScoreBreakdownBar({
             {label}
           </span>
           <span className="text-sm font-bold text-gray-900 dark:text-white ml-auto flex-shrink-0">
-            {value}/{maxValue}
-          </span>
-          <span className="text-xs font-medium text-gray-500 dark:text-content-muted flex-shrink-0">
             {percentage}%
           </span>
         </div>

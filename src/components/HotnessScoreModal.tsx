@@ -53,8 +53,16 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
   const { hotnessScore, hotnessBreakdown, frequencyData, roleRelevance, enrichedTopics } = problem;
   const clampedScore = Math.min(Math.max(hotnessScore, 0), 100);
 
-  const palette = getHeatPalette(clampedScore);
-  const scoreBadge = getScoreBadge(clampedScore);
+  // Rescale score to 100 when frequency/recency data unavailable
+  const displayScore = frequencyData.isActuallyAsked
+    ? clampedScore
+    : Math.min(Math.max(Math.round((hotnessBreakdown.roleRelevance + hotnessBreakdown.companyContext) / 40 * 100), 0), 100);
+
+  const roleContribution = Math.round(hotnessBreakdown.roleRelevance / 40 * 100);
+  const companyContribution = displayScore - roleContribution;
+
+  const palette = getHeatPalette(displayScore);
+  const scoreBadge = getScoreBadge(displayScore);
   const badgeGradient = `linear-gradient(135deg, ${palette.stops.join(', ')})`;
 
   const [showAllTopics, setShowAllTopics] = useState(false);
@@ -135,9 +143,9 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
 
                   {/* Circular Progress Below */}
                   <CircularProgress
-                    value={clampedScore}
+                    value={displayScore}
                     gradient={palette.stops}
-                    scoreId={clampedScore.toString()}
+                    scoreId={displayScore.toString()}
                   />
                 </div>
 
@@ -192,42 +200,106 @@ export function HotnessScoreModal({ problem, companyId, roleName, onClose }: Hot
                   Score Breakdown
                 </h3>
                 <div className="space-y-3">
-                  <ScoreBreakdownBar
-                    label="Frequency"
-                    value={hotnessBreakdown.frequency}
-                    maxValue={35}
-                    color="blue"
-                    description={getFrequencyNarrative(frequencyData.overall, companyName)}
-                    icon={BarChart3}
-                    compact
-                  />
-                  <ScoreBreakdownBar
-                    label="Recency"
-                    value={hotnessBreakdown.recency}
-                    maxValue={25}
-                    color="orange"
-                    description={recencyLabel ? `Asked ${recencyLabel}` : 'Recent interview activity'}
-                    icon={Clock}
-                    compact
-                  />
-                  <ScoreBreakdownBar
-                    label="Role Relevance"
-                    value={hotnessBreakdown.roleRelevance}
-                    maxValue={25}
-                    color="purple"
-                    description={getRoleNarrative(roleRelevance, roleName)}
-                    icon={User}
-                    compact
-                  />
-                  <ScoreBreakdownBar
-                    label="Company Context"
-                    value={hotnessBreakdown.companyContext}
-                    maxValue={15}
-                    color="green"
-                    description={getCompanyNarrative(hotnessBreakdown.companyContext, companyName)}
-                    icon={Building2}
-                    compact
-                  />
+                  {frequencyData.isActuallyAsked ? (
+                    <>
+                      <ScoreBreakdownBar
+                        label="Frequency"
+                        value={hotnessBreakdown.frequency}
+                        maxValue={35}
+                        color="blue"
+                        description={getFrequencyNarrative(frequencyData.overall, companyName)}
+                        icon={BarChart3}
+                        compact
+                      />
+                      <ScoreBreakdownBar
+                        label="Recency"
+                        value={hotnessBreakdown.recency}
+                        maxValue={25}
+                        color="orange"
+                        description={recencyLabel ? `Asked ${recencyLabel}` : 'Recent interview activity'}
+                        icon={Clock}
+                        compact
+                      />
+                      <ScoreBreakdownBar
+                        label="Role Relevance"
+                        value={hotnessBreakdown.roleRelevance}
+                        maxValue={25}
+                        color="purple"
+                        description={getRoleNarrative(roleRelevance, roleName)}
+                        icon={User}
+                        compact
+                      />
+                      <ScoreBreakdownBar
+                        label="Company Context"
+                        value={hotnessBreakdown.companyContext}
+                        maxValue={15}
+                        color="green"
+                        description={getCompanyNarrative(hotnessBreakdown.companyContext, companyName)}
+                        icon={Building2}
+                        compact
+                      />
+                    </>
+                  ) : (
+                    <>
+                      {/* Stacked Bar */}
+                      <div className="flex w-full h-2.5 rounded-full overflow-hidden bg-gray-200 dark:bg-panel-200">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${roleContribution}%` }}
+                          transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+                          className="h-full bg-gradient-to-r from-purple-400 to-purple-600"
+                        />
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${companyContribution}%` }}
+                          transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1], delay: 0.1 }}
+                          className="h-full bg-gradient-to-r from-mint-400 to-mint-600"
+                        />
+                      </div>
+
+                      {/* Role Relevance Row */}
+                      <div className="group">
+                        <div className="flex items-center gap-3 mb-1.5">
+                          <User className="w-4 h-4 text-purple-500 dark:text-purple-400 flex-shrink-0" />
+                          <span className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-muted flex-shrink-0">
+                            Role Relevance
+                          </span>
+                          <span className="text-sm font-bold text-gray-900 dark:text-white ml-auto flex-shrink-0">
+                            {roleContribution}%
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-content-muted pl-7">
+                          {getRoleNarrative(roleRelevance, roleName)}
+                        </p>
+                      </div>
+
+                      {/* Company Context Row */}
+                      <div className="group">
+                        <div className="flex items-center gap-3 mb-1.5">
+                          <Building2 className="w-4 h-4 text-mint-500 dark:text-mint-400 flex-shrink-0" />
+                          <span className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-muted flex-shrink-0">
+                            Company Context
+                          </span>
+                          <span className="text-sm font-bold text-gray-900 dark:text-white ml-auto flex-shrink-0">
+                            {companyContribution}%
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-content-muted pl-7">
+                          {getCompanyNarrative(hotnessBreakdown.companyContext, companyName)}
+                        </p>
+                      </div>
+
+                      {/* Total */}
+                      <div className="pt-2 border-t border-gray-200 dark:border-panel-200 flex items-center justify-between">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-muted">
+                          Total Score
+                        </span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">
+                          {displayScore}%
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
