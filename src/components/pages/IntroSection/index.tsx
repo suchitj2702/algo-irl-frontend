@@ -477,7 +477,7 @@ export function IntroSection() {
             <span className="sr-only">AlgoIRL</span>
             <LogoLockup
               decorative
-              className="mx-auto h-24 w-auto text-content logo-hover-scale sm:h-32 lg:h-40"
+              className="mx-auto h-16 w-auto max-w-full text-content logo-hover-scale sm:h-28 lg:h-40"
             />
           </h1>
 
