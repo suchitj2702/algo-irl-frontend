@@ -1,4 +1,4 @@
-import type { CSSProperties, FormEvent } from 'react';
+import type { FormEvent } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { secureLog } from '@/utils/secureLogger';
 import {
@@ -24,6 +24,7 @@ import { useAuthDialog } from '@/contexts/AuthDialogContext';
 import { useDarkMode } from '../../DarkModeContext';
 import { ThinkingIndicator } from '../../ThinkingIndicator';
 import { Footer } from '../../Footer';
+import { LogoLockup } from '@/components/Logo';
 import {
   prepareProblem,
 } from '../../../utils/api-service';
@@ -472,48 +473,12 @@ export function IntroSection() {
     <div className="bg-background text-content">
       <SectionBlock surface="base" className="min-h-[calc(100vh-3.5rem)] flex items-center overflow-visible">
         <div className="w-full max-w-4xl mx-auto text-center space-y-6 sm:space-y-8 -mt-14">
-          <h1 className="text-7xl sm:text-8xl lg:text-9xl font-light tracking-tight font-playfair leading-[1.2] group">
-            <span
-              className="inline-block px-4 py-4 logo-hover-scale relative cursor-pointer"
-              style={{
-                '--logo-gradient-image': `
-                  linear-gradient(135deg,
-                    var(--logo-gradient-start) 0%,
-                    var(--logo-gradient-mid1) 25%,
-                    var(--logo-gradient-mid2) 60%,
-                    var(--logo-gradient-end) 100%),
-                  linear-gradient(90deg,
-                    transparent 0%,
-                    rgba(255, 255, 255, 0.1) 50%,
-                    transparent 100%)`,
-                '--logo-background-size': '200% 200%, 200% 100%',
-                '--logo-background-position': '0% 50%, -200% 0%',
-                '--logo-gradient-name': 'logo-gradient-shift',
-                '--logo-gradient-duration': '4s',
-                '--logo-gradient-timing': 'ease-in-out',
-                '--logo-gradient-iterations': 'infinite',
-                letterSpacing: '-0.01em',
-                transition: 'transform 0.3s ease',
-              } as CSSProperties}
-            >
-              <span
-                className="logo-text-segment"
-                style={{
-                  '--logo-letter-delay': '0.1s',
-                } as CSSProperties}
-              >
-                Algo
-              </span>
-              <span
-                className="font-normal logo-text-segment"
-                style={{
-                  '--logo-letter-delay': '0.3s',
-                  letterSpacing: '-0.01em',
-                } as CSSProperties}
-              >
-                IRL
-              </span>
-            </span>
+          <h1 className="leading-none">
+            <span className="sr-only">AlgoIRL</span>
+            <LogoLockup
+              decorative
+              className="mx-auto h-24 w-auto text-content logo-hover-scale sm:h-32 lg:h-40"
+            />
           </h1>
 
           <p className="text-sm text-content-muted sm:text-base">
@@ -523,7 +488,7 @@ export function IntroSection() {
           <div>
             <button
               onClick={handleSeeDemo}
-              className="inline-flex items-center justify-center px-8 py-3 text-base font-medium text-white bg-gradient-to-r from-[#3B82F6] to-[#6366F1] hover:from-[#2563EB] hover:to-[#4F46E5] rounded-full border border-[#6366F1]/30 shadow-[0_2px_8px_rgba(99,102,241,0.25),0_1px_18px_rgba(255,255,255,0.4)_inset] dark:shadow-[0_2px_8px_rgba(99,102,241,0.3),0_1px_18px_rgba(255,255,255,0.12)_inset] transition-all duration-300 hover:shadow-[0_4px_16px_rgba(99,102,241,0.35),0_2px_26px_rgba(255,255,255,0.5)_inset] dark:hover:shadow-[0_4px_16px_rgba(99,102,241,0.4),0_2px_26px_rgba(255,255,255,0.16)_inset] hover:scale-[1.02] transform hover:-translate-y-0.5 backdrop-blur-xl"
+              className="inline-flex items-center justify-center px-8 py-3 text-base font-medium text-white bg-gradient-to-r from-[#666FF3] to-[#4F46E5] hover:from-[#5560E8] hover:to-[#4338CA] rounded-full border border-[#6366F1]/30 shadow-[0_2px_8px_rgba(99,102,241,0.25),0_1px_18px_rgba(255,255,255,0.4)_inset] dark:shadow-[0_2px_8px_rgba(99,102,241,0.3),0_1px_18px_rgba(255,255,255,0.12)_inset] transition-all duration-300 hover:shadow-[0_4px_16px_rgba(99,102,241,0.35),0_2px_26px_rgba(255,255,255,0.5)_inset] dark:hover:shadow-[0_4px_16px_rgba(99,102,241,0.4),0_2px_26px_rgba(255,255,255,0.16)_inset] hover:scale-[1.02] transform hover:-translate-y-0.5 backdrop-blur-xl"
             >
               See it in action
             </button>

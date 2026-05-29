@@ -5,6 +5,7 @@ import { blind75Data, TopicName, getTopicNames, getAllProblems, getProblemsByTop
 import { FormData, Company } from '../../../types';
 import { fetchCompanies as fetchCompaniesAPI } from '../../../utils/api-service';
 import { getCachedCompanies, cacheCompanies } from '../../../utils/companiesCache';
+import { LogoWordmark } from '@/components/Logo';
 
 // Six fixed company IDs
 const FIXED_COMPANY_IDS = ['meta', 'apple', 'amazon', 'netflix', 'google', 'microsoft'];
@@ -476,7 +477,7 @@ export function ProblemForm({
    {/* Copyright Notice */}
    <div className="mt-8 pt-6 border-t border-gray-200 dark:border-panel-200">
     <p className="text-center text-sm text-content-subtle">
-     Copyright © 2025 <span className="font-playfair">AlgoIRL</span>. All rights reserved.
+     Copyright © 2025 <LogoWordmark className="inline-block h-[0.9em] w-auto align-[-0.22em]" />. All rights reserved.
     </p>
    </div>
   </div>

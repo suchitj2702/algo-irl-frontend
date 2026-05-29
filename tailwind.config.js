@@ -268,7 +268,7 @@ export default {
         'gradient-lightblue': 'linear-gradient(to right, #7DD3FC, #60A5FA)',
         'gradient-amber': 'linear-gradient(to right, #F59E0B, #D97706)',
         'gradient-blue-indigo': 'linear-gradient(to right, #3B82F6, #6366F1)',
-        'gradient-navy': 'linear-gradient(to right, #5B8FDF, #4A7FD4)',
+        'gradient-navy': 'linear-gradient(to right, #666FF3, #4F46E5)',
       },
       keyframes: {
         'accordion-down': {

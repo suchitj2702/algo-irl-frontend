@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { AuthProviderList } from "./AuthProviderList";
+import { LogoWordmark } from "../Logo";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -74,7 +75,7 @@ export function AuthModal({
 
         <div className="space-y-6">
           <h2 className="text-xl text-content text-center">
-            <span className="font-normal">Log in to</span> <span className="font-semibold font-playfair">AlgoIRL</span>
+            <span className="font-normal">Log in to</span> <LogoWordmark className="inline-block h-[0.9em] w-auto align-[-0.22em]" />
           </h2>
 
           <AuthProviderList

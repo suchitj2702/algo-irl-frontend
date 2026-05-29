@@ -4,6 +4,7 @@ import { MenuIcon, XIcon, SunIcon, MoonIcon, User, ChevronDown } from 'lucide-re
 import { useDarkMode, isDarkModeFeatureEnabled } from './DarkModeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useAuthDialog } from '../contexts/AuthDialogContext';
+import { LogoLockup } from './Logo';
 
 interface NavbarProps {
  onHomeClick?: () => void;
@@ -102,9 +103,10 @@ export function Navbar({ onHomeClick, onBlind75Click, onStudyPlansClick, onEngin
       <div className="flex-shrink-0">
        <button
         onClick={handleHomeClick}
-        className="text-xl font-medium text-content hover:text-content-muted dark:hover:text-neutral-200 transition-colors font-playfair"
+        aria-label="AlgoIRL home"
+        className="flex items-center text-content hover:opacity-80 transition-opacity"
        >
-        AlgoIRL
+        <LogoLockup className="h-7 w-auto" decorative />
        </button>
       </div>
      )}

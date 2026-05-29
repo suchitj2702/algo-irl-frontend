@@ -8,6 +8,7 @@ import { AuthProviderList } from "./auth/AuthProviderList";
 import { secureLog } from "../utils/secureLogger";
 import { loadRazorpayScript } from "../utils/payment";
 import type { RazorpayConstructor, RazorpayErrorResponse, RazorpayInstance, RazorpayOptions } from "@types/razorpay";
+import { LogoWordmark } from "./Logo";
 
 interface PremiumGateProps {
   children: ReactNode;
@@ -71,7 +72,7 @@ export function PremiumGate({
               <div className="space-y-2">
                 <h3 className="text-2xl font-semibold text-content">
                   <span className="font-normal">Log in to</span>{" "}
-                  <span className="font-playfair font-semibold">AlgoIRL</span>
+                  <LogoWordmark className="inline-block h-[0.9em] w-auto align-[-0.22em]" />
                 </h3>
                 <p className="text-sm text-content-muted dark:text-content-subtle">
                   {message || `Access your study plans and sync them across devices.`}
